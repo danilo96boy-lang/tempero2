@@ -326,7 +326,7 @@
         <div class="card-login">
             <h2 style="color: var(--cor-principal); margin: 0 0 6px 0; text-transform: uppercase; font-size: 18px; font-weight: 800;">Acesso Restrito</h2>
             <p style="font-size: 13px; color: var(--cor-texto-secundario); margin: 0 0 24px 0;">Painel PDV Comercial Cloud</p>
-            <form id="form-login-id" onsubmit="validarAcessoSecure(event)">
+            <form id="form-login-id" onsubmit="window.validarAcessoSecure(event)">
                 <div class="form-group" style="text-align: left;">
                     <label>Operador / Usuário:</label>
                     <input type="text" id="login-usuario" required placeholder="Digite o usuário">
@@ -341,11 +341,11 @@
     </div>
 
     <nav class="mobile-tabs-nav no-print" id="navegacao-abas-id">
-        <button class="tab-btn active" onclick="alternarAbaMobile('venda', this)">📝 <span id="nav-venda-label">Lançar</span></button>
-        <button class="tab-btn" onclick="alternarAbaMobile('carrinho', this)">🛒 <span>Carrinho</span><span class="badge-carrinho" id="badge-contador-id">0</span></button>
-        <button class="tab-btn admin-only" onclick="alternarAbaMobile('painel', this)">🔔 <span>Pedidos</span><span class="badge-pendente" id="badge-pendentes-id">0</span></button>
-        <button class="tab-btn admin-only" onclick="alternarAbaMobile('cardapio', this)">🍔 <span>Menu</span></button>
-        <button class="tab-btn admin-only" onclick="alternarAbaMobile('fechamento', this)">🔒 <span>Turno</span></button>
+        <button class="tab-btn active" onclick="window.alternarAbaMobile('venda', this)">📝 <span id="nav-venda-label">Lançar</span></button>
+        <button class="tab-btn" onclick="window.alternarAbaMobile('carrinho', this)">🛒 <span>Carrinho</span><span class="badge-carrinho" id="badge-contador-id">0</span></button>
+        <button class="tab-btn admin-only" onclick="window.alternarAbaMobile('painel', this)">🔔 <span>Pedidos</span><span class="badge-pendente" id="badge-pendentes-id">0</span></button>
+        <button class="tab-btn admin-only" onclick="window.alternarAbaMobile('cardapio', this)">🍔 <span>Menu</span></button>
+        <button class="tab-btn admin-only" onclick="window.alternarAbaMobile('fechamento', this)">🔒 <span>Turno</span></button>
     </nav>
 
     <div id="conteudo-sistema">
@@ -358,12 +358,12 @@
             
             <div class="card active-tab-card" id="card-aba-venda">
                 <h3 id="label-modo-venda">📝 Registrar Pedido</h3>
-                <form id="form-item" onsubmit="adicionarItem(event)">
+                <form id="form-item" onsubmit="window.adicionarItem(event)">
                     <div class="secao-titulo">1. Seus Dados / Identificação</div>
                     <div class="form-row dois-campos">
                         <div class="form-group">
                             <label>Celular / WhatsApp:</label>
-                            <input type="tel" id="cliente-celular" oninput="buscarClientePorTelefone(this.value)" placeholder="(00) 00000-0000" required>
+                            <input type="tel" id="cliente-celular" oninput="window.buscarClientePorTelefone(this.value)" placeholder="(00) 00000-0000" required>
                         </div>
                         <div class="form-group">
                             <label>Nome Completo:</label>
@@ -379,13 +379,13 @@
                     <div class="form-row dois-campos">
                         <div class="form-group">
                             <label>Produto / Categoria:</label>
-                            <select id="categoria-prato" onchange="atualizarOpcoesMenu()" required>
+                            <select id="categoria-prato" onchange="window.atualizarOpcoesMenu()" required>
                                 <option value="">-- Selecione o Prato --</option>
                             </select>
                         </div>
                         <div class="form-group">
                             <label>Tamanho / Especificação:</label>
-                            <select id="tipo" onchange="inserirPrecoSugerido()" required>
+                            <select id="tipo" onchange="window.inserirPrecoSugerido()" required>
                                 <option value="">-- Selecione o prato primeiro --</option>
                             </select>
                         </div>
@@ -422,7 +422,7 @@
                 <ul id="lista-itens" class="lista-itens"></ul>
                 <div>
                     <div class="total-tela">Total: <span>R$ <span id="total-valor">0.00</span></span></div>
-                    <button type="button" class="btn btn-print" style="margin-top: 15px;" id="btn-finalizar-checkout" onclick="finalizarPedidoFluxo()">🚀 Enviar e Finalizar Pedido</button>
+                    <button type="button" class="btn btn-print" style="margin-top: 15px;" id="btn-finalizar-checkout" onclick="window.finalizarPedidoFluxo()">🚀 Enviar e Finalizar Pedido</button>
                 </div>
             </div>
 
@@ -440,9 +440,9 @@
             <div class="card admin-only" id="card-aba-fechamento">
                 <h3>🔒 Fechamento Consolidado de Caixa</h3>
                 <div style="display:flex; gap:10px; flex-wrap: wrap;">
-                    <button type="button" class="btn" style="background:#1e293b; color:white;" onclick="alternarAbaMobile('logs')">📋 Ver Histórico Geral</button>
-                    <button type="button" class="btn" style="background:var(--cor-principal); color:white;" onclick="calcularFechamentoDiario()">🔒 Processar Turno</button>
-                    <button type="button" id="btn-pdf-id" class="btn" style="background:#475569; color:white;" onclick="exportarFechamentoPDF()">📥 Gerar PDF</button>
+                    <button type="button" class="btn" style="background:#1e293b; color:white;" onclick="window.alternarAbaMobile('logs')">📋 Ver Histórico Geral</button>
+                    <button type="button" class="btn" style="background:var(--cor-principal); color:white;" onclick="window.calcularFechamentoDiario()">🔒 Processar Turno</button>
+                    <button type="button" id="btn-pdf-id" class="btn" style="background:#475569; color:white;" onclick="window.exportarFechamentoPDF()">📥 Gerar PDF</button>
                 </div>
                 
                 <div id="dashboard-vendas-tela" class="dash-container-tela">
@@ -474,7 +474,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, query, orderBy, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAp-heSrhEA1WOW30gbUJ8DVJQNYH8hVCY",
@@ -489,7 +489,6 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // CARDÁPIO DE PRODUTOS
         const cardapioEstruturado = {
             "Parmegiana de Frango": ["Marmita (P)", "Marmita (M)", "Marmita (G)"],
             "Frango à Milanesa": ["Marmita (P)", "Marmita (M)", "Marmita (G)"],
@@ -522,7 +521,8 @@
         let isClienteView = false;
         let chartPizzaInstancia = null;
 
-        window.addEventListener('DOMContentLoaded', () => {
+        // FUNÇÃO DE INICIALIZAÇÃO CORRIGIDA
+        function inicializarSistema() {
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('cliente') === 'true') {
                 isClienteView = true;
@@ -532,7 +532,7 @@
             }
             sincronizarCardapioNuvem();
             escutarPedidosRealtime();
-        });
+        }
 
         function configurarModoCliente() {
             document.getElementById('tela-login').style.display = 'none';
@@ -543,9 +543,10 @@
             document.getElementById('btn-finalizar-checkout').innerText = "🚀 Enviar Pedido via WhatsApp";
             
             document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
-            alternarAbaMobile('venda');
+            window.alternarAbaMobile('venda');
         }
 
+        // EXPONDO AS FUNÇÕES PARA O ESCOPO GLOBAL (WINDOW) RESOLVENDO O DIRETÓRIO VERCEL
         window.validarAcessoSecure = function(event) {
             event.preventDefault();
             const usu = document.getElementById('login-usuario').value.trim().toLowerCase();
@@ -559,7 +560,7 @@
             }
         };
 
-        function atualizarSelectCategorias() {
+        window.atualizarSelectCategorias = function() {
             const select = document.getElementById('categoria-prato');
             select.innerHTML = '<option value="">-- Selecione o Prato --</option>';
             Object.keys(cardapioEstruturado).forEach(prato => {
@@ -568,7 +569,7 @@
                     select.innerHTML += `<option value="${prato}">${prato}</option>`;
                 }
             });
-        }
+        };
 
         window.atualizarOpcoesMenu = function() {
             const categorySel = document.getElementById('categoria-prato').value;
@@ -580,7 +581,7 @@
             cardapioEstruturado[categorySel].forEach(opcao => {
                 selectTipo.innerHTML += `<option value="${opcao}">${opcao}</option>`;
             });
-            inserirPrecoSugerido();
+            window.inserirPrecoSugerido();
         };
 
         window.inserirPrecoSugerido = function() {
@@ -637,7 +638,7 @@
                 container.innerHTML += `
                     <li class="item-carrinho">
                         <div><strong>${item.qtd}x - ${item.prato}</strong> (${item.tipo})<br><small>R$ ${item.valor.toFixed(2)}</small></div>
-                        <button type="button" class="btn-del" onclick="removerItem(${item.id})">X</button>
+                        <button type="button" class="btn-del" onclick="window.removerItem(${item.id})">X</button>
                     </li>`;
             });
             document.getElementById('total-valor').innerText = total.toFixed(2);
@@ -650,7 +651,6 @@
             atualizarInterfaceCarrinho();
         };
 
-        // SALVAMENTO NA NUVEM FIRESTORE (AÇÃO INTEGRADA)
         window.finalizarPedidoFluxo = async function() {
             if (pedidoAtual.length === 0) return alert("Carrinho vazio!");
             
@@ -677,7 +677,6 @@
             };
 
             try {
-                // Adiciona o documento direto na sua nova coleção do Cloud Firestore
                 await addDoc(collection(db, "pedidos"), novoPedido);
 
                 if (isClienteView) {
@@ -702,18 +701,17 @@
                 atualizarInterfaceCarrinho();
                 document.getElementById('form-item').reset();
             } catch (error) {
-                alert("Erro ao gravar dados no Firebase cloud: " + error.message);
+                alert("Erro ao gravar dados no Firebase: " + error.message);
             }
         };
 
-        // ESCUTADOR REALTIME DO FIRESTORE (ATUALIZA ATENDENTE EM TEMPO REAL)
         function escutarPedidosRealtime() {
             const q = query(collection(db, "pedidos"), orderBy("timestamp", "asc"));
             onSnapshot(q, (snapshot) => {
                 totalizadorLocalPedidos = [];
                 snapshot.forEach((doc) => {
                     let dados = doc.data();
-                    dados.id = doc.id; // Vincula a Hash ID gerada pelo Firebase
+                    dados.id = doc.id; 
                     totalizadorLocalPedidos.push(dados);
                 });
                 if (!isClienteView) sincronizarInterfaceAtendente();
@@ -730,7 +728,6 @@
 
             let countPendentes = 0;
 
-            // Percorre a lista invertida para exibir os mais recentes no topo
             [...totalizadorLocalPedidos].reverse().forEach(p => {
                 const resumoItens = p.itens.map(i => `<b style="color:var(--cor-principal)">(${i.qtd}x)</b> ${i.prato} [${i.tipo}]`).join('<br>');
                 const htmlCard = `
@@ -747,9 +744,9 @@
                             <b>Total: <span style="color:var(--cor-principal)">R$ ${p.total.toFixed(2)}</span></b>
                         </div>
                         <div class="pedido-log-footer">
-                            ${p.status === 'Pendente' ? `<button class="btn-aprovar" onclick="aprovarPedidoWhats('${p.id}')">✅ Aprovar & Imprimir</button>` : ''}
-                            <button class="btn-card-rep" onclick="reimprimirTicketPorId('${p.id}')">🖨️ Rep</button>
-                            <button class="btn-card-del" onclick="excluirPedidoDefinitivo('${p.id}')">❌ Exc</button>
+                            ${p.status === 'Pendente' ? `<button class="btn-aprovar" onclick="window.aprovarPedidoWhats('${p.id}')">✅ Aprovar & Imprimir</button>` : ''}
+                            <button class="btn-card-rep" onclick="window.reimprimirTicketPorId('${p.id}')">🖨️ Rep</button>
+                            <button class="btn-card-del" onclick="window.excluirPedidoDefinitivo('${p.id}')">❌ Exc</button>
                         </div>
                     </div>`;
 
@@ -791,14 +788,13 @@
             }
         };
 
-        // CONTROLE DO CARDÁPIO NA NUVEM (FIRESTORE)
         function sincronizarCardapioNuvem() {
             onSnapshot(collection(db, "status_cardapio"), (snapshot) => {
                 snapshot.forEach((doc) => {
                     statusCardapioDisponivel[doc.id] = doc.data().disponivel;
                 });
                 renderizarGerenciamentoCardapio();
-                atualizarSelectCategorias();
+                window.atualizarSelectCategorias();
             });
         }
 
@@ -811,7 +807,7 @@
                     <div class="item-cardapio-manage">
                         <span><b>${prato}</b></span>
                         <label class="switch">
-                            <input type="checkbox" ${checked} onchange="alternarStatusDisponibilidade('${prato}', this.checked)">
+                            <input type="checkbox" ${checked} onchange="window.alternarStatusDisponibilidade('${prato}', this.checked)">
                             <span class="slider"></span>
                         </label>
                     </div>`;
@@ -820,15 +816,11 @@
 
         window.alternarStatusDisponibilidade = async function(prato, disponibilizar) {
             try {
-                // Altera o status dinâmico na nuvem refletindo em todos os dispositivos clientes conectados
                 const cRef = doc(db, "status_cardapio", prato);
-                // Cria ou atualiza o registro
-                import { setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
                 await setDoc(cRef, { disponivel: disponibilizar }, { merge: true });
             } catch (e) {
-                // fallback interno caso regras do Firestore barrem antes do setup de permissões completo
                 statusCardapioDisponivel[prato] = disponibilizar;
-                atualizarSelectCategorias();
+                window.atualizarSelectCategorias();
             }
         };
 
@@ -925,8 +917,9 @@
             html2pdf().set(opt).from(elemento).save();
         };
 
-        window.onbeforeprint = function() { document.body.classList.add("modo-impressao-ticket"); };
-        window.onafterprint = function() { document.body.classList.remove("modo-impressao-ticket"); document.getElementById('ticket-print').innerHTML = ''; };
+        // Dispara o fluxo inicializador
+        inicializarSistema();
+
     </script>
 </body>
 </html>
