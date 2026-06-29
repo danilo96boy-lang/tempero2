@@ -4,103 +4,1030 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Tempero de Família - PDV Premium & Delivery</title>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <style>
-        :root { --cor-principal: #cc1d1d; --cor-fundo: #f4f6f9; --cor-card: #ffffff; --cor-texto: #1e293b; --cor-borda: #e2e8f0; }
-        body { font-family: sans-serif; background-color: var(--cor-fundo); margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding-bottom: 80px; }
-        #tela-login { display: flex; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--cor-fundo); z-index: 9999; justify-content: center; align-items: center; }
-        .card-login { background: var(--cor-card); padding: 30px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 90%; max-width: 350px; text-align: center; }
-        #conteudo-sistema { display: none; width: 100%; max-width: 600px; }
-        .btn { width: 100%; padding: 15px; border: none; border-radius: 8px; background: var(--cor-principal); color: white; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .form-group { margin-bottom: 15px; text-align: left; }
-        input, select, textarea { width: 100%; padding: 12px; border: 1px solid var(--cor-borda); border-radius: 6px; box-sizing: border-box; }
-        .badge-option { padding: 10px; border: 2px solid var(--cor-borda); border-radius: 8px; cursor: pointer; margin-top: 5px; }
-        .badge-option.selected { border-color: var(--cor-principal); background: #fff0f0; }
-        .card { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid var(--cor-borda); }
+        :root {
+            --cor-principal: #cc1d1d; 
+            --cor-principal-hover: #b71c1c;
+            --cor-fundo: #f4f6f9;
+            --cor-card: #ffffff;
+            --cor-texto: #1e293b;
+            --cor-texto-secundario: #64748b;
+            --cor-borda: #e2e8f0;
+            --cor-pendente: #f59e0b;
+            --cor-aprovado: #16a34a;
+            --border-radius-lg: 16px;
+            --border-radius-md: 10px;
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.02);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.05);
+            --transition: all 0.2s ease-in-out;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--cor-fundo);
+            margin: 0;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--cor-texto);
+            -webkit-font-smoothing: antialiased;
+            padding-bottom: 90px;
+            min-height: 100vh;
+        }
+
+        @media(min-width: 480px) { body { padding: 12px; padding-bottom: 95px; } }
+        @media(min-width: 950px) { body { padding: 20px; padding-bottom: 100px; } }
+
+        #tela-login {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background-color: var(--cor-fundo);
+            z-index: 9999;
+            padding: 16px;
+        }
+
+        .card-login {
+            background: var(--cor-card);
+            padding: 30px 20px;
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-md);
+            width: 100%;
+            max-width: 380px;
+            text-align: center;
+            border-top: 5px solid var(--cor-principal);
+        }
+
+        #conteudo-sistema {
+            display: none;
+            width: 100%;
+            max-width: 1180px;
+            transition: var(--transition);
+        }
+
+        .brand-header {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 12px;
+            background: var(--cor-card);
+            padding: 14px 16px;
+            border-radius: var(--border-radius-lg);
+            width: 100%;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--cor-borda);
+            margin-bottom: 12px;
+        }
+
+        .brand-logo {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 2px solid var(--cor-principal);
+        }
+
+        .brand-header h1 {
+            margin: 0;
+            font-size: clamp(15px, 4vw, 20px);
+            font-weight: 800;
+            color: var(--cor-texto);
+            letter-spacing: -0.5px;
+        }
+
+        .mobile-tabs-nav {
+            display: flex;
+            justify-content: space-around;
+            position: fixed;
+            bottom: 0; left: 0; width: 100%;
+            background: #ffffff;
+            border-top: 1px solid var(--cor-borda);
+            padding: clamp(8px, 2vh, 14px) 0;
+            z-index: 999;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.07);
+        }
+
+        .tab-btn {
+            background: none; border: none; font-size: clamp(10px, 2.5vw, 12px); font-weight: 700;
+            color: var(--cor-texto-secundario); display: flex; flex-direction: column;
+            align-items: center; gap: 4px; cursor: pointer; position: relative; width: 20%;
+        }
+
+        .tab-btn.active { color: var(--cor-principal); }
+        
+        .badge-carrinho, .badge-pendente {
+            position: absolute; top: -6px; right: 15%;
+            background: var(--cor-principal); color: white;
+            font-size: 10px; font-weight: bold; border-radius: 10px;
+            padding: 2px 6px; display: none;
+        }
+        .badge-pendente { background: var(--cor-pendente); }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            width: 100%;
+        }
+
+        .main-grid > .card { display: none !important; }
+        .main-grid > .card.active-tab-card { display: block !important; }
+
+        .card {
+            background-color: var(--cor-card);
+            padding: clamp(14px, 3vw, 24px);
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--cor-borda);
+            margin-bottom: 15px;
+            width: 100%;
+        }
+
+        h3 {
+            margin: 0 0 16px 0;
+            color: var(--cor-texto);
+            font-size: clamp(14px, 3.5vw, 16px);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            border-bottom: 1px solid var(--cor-borda);
+            padding-bottom: 8px;
+        }
+
+        .secao-titulo {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--cor-principal);
+            margin: 18px 0 10px 0;
+            font-weight: 700;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        @media(min-width: 580px) {
+            .form-row.dois-campos { grid-template-columns: 1fr 1fr; }
+            .form-row.tres-campos { grid-template-columns: repeat(3, 1fr); }
+            .form-row.quatro-campos { grid-template-columns: repeat(4, 1fr); }
+        }
+
+        .form-group { margin-bottom: 12px; }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: var(--cor-texto);
+            font-size: 13px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 14px; 
+            border: 1px solid #cbd5e1;
+            border-radius: var(--border-radius-md);
+            font-size: 16px; 
+            font-family: inherit;
+            background-color: #fff;
+            color: var(--cor-texto);
+            transition: var(--transition);
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--cor-principal);
+            box-shadow: 0 0 0 3px rgba(204, 29, 29, 0.1);
+        }
+
+        .mobile-badge-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(clamp(115px, 28vw, 150px), 1fr));
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .badge-option {
+            background: #fff;
+            border: 2px solid var(--cor-borda);
+            border-radius: var(--border-radius-md);
+            padding: clamp(12px, 2.5vw, 16px) 8px;
+            text-align: center;
+            font-weight: 700;
+            font-size: clamp(13px, 3vw, 15px);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 4px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .badge-option.selected {
+            border-color: var(--cor-principal);
+            background-color: rgba(204, 29, 29, 0.04);
+            color: var(--cor-principal);
+        }
+
+        .badge-option span {
+            font-size: 12px;
+            color: var(--cor-texto-secundario);
+            font-weight: 500;
+        }
+
+        .btn {
+            border: none;
+            padding: 16px 20px;
+            font-size: 15px;
+            border-radius: var(--border-radius-md);
+            cursor: pointer;
+            font-weight: 700;
+            transition: var(--transition);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .btn-add { background-color: var(--cor-principal); color: white; margin-top: 15px; box-shadow: 0 4px 10px rgba(204, 29, 29, 0.2); }
+        .btn-add:hover { background-color: var(--cor-principal-hover); }
+        .btn-print { background-color: #16a34a; color: white; font-size: 16px; box-shadow: 0 4px 10px rgba(22, 163, 74, 0.2); }
+        .btn-aprovar { background-color: #16a34a; color: white; padding: 8px 14px; font-size: 13px; border-radius: 6px; }
+
+        .container-logs-cards { display: grid; grid-template-columns: 1fr; gap: 14px; margin-top: 10px; }
+        @media(min-width: 700px) { .container-logs-cards { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); } }
+        
+        .pedido-log-card { background: #f8fafc; border: 1px solid var(--cor-borda); border-radius: var(--border-radius-lg); padding: 16px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: var(--shadow-sm); }
+        .pedido-log-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--cor-borda); padding-bottom: 8px; margin-bottom: 10px; }
+        .pedido-log-corpo { font-size: 14px; color: var(--cor-texto); line-height: 1.5; margin-bottom: 12px; }
+        .pedido-log-footer { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; border-top: 1px solid var(--cor-borda); padding-top: 12px; }
+        
+        .status-badge { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; color: white; }
+        .status-pendente { background-color: var(--cor-pendente); }
+        .status-aprovado { background-color: var(--cor-aprovado); }
+
+        .financeiro-badge { padding: 2px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; display: inline-block; margin-top: 4px; }
+        .fin-pago { background-color: #d1fae5; color: #065f46; }
+        .fin-pendente { background-color: #fee2e2; color: #991b1b; }
+
+        .btn-card-rep { background-color: #2563eb; color: white; border: none; padding: 6px 12px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        .btn-card-edit { background-color: #f59e0b; color: white; border: none; padding: 6px 12px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        .btn-card-del { background-color: #dc2626; color: white; border: none; padding: 8px 14px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 13px; }
+
+        .carrinho-container { display: flex; flex-direction: column; justify-content: space-between; background: #f8fafc; }
+        .lista-itens { list-style: none; padding: 0; margin: 0; max-height: 40vh; overflow-y: auto; }
+        .item-carrinho { background: white; padding: 14px; margin-bottom: 10px; border-radius: var(--border-radius-md); font-size: 14px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--cor-borda); box-shadow: var(--shadow-sm); }
+        .btn-del { background: #fee2e2; color: #ef4444; border: none; border-radius: 50%; width: 28px; height: 28px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+        .grid-cardapio-gestao { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 10px; }
+        @media(min-width: 750px) { .grid-cardapio-gestao { grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); } }
+        
+        .item-cardapio-manage { padding: 16px; background: #f8fafc; border: 1px solid var(--cor-borda); border-radius: var(--border-radius-lg); display: flex; flex-direction: column; gap: 12px; box-shadow: var(--shadow-sm); }
+        .manage-row-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--cor-borda); padding-bottom: 8px; }
+        .manage-precos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); gap: 8px; }
+        .input-preco-manage { display: flex; flex-direction: column; gap: 4px; font-size: 11px; font-weight: 600; }
+        .input-preco-manage input { padding: 8px; font-size: 14px; }
+
+        .switch { position: relative; display: inline-block; width: 46px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .3s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+        input:checked + .slider { background-color: #16a34a; }
+        input:checked + .slider:before { transform: translateX(22px); }
+
+        .dash-container-tela { display: none; grid-template-columns: 1fr; gap: 16px; margin-top: 15px; padding: 12px; background: #f8fafc; border: 1px solid var(--cor-borda); border-radius: var(--border-radius-lg); width: 100%; }
+        @media(min-width: 650px) { .dash-container-tela { grid-template-columns: 1fr 1fr; } .dash-full { grid-column: span 2; } }
+        .bloco-metricas-caixa { display: flex; flex-direction: column; gap: 10px; }
+        .card-metrica { background: #fff; border: 1px solid var(--cor-borda); padding: 14px; border-radius: var(--border-radius-md); }
+        .card-metrica p { margin: 4px 0 0 0; font-size: 20px; font-weight: bold; }
+        .bloco-grafico-caixa { background: #fff; border: 1px solid var(--cor-borda); padding: 14px; border-radius: var(--border-radius-md); display: flex; justify-content: center; align-items: center; min-height: 250px; }
+
+        #ticket-print { display: none; }
+        body.modo-impressao-ticket #conteudo-sistema, body.modo-impressao-ticket #navegacao-abas-id, body.modo-impressao-ticket #tela-login { display: none !important; }
+
+        @media print {
+            @page { size: 58mm auto; margin: 0mm; }
+            .no-print { display: none !important; }
+            body { background: #fff; padding: 0; margin: 0; display: block; width: 58mm; }
+            #ticket-print { display: block !important; font-family: 'Courier New', Courier, monospace; width: 48mm; max-width: 48mm; padding: 1mm 0.5mm; font-size: 11px; color: #000; line-height: 1.25; word-wrap: break-word; }
+            .ticket-header { text-align: center; }
+            .ticket-via-tag { font-size: 12px; font-weight: bold; border: 1px solid #000; display: inline-block; padding: 2px 4px; }
+            .ticket-header-num-destaque { font-size: 26px !important; font-weight: 950 !important; text-align: center; display: block; width: 100%; }
+            .ticket-divider { text-align: center; margin: 2px 0; font-weight: bold; }
+            .ticket-item { margin: 6px 0; border-bottom: 1px dotted #ccc; padding-bottom: 4px; }
+            .ticket-item-price { text-align: right; font-weight: bold; display: block; }
+            .ticket-wrapper-via { page-break-after: always !important; display: block; }
+            .ticket-alert-box { text-align: center; border: 2px solid #000; font-weight: 900; font-size: 13px; padding: 4px; margin: 5px 0; text-transform: uppercase; }
+        }
     </style>
 </head>
 <body>
 
-    <div id="tela-login">
+    <div id="tela-login" class="no-print">
         <div class="card-login">
-            <h2>Acesso Restrito</h2>
+            <h2 style="color: var(--cor-principal); margin: 0 0 6px 0; text-transform: uppercase; font-size: 18px; font-weight: 800;">Acesso Restrito</h2>
+            <p style="font-size: 13px; color: var(--cor-texto-secundario); margin: 0 0 24px 0;">Painel PDV Comercial Cloud</p>
             <form id="form-login-id" onsubmit="window.validarAcessoSecure(event)">
-                <div class="form-group">
-                    <label>Usuário:</label>
-                    <input type="text" id="login-usuario" required>
+                <div class="form-group" style="text-align: left;">
+                    <label>Operador / Usuário:</label>
+                    <input type="text" id="login-usuario" required placeholder="Digite o usuário">
                 </div>
-                <div class="form-group">
-                    <label>Senha:</label>
-                    <input type="password" id="login-senha" required>
+                <div class="form-group" style="text-align: left; margin-bottom: 24px;">
+                    <label>Senha de Acesso:</label>
+                    <input type="password" id="login-senha" required placeholder="•••••">
                 </div>
-                <button type="submit" class="btn">🔓 Entrar</button>
+                <button type="submit" class="btn btn-add">🔓 Confirmar Identidade</button>
             </form>
         </div>
     </div>
 
+    <nav class="mobile-tabs-nav no-print" id="navegacao-abas-id">
+        <button class="tab-btn active" onclick="window.alternarAbaMobile('venda', this)">📝 <span id="nav-venda-label">Lançar</span></button>
+        <button class="tab-btn" onclick="window.alternarAbaMobile('carrinho', this)">🛒 <span>Carrinho</span><span class="badge-carrinho" id="badge-contador-id">0</span></button>
+        <button class="tab-btn admin-only" onclick="window.alternarAbaMobile('painel', this)">🔔 <span>Pedidos</span><span class="badge-pendente" id="badge-pendentes-id">0</span></button>
+        <button class="tab-btn admin-only" onclick="window.alternarAbaMobile('cardapio', this)">🍔 <span>Menu</span></button>
+        <button class="tab-btn admin-only" onclick="window.alternarAbaMobile('fechamento', this)">🔒 <span>Turno</span></button>
+    </nav>
+
     <div id="conteudo-sistema">
-        <div class="card" id="card-aba-venda">
-            <h3>📝 Registrar Pedido</h3>
-            <form id="form-item" onsubmit="window.adicionarItem(event)">
-                <div class="form-group">
-                    <label>Celular:</label>
-                    <input type="tel" id="cliente-celular" oninput="window.buscarClientePorTelefone(this.value)" required>
+        <div class="brand-header no-print">
+            <img src="logo.png" alt="Logo" class="brand-logo" onerror="this.style.display='none'">
+            <h1 id="sys-title">Tempero de Família - Painel Interno</h1>
+        </div>
+
+        <div class="main-grid no-print">
+            
+            <div class="card active-tab-card" id="card-aba-venda">
+                <h3>📝 Registrar Pedido</h3>
+                <form id="form-item" onsubmit="window.adicionarItem(event)">
+                    <div class="secao-titulo">1. Seus Dados / Identificação</div>
+                    <div class="form-row dois-campos">
+                        <div class="form-group">
+                            <label>Celular / WhatsApp:</label>
+                            <input type="tel" id="cliente-celular" oninput="window.buscarClientePorTelefone(this.value)" placeholder="(00) 00000-0000" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Nome Completo:</label>
+                            <input type="text" id="cliente-nome" placeholder="Seu Nome" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Endereço de Entrega Completo:</label>
+                        <input type="text" id="cliente-endereco" placeholder="Rua, número, bairro ou informe BALCÃO">
+                    </div>
+
+                    <div class="secao-titulo">2. Escolha o Prato</div>
+                    <div class="mobile-badge-selector" id="badge-container-pratos"></div>
+
+                    <div class="secao-titulo" id="titulo-especificacao">3. Tamanho / Opção</div>
+                    <div class="mobile-badge-selector" id="badge-container-tipos">
+                        <div style="color:var(--cor-texto-secundario); font-size:13px; grid-column: span 2;">Selecione o prato acima primeiro...</div>
+                    </div>
+
+                    <div class="form-row quatro-campos">
+                        <div class="form-group" id="container-valor-interno" style="grid-column: span 1;">
+                            <label>Preço Unitário (R$):</label>
+                            <input type="number" id="valor" step="0.01" placeholder="0,00">
+                        </div>
+                        <div class="form-group">
+                            <label>Quantidade:</label>
+                            <input type="number" id="quantidade" min="1" value="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Forma Pagto:</label>
+                            <select id="forma-pagamento" required>
+                                <option value="Dinheiro">💵 Dinheiro</option>
+                                <option value="Pix">⚡ Pix</option>
+                                <option value="Cartão">💳 Cartão</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="container-status-financeiro">
+                            <label>Status Pagto:</label>
+                            <select id="status-pagamento" required>
+                                <option value="Pago">✅ Pago</option>
+                                <option value="Pendente" selected>⚠️ Pendente</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Observações do Pedido:</label>
+                        <textarea id="descricao" placeholder="Ex: Sem cebola, ponto da carne, trocar acompanhamento..."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-add">＋ Adicionar ao Pedido</button>
+                </form>
+            </div>
+
+            <div class="card" id="card-aba-carrinho">
+                <h3>🛒 Checkout do Pedido</h3>
+                <ul id="lista-itens" class="lista-itens"></ul>
+                <div>
+                    <div class="total-tela">Total: <span>R$ <span id="total-valor">0.00</span></span></div>
+                    <button type="button" class="btn btn-print" style="margin-top: 15px;" id="btn-finalizar-checkout" onclick="window.finalizarPedidoFluxo()">🚀 Enviar e Finalizar Pedido</button>
                 </div>
-                <div class="form-group">
-                    <label>Nome:</label>
-                    <input type="text" id="cliente-nome" required>
-                </div>
-                <div class="form-group">
-                    <label>Endereço:</label>
-                    <input type="text" id="cliente-endereco" value="BALCÃO" required>
-                </div>
-                <div id="badge-container-pratos"></div>
-                <div id="badge-container-tipos"></div>
+            </div>
+
+            <div class="card admin-only" id="card-aba-painel">
+                <h3>🔔 Pedidos Pendentes de Aprovação</h3>
+                <div class="container-logs-cards" id="container-pedidos-pendentes"></div>
+            </div>
+
+            <div class="card admin-only" id="card-aba-cardapio">
+                <h3>🍔 Gerenciamento de Pratos e Tabela de Preços</h3>
                 
-                <input type="number" id="valor" step="0.01" style="display:none">
-                <button type="submit" class="btn">＋ Adicionar ao Pedido</button>
-            </form>
+                <div style="background: #f8fafc; border: 1px solid var(--cor-borda); padding: 14px; border-radius: var(--border-radius-md); margin-bottom: 16px;">
+                    <label style="color:var(--cor-principal); font-weight:800; font-size:12px; text-transform:uppercase;">＋ Cadastrar Prato Novo no Menu</label>
+                    <div style="display:flex; gap:10px; margin-top:6px; flex-wrap: wrap;">
+                        <input type="text" id="novo-prato-nome" placeholder="Ex: Bife Acebolado, Cupim Assado..." style="margin:0; flex: 1; min-width: 200px;">
+                        <button type="button" class="btn" style="background:var(--cor-principal); color:white; padding:0 20px; width:auto; font-size:13px;" onclick="window.adicionarNovoPratoNuvem()">Cadastrar</button>
+                    </div>
+                </div>
+
+                <p style="font-size: 13px; color: var(--cor-texto-secundario);">Ative/desative pratos ou modifique os valores de cada tamanho diretamente na tabela abaixo. Salva na nuvem na hora!</p>
+                <div class="grid-cardapio-gestao" id="container-gestao-cardapio"></div>
+            </div>
+
+            <div class="card admin-only" id="card-aba-fechamento">
+                <h3>🔒 Fechamento Consolidado de Caixa</h3>
+                <div style="display:flex; gap:10px; flex-wrap: wrap; margin-bottom: 20px;">
+                    <button type="button" class="btn" style="background:#1e293b; color:white; width: auto;" onclick="window.alternarAbaMobile('logs')">📋 Ver Histórico Geral</button>
+                    <button type="button" class="btn" style="background:var(--cor-principal); color:white; width: auto;" onclick="window.calcularFechamentoDiario()">🔒 Processar Turno</button>
+                    <button type="button" id="btn-pdf-id" class="btn" style="background:#475569; color:white; width: auto;" onclick="window.exportarFechamentoPDF()">📥 Gerar PDF</button>
+                </div>
+                
+                <div id="dashboard-vendas-tela" class="dash-container-tela">
+                    <div class="bloco-metricas-caixa">
+                        <div class="card-metrica">
+                            <h4>Faturamento Bruto Acumulado</h4>
+                            <p id="t-dash-faturamento">R$ 0.00</p>
+                        </div>
+                        <div class="card-metrica">
+                            <h4>Total de Pedidos Processados</h4>
+                            <p id="t-dash-qtd-pedidos">0</p>
+                        </div>
+                    </div>
+                    <div class="bloco-grafico-caixa">
+                        <canvas id="graficoPizzaFechamento" style="max-height: 280px; max-width: 280px;"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card admin-only" id="card-aba-logs">
+                <h3>📋 Histórico Analítico de Transações (Turno Ativo)</h3>
+                <div class="container-logs-cards" id="container-historico-cards"></div>
+            </div>
+
         </div>
     </div>
+
+    <div id="ticket-print"></div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, query, orderBy, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        const firebaseConfig = { /* Sua config do Firebase */ };
+        const firebaseConfig = {
+            apiKey: "AIzaSyAp-heSrhEA1WOW30gbUJ8DVJQNYH8hVCY",
+            authDomain: "tempero2.firebaseapp.com",
+            projectId: "tempero2",
+            storageBucket: "tempero2.firebasestorage.app",
+            messagingSenderId: "811694441776",
+            appId: "1:811694441776:web:c3bd2ffb8312eff402f4f5",
+            measurementId: "G-SFS66CD08V"
+        };
+
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Funções corrigidas e expostas ao window
-        window.validarAcessoSecure = function(event) {
+        const cardapioEstruturado = {
+            "Parmegiana de Frango": ["Marmita (P)", "Marmita (M)", "Marmita (G)"],
+            "Frango à Milanesa": ["Marmita (P)", "Marmita (M)", "Marmita (G)"],
+            "Parmegiana de Berinjela": ["Marmita (P)", "Marmita (M)", "Marmita (G)"],
+            "Feijoada": ["Marmita (P)", "Marmita (M)", "Marmita (G)"],
+            "Marmitex": ["Marmita (P)", "Marmita (M)", "Marmita (G)"],
+            "Prato Feito": ["Tradicional", "Especial"],
+            "Bebidas": ["Refrigerante Lata", "Suco Natural", "Água Mineral"],
+            "Outros Pratos": ["Especial do Dia"]
+        };
+
+        let tabelaPrecosDinamicos = {
+            "Parmegiana de Frango": {"Marmita (P)": 18.00, "Marmita (M)": 28.00, "Marmita (G)": 35.00},
+            "Frango à Milanesa": {"Marmita (P)": 16.00, "Marmita (M)": 26.00, "Marmita (G)": 32.00},
+            "Parmegiana de Berinjela": {"Marmita (P)": 21.00, "Marmita (M)": 27.00, "Marmita (G)": 34.00},
+            "Feijoada": {"Marmita (P)": 18.00, "Marmita (M)": 27.00, "Marmita (G)": 35.00},
+            "Marmitex": {"Marmita (P)": 18.00, "Marmita (M)": 22.00, "Marmita (G)": 26.00},
+            "Prato Feito": {"Tradicional": 20.00, "Especial": 25.00},
+            "Bebidas": {"Refrigerante Lata": 6.00, "Suco Natural": 8.00, "Água Mineral": 4.00},
+            "Outros Pratos": {"Especial do Dia": 30.00}
+        };
+
+        let statusCardapioDisponivel = {
+            "Parmegiana de Frango": true, "Frango à Milanesa": true, "Parmegiana de Berinjela": true,
+            "Feijoada": true, "Marmitex": true, "Prato Feito": true, "Bebidas": true, "Outros Pratos": true
+        };
+
+        let pedidoAtual = [];
+        let totalizadorLocalPedidos = []; 
+        let isClienteView = false;
+        let chartPizzaInstancia = null;
+
+        let pratoSelecionadoGlobal = "";
+        let tipoSelecionadoGlobal = "";
+
+        // DECLARAÇÃO INDEPENDENTE DE TODAS AS FUNÇÕES (EVITA ERRO DE INICIALIZAÇÃO)
+        function executarDisparoWhatsDevice(urlDisparo, abaDestino) {
+            const isMobileApp = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            if (isMobileApp) {
+                const urlMobile = urlDisparo.replace("web.whatsapp.com", "api.whatsapp.com");
+                window.open(urlMobile, '_blank');
+            } else {
+                window.open(urlDisparo, abaDestino);
+            }
+        }
+
+        function configurarModoCliente() {
+            document.getElementById('tela-login').style.display = 'none';
+            document.getElementById('conteudo-sistema').style.display = 'block';
+            document.getElementById('sys-title').innerText = "Tempero de Família - Cardápio";
+            document.getElementById('nav-venda-label').innerText = "Cardápio";
+            document.getElementById('container-valor-interno').style.display = 'none';
+            document.getElementById('container-status-financeiro').style.display = 'none'; 
+            document.getElementById('btn-finalizar-checkout').innerText = "🚀 Enviar Pedido via WhatsApp";
+            
+            document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
+            alternarAbaMobile('venda');
+        }
+
+        function validarAcessoSecure(event) {
             event.preventDefault();
             const usu = document.getElementById('login-usuario').value.trim().toLowerCase();
             const sen = document.getElementById('login-senha').value.trim();
             if (usu === "gabriele" && sen === "190620") {
                 document.getElementById('tela-login').style.display = 'none';
                 document.getElementById('conteudo-sistema').style.display = 'block';
+                sincronizarInterfaceAtendente();
             } else {
-                alert("Acesso Recusado!");
+                alert("Acesso Recusado! Usuário ou senha incorretos.");
+            }
+        }
+
+        function renderizarBadgesPratos() {
+            const container = document.getElementById('badge-container-pratos');
+            if(!container) return;
+            container.innerHTML = '';
+            Object.keys(cardapioEstruturado).forEach(prato => {
+                if (isClienteView && prato === "Outros Pratos") return;
+                if (!isClienteView || statusCardapioDisponivel[prato]) {
+                    const isSelected = prato === pratoSelecionadoGlobal ? 'selected' : '';
+                    container.innerHTML += `
+                        <div class="badge-option ${isSelected}" onclick="window.selecionarPratoBadge('${prato}')">
+                            <div class="prato-info-title">${prato}</div>
+                        </div>`;
+                }
+            });
+        }
+
+        function selecionarPratoBadge(prato) {
+            pratoSelecionadoGlobal = prato;
+            tipoSelecionadoGlobal = ""; 
+            renderizarBadgesPratos();
+            renderizarBadgesTipos();
+        }
+
+        function renderizarBadgesTipos() {
+            const container = document.getElementById('badge-container-tipos');
+            if(!container) return;
+            container.innerHTML = '';
+            
+            if (!pratoSelecionadoGlobal || !cardapioEstruturado[pratoSelecionadoGlobal]) {
+                container.innerHTML = '<div style="color:var(--cor-texto-secundario); font-size:13px; grid-column: span 2;">Selecione o prato acima primeiro...</div>';
+                return;
+            }
+
+            cardapioEstruturado[pratoSelecionadoGlobal].forEach(opcao => {
+                const preco = tabelaPrecosDinamicos[pratoSelecionadoGlobal]?.[opcao] || 0;
+                const isSelected = opcao === tipoSelecionadoGlobal ? 'selected' : '';
+                container.innerHTML += `
+                    <div class="badge-option ${isSelected}" onclick="window.selecionarTipoBadge('${opcao}', ${preco})">
+                        <div style="font-weight:700;">${opcao}</div>
+                        <span>R$ ${parseFloat(preco).toFixed(2)}</span>
+                    </div>`;
+            });
+        }
+
+        function selecionarTipoBadge(opcao, preco) {
+            tipoSelecionadoGlobal = opcao;
+            document.getElementById('valor').value = parseFloat(preco).toFixed(2);
+            renderizarBadgesTipos();
+        }
+
+        function buscarClientePorTelefone(telDigitado) {
+            const telLimpo = telDigitado.replace(/\D/g, "");
+            if (telLimpo.length < 8) return;
+            const historico = totalizadorLocalPedidos.find(p => p.rawClienteCelular.replace(/\D/g, "") === telLimpo);
+            if (historico) {
+                document.getElementById('cliente-nome').value = historico.rawClienteNome || '';
+                document.getElementById('cliente-endereco').value = historico.rawClienteEndereco || '';
+            }
+        }
+
+        function adicionarItem(event) {
+            event.preventDefault();
+            
+            if (!pratoSelecionadoGlobal) {
+                alert("Por favor, selecione um prato no cardápio."); return;
+            }
+            if (!tipoSelecionadoGlobal) {
+                alert("Por favor, selecione o tamanho ou opção do prato."); return;
+            }
+
+            const precoUnitario = parseFloat(document.getElementById('valor').value);
+            const qtd = parseInt(document.getElementById('quantidade').value);
+
+            pedidoAtual.push({
+                id: Date.now(),
+                prato: pratoSelecionadoGlobal,
+                tipo: tipoSelecionadoGlobal,
+                descricao: document.getElementById('descricao').value.trim() || "Sem obs",
+                precoUnitario: precoUnitario,
+                qtd: qtd,
+                valor: precoUnitario * qtd
+            });
+
+            atualizarInterfaceCarrinho();
+            
+            pratoSelecionadoGlobal = "";
+            tipoSelecionadoGlobal = "";
+            document.getElementById('descricao').value = '';
+            document.getElementById('valor').value = '';
+            document.getElementById('quantidade').value = '1';
+            renderizarBadgesPratos();
+            renderizarBadgesTipos();
+            
+            alternarAbaMobile('carrinho');
+        }
+
+        function removerItem(id) {
+            pedidoAtual = pedidoAtual.filter(i => i.id !== id);
+            atualizarInterfaceCarrinho();
+        }
+
+        function finalizarPedidoFluxo() {
+            if (pedidoAtual.length === 0) return alert("Seu carrinho está vazio!");
+            
+            const nome = document.getElementById('cliente-nome').value.trim();
+            const celular = document.getElementById('cliente-celular').value.trim();
+            let addressInput = document.getElementById('cliente-endereco').value.trim();
+            let endereco = addressInput ? addressInput : "BALCÃO";
+
+            const total = pedidoAtual.reduce((acc, current) => acc + current.valor, 0);
+            const numeroPedido = totalizadorLocalPedidos.length + 1;
+
+            const statusFin = isClienteView ? "Pendente" : document.getElementById('status-pagamento').value;
+
+            const novoPedido = {
+                numero: numeroPedido,
+                data: new Date().toLocaleString('pt-BR'),
+                hora: new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}),
+                rawClienteNome: nome,
+                rawClienteCelular: celular,
+                rawClienteEndereco: endereco,
+                itens: [...pedidoAtual],
+                total: total,
+                pagamento: document.getElementById('forma-pagamento').value,
+                status: isClienteView ? "Pendente" : "Aprovado",
+                financeiro: statusFin, 
+                timestamp: Date.now()
+            };
+
+            addDoc(collection(db, "pedidos"), novoPedido).then(() => {
+                if (isClienteView) {
+                    let textoWhats = `*Novo Pedido - Tempero de Família (nº ${numeroPedido})*\n\n`;
+                    textoWhats += `*Cliente:* ${nome}\n*Contato:* ${celular}\n*Endereço:* ${endereco}\n\n`;
+                    textoWhats += `*Itens do Pedido:*\n`;
+                    pedidoAtual.forEach(i => {
+                        textoWhats += `- ${i.qtd}x ${i.prato} [${i.tipo}] (Obs: ${i.descricao})\n`;
+                    });
+                    textoWhats += `\n*Forma de Pagamento:* ${novoPedido.pagamento}`;
+                    textoWhats += `\n*Total Geral:* R$ ${total.toFixed(2)}\n\n_Aguardando aprovação do atendente..._`;
+
+                    const urlWhats = `https://web.whatsapp.com/send?phone=5511999973141&text=${encodeURIComponent(textoWhats)}`;
+                    executarDisparoWhatsDevice(urlWhats, 'whatsapp_restaurante');
+                    alert("Seu pedido foi enviado! Aguarde a mensagem de confirmação do atendente.");
+                } else {
+                    imprimirDuplaVia(novoPedido);
+                    alert("Pedido interno de Balcão registrado com sucesso!");
+                }
+
+                pedidoAtual = [];
+                atualizarInterfaceCarrinho();
+                document.getElementById('form-item').reset();
+                alternarAbaMobile('venda');
+            }).catch(error => alert("Erro ao gravar dados no Firebase: " + error.message));
+        }
+
+        function escutarPedidosRealtime() {
+            const q = collection(db, "pedidos");
+            onSnapshot(q, (snapshot) => {
+                totalizadorLocalPedidos = [];
+                snapshot.forEach((doc) => {
+                    let dados = doc.data();
+                    dados.id = doc.id; 
+                    totalizadorLocalPedidos.push(dados);
+                });
+                totalizadorLocalPedidos.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+                if (!isClienteView) sincronizarInterfaceAtendente();
+            });
+        }
+
+        function sincronizarInterfaceAtendente() {
+            if (isClienteView) return;
+
+            const containerPendentes = document.getElementById('container-pedidos-pendentes');
+            const containerHistorico = document.getElementById('container-historico-cards');
+            if(!containerPendentes || !containerHistorico) return;
+
+            containerPendentes.innerHTML = '';
+            containerHistorico.innerHTML = '';
+
+            let countPendentes = 0;
+
+            [...totalizadorLocalPedidos].reverse().forEach(p => {
+                const resumoItens = p.itens.map(i => `<b style="color:var(--cor-principal)">(${i.qtd}x)</b> ${i.prato} [${i.tipo}]`).join('<br>');
+                const finBadgeClass = p.financeiro === 'Pago' ? 'fin-pago' : 'fin-pendente';
+                const finBadgeLabel = p.financeiro === 'Pago' ? '✅ PAGO' : '⚠️ PENDENTE (COBRAR)';
+
+                const htmlCard = `
+                    <div class="pedido-log-card">
+                        <div class="pedido-log-header">
+                            <span style="font-size:15px; font-weight:800; color:var(--cor-principal);">PEDIDO #${String(p.numero).padStart(2, '0')}</span>
+                            <div>
+                                <span class="status-badge status-${p.status.toLowerCase()}">${p.status}</span>
+                                <span class="financeiro-badge ${finBadgeClass}">${finBadgeLabel}</span>
+                            </div>
+                        </div>
+                        <div class="pedido-log-corpo">
+                            <b>Cliente:</b> ${p.rawClienteNome} | Tel: ${p.rawClienteCelular}<br>
+                            <b>Endereço:</b> ${p.rawClienteEndereco}<br>
+                            <div style="background:#fff; padding:6px; border-radius:6px; border:1px solid var(--cor-borda); margin:6px 0;">${resumoItens}</div>
+                            <b>Forma de Pagamento:</b> ${p.pagamento}<br>
+                            <b>Total: <span style="color:var(--cor-principal)">R$ ${p.total.toFixed(2)}</span></b>
+                        </div>
+                        <div class="pedido-log-footer">
+                            ${p.status === 'Pendente' ? `
+                                <div style="display:flex; gap:6px; align-items:center; flex-wrap: wrap;">
+                                    <select id="fin-mod-${p.id}" style="padding:6px; font-size:12px; width:auto; margin:0; height: 32px;">
+                                        <option value="Pendente" ${p.financeiro === 'Pendente' ? 'selected' : ''}>⚠️ Pendente</option>
+                                        <option value="Pago" ${p.financeiro === 'Pago' ? 'selected' : ''}>✅ Já Pago</option>
+                                    </select>
+                                    <button class="btn-aprovar" style="height: 32px; padding: 0 10px;" onclick="window.aprovarPedidoWhats('${p.id}')">✅ Aprovar</button>
+                                </div>
+                            ` : ''}
+                            <button class="btn-card-rep" onclick="window.reimprimirTicketPorId('${p.id}')">🖨️ Rep</button>
+                            <button class="btn-card-del" onclick="window.excluirPedidoDefinitivo('${p.id}')">❌ Exc</button>
+                        </div>
+                    </div>`;
+
+                if (p.status === "Pendente") {
+                    containerPendentes.innerHTML += htmlCard;
+                    countPendentes++;
+                } else {
+                    containerHistorico.innerHTML += htmlCard;
+                }
+            });
+
+            const badge = document.getElementById('badge-pendentes-id');
+            if(badge) {
+                badge.innerText = countPendentes;
+                badge.style.display = countPendentes > 0 ? 'block' : 'none';
+            }
+        }
+
+        window.aprovarPedidoWhats = async function(pedidoId) {
+            try {
+                const selectFin = document.getElementById(`fin-mod-${pedidoId}`);
+                const financeiroAtualizado = selectFin ? selectFin.value : "Pendente";
+
+                const pRef = doc(db, "pedidos", pedidoId);
+                await updateDoc(pRef, { 
+                    status: "Aprovado",
+                    financeiro: financeiroAtualizado
+                });
+                
+                const pedido = totalizadorLocalPedidos.find(p => p.id === pedidoId);
+                if (pedido) {
+                    pedido.financeiro = financeiroAtualizado; 
+                    imprimirDuplaVia(pedido);
+                    
+                    let msgRetorno = `Olá *${pedido.rawClienteNome}*, seu pedido de número *#${pedido.numero}* foi recebido e *ACEITO* pela cozinha! \n\n`;
+                    if (financeiroAtualizado === "Pago") {
+                        msgRetorno += `Status do Pagamento: *CONFIRMADO (PAGO)* ✅\n\n`;
+                    } else {
+                        msgRetorno += `Status do Pagamento: *PENDENTE* ⚠️ (Preparar o valor de *R$ ${pedido.total.toFixed(2)}* no método *${pedido.pagamento}* para o entregador).\n\n`;
+                    }
+                    msgRetorno += `Em breve sairá para entrega. Obrigado pela preferência!`;
+                    
+                    const celularLimpo = pedido.rawClienteCelular.replace(/\D/g, "");
+                    const urlRetorno = `https://web.whatsapp.com/send?phone=55${celularLimpo}&text=${encodeURIComponent(msgRetorno)}`;
+                    executarDisparoWhatsDevice(urlRetorno, 'whatsapp_atendimento');
+                }
+            } catch (e) {
+                alert("Erro ao aprovar pedido: " + e.message);
             }
         };
 
-        window.adicionarItem = function(event) {
-            event.preventDefault();
-            // Lógica de adição aqui
-            alert("Item incluído!");
-            document.getElementById('form-item').reset();
+        window.excluirPedidoDefinitivo = async function(id) {
+            if (!confirm("Remover permanentemente este registro da nuvem do Firebase?")) return;
+            try { await deleteDoc(doc(db, "pedidos", id)); } catch (e) { alert("Erro ao deletar: " + e.message); }
         };
 
-        window.buscarClientePorTelefone = function(val) { /* Lógica de busca */ };
-        window.alternarAbaMobile = function(aba) { /* Lógica de abas */ };
-
-        // Inicialização
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('cliente') === 'true') {
-            document.getElementById('tela-login').style.display = 'none';
-            document.getElementById('conteudo-sistema').style.display = 'block';
+        function sincronizarCardapioNuvem() {
+            onSnapshot(collection(db, "status_cardapio"), (snapshot) => {
+                snapshot.forEach((doc) => {
+                    const dados = doc.data();
+                    if (!cardapioEstruturado[doc.id]) {
+                        cardapioEstruturado[doc.id] = ["Marmita (P)", "Marmita (M)", "Marmita (G)"];
+                    }
+                    if(dados.hasOwnProperty('disponivel')) { statusCardapioDisponivel[doc.id] = dados.disponivel; }
+                    if(dados.hasOwnProperty('precos')) { tabelaPrecosDinamicos[doc.id] = dados.precos; }
+                });
+                renderizarGerenciamentoCardapio();
+                renderizeTodoFormPratos();
+            });
         }
+
+        function renderizeTodoFormPratos() {
+            renderizarBadgesPratos();
+            renderizarBadgesTipos();
+        }
+
+        window.adicionarNovoPratoNuvem = async function() {
+            const inputNome = document.getElementById('novo-prato-nome');
+            const nomePrato = inputNome.value.trim();
+            if (!nomePrato) return alert("Por favor, digite o nome do prato.");
+            if (cardapioEstruturado[nomePrato]) return alert("Este prato já está cadastrado.");
+
+            const estruturaInicial = { disponivel: true, precos: { "Marmita (P)": 0.00, "Marmita (M)": 0.00, "Marmita (G)": 0.00 } };
+            try {
+                await setDoc(doc(db, "status_cardapio", nomePrato), estruturaInicial);
+                alert(`🍽️ "${nomePrato}" cadastrado com sucesso!`);
+                inputNome.value = '';
+            } catch (e) { alert("Erro ao salvar: " + e.message); }
+        };
+
+        function renderizarGerenciamentoCardapio() {
+            const container = document.getElementById('container-gestao-cardapio');
+            if(!container) return;
+            container.innerHTML = '';
+            
+            Object.keys(cardapioEstruturado).forEach(prato => {
+                const checked = statusCardapioDisponivel[prato] !== false ? 'checked' : '';
+                let inputsPrecoHtml = '';
+                cardapioEstruturado[prato].forEach(tamanho => {
+                    const precoAtual = tabelaPrecosDinamicos[prato]?.[tamanho] || 0;
+                    const inputId = `input-price-${prato.replace(/\s+/g, '_')}-${tamanho.replace(/\s+|\(|\)/g, '_')}`;
+                    inputsPrecoHtml += `
+                        <div class="input-preco-manage">
+                            <label style="font-size: 11px;">${tamanho}:</label>
+                            <input type="number" id="${inputId}" step="0.01" value="${parseFloat(precoAtual).toFixed(2)}" onblur="window.atualizarPrecoNuvem('${prato}', '${tamanho}', this.value)">
+                        </div>`;
+                });
+
+                container.innerHTML += `
+                    <div class="item-cardapio-manage">
+                        <div class="manage-row-header">
+                            <span><b>✨ ${prato}</b></span>
+                            <label class="switch">
+                                <input type="checkbox" ${checked} onchange="window.alternarStatusDisponibilidade('${prato}', this.checked)">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="manage-precos-grid">
+                            ${inputsPrecoHtml}
+                        </div>
+                    </div>`;
+            });
+        }
+
+        window.alternarStatusDisponibilidade = async function(prato, disponibilizar) {
+            try { await setDoc(doc(db, "status_cardapio", prato), { disponivel: disponibilizar }, { merge: true }); } catch (e) { statusCardapioDisponivel[prato] = disponibilizar; renderizarBadgesPratos(); }
+        };
+
+        window.atualizarPrecoNuvem = async function(prato, tamanho, novoPreco) {
+            const valorNumerico = parseFloat(novoPreco);
+            if (isNaN(valorNumerico) || valorNumerico < 0) return alert("Insira um valor válido.");
+            if(!tabelaPrecosDinamicos[prato]) tabelaPrecosDinamicos[prato] = {};
+            tabelaPrecosDinamicos[prato][tamanho] = valorNumerico;
+            try { await setDoc(doc(db, "status_cardapio", prato), { precos: { [tamanho]: valorNumerico } }, { merge: true }); } catch (e) { console.error(e); }
+        };
+
+        function alternarAbaMobile(abaNome, elementoBtn) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            if (!elementoBtn) {
+                if (abaNome === 'venda') elementoBtn = document.querySelector(".mobile-tabs-nav .tab-btn:nth-child(1)");
+                if (abaNome === 'carrinho') elementoBtn = document.querySelector(".mobile-tabs-nav .tab-btn:nth-child(2)");
+                if (abaNome === 'painel') elementoBtn = document.querySelector(".mobile-tabs-nav .tab-btn:nth-child(3)");
+                if (abaNome === 'cardapio') elementoBtn = document.querySelector(".mobile-tabs-nav .tab-btn:nth-child(4)");
+                if (abaNome === 'fechamento') elementoBtn = document.querySelector(".mobile-tabs-nav .tab-btn:nth-child(5)");
+            }
+            if(elementoBtn) elementoBtn.classList.add('active');
+
+            document.getElementById('card-aba-venda').classList.remove('active-tab-card');
+            document.getElementById('card-aba-carrinho').classList.remove('active-tab-card');
+            document.getElementById('card-aba-painel').classList.remove('active-tab-card');
+            document.getElementById('card-aba-cardapio').classList.remove('active-tab-card');
+            document.getElementById('card-aba-fechamento').classList.remove('active-tab-card');
+            document.getElementById('card-aba-logs').classList.remove('active-tab-card');
+
+            const targetCard = document.getElementById(`card-aba-${abaNome}`);
+            if(targetCard) targetCard.classList.add('active-tab-card');
+            window.scrollTo({ top: 0, behavior: 'instant' });
+        }
+
+        function calcularFechamentoDiario() {
+            document.getElementById('dashboard-vendas-tela').style.display = 'grid';
+            const aprovados = totalizadorLocalPedidos.filter(p => p.status === "Aprovado");
+            let totalFaturado = 0, qtdPedidos = aprovados.length, distribuicaoPratos = {};
+
+            aprovados.forEach(p => {
+                totalFaturado += parseFloat(p.total || 0);
+                if (p.itens && Array.isArray(p.itens)) {
+                    p.itens.forEach(item => {
+                        const nomePrato = item.prato || "Item Extra";
+                        distribuicaoPratos[nomePrato] = (distribuicaoPratos[nomePrato] || 0) + parseInt(item.qtd || 1);
+                    });
+                }
+            });
+
+            document.getElementById('t-dash-faturamento').innerText = `R$ ${totalFaturado.toFixed(2)}`;
+            document.getElementById('t-dash-qtd-pedidos').innerText = qtdPedidos;
+
+            if (chartPizzaInstancia) chartPizzaInstancia.destroy();
+            const labelsGrafico = Object.keys(distribuicaoPratos);
+            const finalLabels = labelsGrafico.length > 0 ? labelsGrafico : ["Sem vendas aprovadas"];
+            const finalData = labelsGrafico.length > 0 ? Object.values(distribuicaoPratos) : [1];
+            const finalColors = labelsGrafico.length > 0 ? ['#cc1d1d', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#64748b'] : ['#cbd5e1'];
+
+            const ctx = document.getElementById('graficoPizzaFechamento').getContext('2d');
+            chartPizzaInstancia = new Chart(ctx, {
+                type: 'pie',
+                data: { labels: finalLabels, datasets: [{ data: finalData, backgroundColor: finalColors }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } } }
+            });
+        }
+
+        window.exportarFechamentoPDF = function() {
+            const elemento = document.getElementById('dashboard-vendas-tela');
+            const opt = { margin: 10, filename: 'fechamento-turno.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
+            html2pdf().set(opt).from(elemento).save();
+        };
+
+        function inicializarModoCompleto() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('cliente') === 'true') {
+                isClienteView = true;
+                configurarModoCliente();
+            } else {
+                document.getElementById('tela-login').style.display = 'flex';
+            }
+            sincronizarCardapioNuvem();
+            escutarPedidosRealtime();
+        }
+
+        // AMBIENTAÇÃO DE MAQUETE DE ATRIBUIÇÃO GLOBAL COMPATÍVEL VERCEL
+        window.alternarAbaMobile = alternarAbaMobile;
+        window.selecionarPratoBadge = selecionarPratoBadge;
+        window.selecionarTipoBadge = selecionarTipoBadge;
+        window.buscarClientePorTelefone = buscarClientePorTelefone;
+        window.adicionarItem = adicionarItem;
+        window.removerItem = removerItem;
+        window.finalizarPedidoFluxo = finalizarPedidoFluxo;
+        window.calcularFechamentoDiario = calcularFechamentoDiario;
+
+        // INICIALIZAÇÃO SEGURA EM SEGUNDO PLANO COMPLETADA
+        inicializarModoCompleto();
     </script>
 </body>
 </html>
