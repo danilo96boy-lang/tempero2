@@ -26,6 +26,10 @@
             --transition: all 0.2s ease-in-out;
         }
 
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             background-color: var(--cor-fundo);
@@ -37,11 +41,12 @@
             color: var(--cor-texto);
             -webkit-font-smoothing: antialiased;
             padding-bottom: 90px;
+            min-height: 100vh;
         }
 
-        @media(min-width: 950px) {
-            body { padding: 20px; padding-bottom: 20px; }
-        }
+        /* Enquadramento dinâmico baseado na proporção da tela */
+        @media(min-width: 480px) { body { padding: 12px; padding-bottom: 95px; } }
+        @media(min-width: 950px) { body { padding: 20px; padding-bottom: 100px; } }
 
         #tela-login {
             display: flex;
@@ -53,7 +58,6 @@
             background-color: var(--cor-fundo);
             z-index: 9999;
             padding: 16px;
-            box-sizing: border-box;
         }
 
         .card-login {
@@ -63,7 +67,6 @@
             box-shadow: var(--shadow-md);
             width: 100%;
             max-width: 380px;
-            box-sizing: border-box;
             text-align: center;
             border-top: 5px solid var(--cor-principal);
         }
@@ -72,6 +75,7 @@
             display: none;
             width: 100%;
             max-width: 1180px;
+            transition: var(--transition);
         }
 
         .brand-header {
@@ -84,7 +88,6 @@
             border-radius: var(--border-radius-lg);
             width: 100%;
             box-shadow: var(--shadow-sm);
-            box-sizing: border-box;
             border: 1px solid var(--cor-borda);
             margin-bottom: 12px;
         }
@@ -99,13 +102,13 @@
 
         .brand-header h1 {
             margin: 0;
-            font-size: 18px;
+            font-size: clamp(15px, 4vw, 20px); /* Fonte recursiva que se ajusta ao tamanho da tela */
             font-weight: 800;
             color: var(--cor-texto);
             letter-spacing: -0.5px;
         }
 
-        /* BARRA DE NAVEGAÇÃO FIXA EM EMULADOR GLOBAL (ESTILO APP NATIVO) */
+        /* NAVEGAÇÃO SUPER RESPONSIVA ADAPTÁVEL */
         .mobile-tabs-nav {
             display: flex;
             justify-content: space-around;
@@ -113,21 +116,22 @@
             bottom: 0; left: 0; width: 100%;
             background: #ffffff;
             border-top: 1px solid var(--cor-borda);
-            padding: 12px 0;
+            padding: clamp(8px, 2vh, 14px) 0;
             z-index: 999;
             box-shadow: 0 -4px 20px rgba(0,0,0,0.07);
         }
 
         .tab-btn {
-            background: none; border: none; font-size: 11px; font-weight: 700;
+            background: none; border: none; font-size: clamp(10px, 2.5vw, 12px); font-weight: 700;
             color: var(--cor-texto-secundario); display: flex; flex-direction: column;
-            align-items: center; gap: 4px; cursor: pointer; position: relative; width: 20%;
+            align-items: center; gap: 4px; cursor: pointer; position: relative; flex: 1;
+            max-width: 200px;
         }
 
         .tab-btn.active { color: var(--cor-principal); }
         
         .badge-carrinho, .badge-pendente {
-            position: absolute; top: -6px; right: 15%;
+            position: absolute; top: -6px; right: 20%;
             background: var(--cor-principal); color: white;
             font-size: 10px; font-weight: bold; border-radius: 10px;
             padding: 2px 6px; display: none;
@@ -139,31 +143,26 @@
             grid-template-columns: 1fr;
             gap: 16px;
             width: 100%;
-            box-sizing: border-box;
         }
 
-        /* CORREÇÃO DA VISÃO COMPACTA: Oculta estritamente todas as abas que não estão ativas, independente do tamanho da tela */
+        /* ISOLAMENTO COMPACTO EM TODAS AS TELAS (ESTILO SEGUNDO PRINT) */
         .main-grid > .card { display: none !important; }
         .main-grid > .card.active-tab-card { display: block !important; }
 
         .card {
             background-color: var(--cor-card);
-            padding: 16px;
+            padding: clamp(14px, 3vw, 24px);
             border-radius: var(--border-radius-lg);
             box-shadow: var(--shadow-sm);
             border: 1px solid var(--cor-borda);
-            box-sizing: border-box;
             margin-bottom: 15px;
-        }
-
-        @media(min-width: 768px) {
-            .card { padding: 24px; }
+            width: 100%;
         }
 
         h3 {
             margin: 0 0 16px 0;
             color: var(--cor-texto);
-            font-size: 15px;
+            font-size: clamp(14px, 3.5vw, 16px);
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -190,7 +189,8 @@
             gap: 12px;
         }
 
-        @media(min-width: 480px) {
+        /* Grid Responsivo Inteligente para os Formulários */
+        @media(min-width: 580px) {
             .form-row.dois-campos { grid-template-columns: 1fr 1fr; }
             .form-row.tres-campos { grid-template-columns: repeat(3, 1fr); }
             .form-row.quatro-campos { grid-template-columns: repeat(4, 1fr); }
@@ -211,7 +211,6 @@
             padding: 14px; 
             border: 1px solid #cbd5e1;
             border-radius: var(--border-radius-md);
-            box-sizing: border-box;
             font-size: 16px; 
             font-family: inherit;
             background-color: #fff;
@@ -225,9 +224,10 @@
             box-shadow: 0 0 0 3px rgba(204, 29, 29, 0.1);
         }
 
+        /* GRID FLEXÍVEL RECURSIVO PARA OS PRATOS E TAMANHOS */
         .mobile-badge-selector {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(clamp(115px, 28vw, 150px), 1fr));
             gap: 10px;
             margin-bottom: 14px;
         }
@@ -236,10 +236,10 @@
             background: #fff;
             border: 2px solid var(--cor-borda);
             border-radius: var(--border-radius-md);
-            padding: 14px 10px;
+            padding: clamp(12px, 2.5vw, 16px) 8px;
             text-align: center;
             font-weight: 700;
-            font-size: 14px;
+            font-size: clamp(13px, 3vw, 15px);
             cursor: pointer;
             transition: var(--transition);
             display: flex;
@@ -248,6 +248,7 @@
             align-items: center;
             gap: 4px;
             box-shadow: var(--shadow-sm);
+            word-break: break-word;
         }
 
         .badge-option.selected {
@@ -283,12 +284,12 @@
         .btn-aprovar { background-color: #16a34a; color: white; padding: 8px 14px; font-size: 13px; border-radius: 6px; }
 
         .container-logs-cards { display: grid; grid-template-columns: 1fr; gap: 14px; margin-top: 10px; }
-        @media(min-width: 750px) { .container-logs-cards { grid-template-columns: 1fr 1fr; } }
+        @media(min-width: 700px) { .container-logs-cards { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); } }
         
         .pedido-log-card { background: #f8fafc; border: 1px solid var(--cor-borda); border-radius: var(--border-radius-md); padding: 16px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: var(--shadow-sm); }
         .pedido-log-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--cor-borda); padding-bottom: 8px; margin-bottom: 10px; }
         .pedido-log-corpo { font-size: 14px; color: var(--cor-texto); line-height: 1.5; margin-bottom: 12px; }
-        .pedido-log-footer { display: flex; gap: 8px; justify-content: flex-end; border-top: 1px solid var(--cor-borda); padding-top: 12px; }
+        .pedido-log-footer { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; border-top: 1px solid var(--cor-borda); padding-top: 12px; }
         
         .status-badge { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; color: white; }
         .status-pendente { background-color: var(--cor-pendente); }
@@ -303,20 +304,20 @@
         .btn-card-del { background-color: #dc2626; color: white; border: none; padding: 8px 14px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 13px; }
 
         .carrinho-container { display: flex; flex-direction: column; justify-content: space-between; background: #f8fafc; }
-        .lista-itens { list-style: none; padding: 0; margin: 0; max-height: 350px; overflow-y: auto; }
+        .lista-itens { list-style: none; padding: 0; margin: 0; max-height: 40vh; overflow-y: auto; }
         .item-carrinho { background: white; padding: 14px; margin-bottom: 10px; border-radius: var(--border-radius-md); font-size: 14px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--cor-borda); box-shadow: var(--shadow-sm); }
         .btn-del { background: #fee2e2; color: #ef4444; border: none; border-radius: 50%; width: 28px; height: 28px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
         .total-tela { font-size: 24px; font-weight: 800; text-align: right; margin-top: 16px; padding-top: 16px; border-top: 2px dashed #cbd5e0; }
         .total-tela span { color: var(--cor-principal); }
 
-        .grid-cardapio-gestao { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 10px; }
-        @media(min-width: 750px) { .grid-cardapio-gestao { grid-template-columns: 1fr 1fr; } }
+        .grid-cardapio-gestao { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 10px; }
+        @media(min-width: 700px) { .grid-cardapio-gestao { grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); } }
         
         .item-cardapio-manage { padding: 16px; background: #f8fafc; border: 1px solid var(--cor-borda); border-radius: var(--border-radius-lg); display: flex; flex-direction: column; gap: 12px; box-shadow: var(--shadow-sm); }
         .manage-row-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--cor-borda); padding-bottom: 8px; }
-        .manage-precos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
-        .input-preco-manage { display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: 600; }
+        .manage-precos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); gap: 8px; }
+        .input-preco-manage { display: flex; flex-direction: column; gap: 4px; font-size: 11px; font-weight: 600; }
         .input-preco-manage input { padding: 8px; font-size: 14px; }
 
         .switch { position: relative; display: inline-block; width: 46px; height: 24px; }
@@ -467,8 +468,8 @@
                 
                 <div style="background: #f8fafc; border: 1px solid var(--cor-borda); padding: 14px; border-radius: var(--border-radius-md); margin-bottom: 16px;">
                     <label style="color:var(--cor-principal); font-weight:800; font-size:12px; text-transform:uppercase;">＋ Cadastrar Prato Novo no Menu</label>
-                    <div style="display:flex; gap:10px; margin-top:6px;">
-                        <input type="text" id="novo-prato-nome" placeholder="Ex: Bife Acebolado, Cupim Assado..." style="margin:0;">
+                    <div style="display:flex; gap:10px; margin-top:6px; flex-wrap: wrap;">
+                        <input type="text" id="novo-prato-nome" placeholder="Ex: Bife Acebolado, Cupim Assado..." style="margin:0; flex: 1; min-width: 200px;">
                         <button type="button" class="btn" style="background:var(--cor-principal); color:white; padding:0 20px; width:auto; font-size:13px;" onclick="window.adicionarNovoPratoNuvem()">Cadastrar</button>
                     </div>
                 </div>
@@ -480,9 +481,9 @@
             <div class="card admin-only" id="card-aba-fechamento">
                 <h3>🔒 Fechamento Consolidado de Caixa</h3>
                 <div style="display:flex; gap:10px; flex-wrap: wrap;">
-                    <button type="button" class="btn" style="background:#1e293b; color:white;" onclick="window.alternarAbaMobile('logs')">📋 Ver Histórico Geral</button>
-                    <button type="button" class="btn" style="background:var(--cor-principal); color:white;" onclick="window.calcularFechamentoDiario()">🔒 Processar Turno</button>
-                    <button type="button" id="btn-pdf-id" class="btn" style="background:#475569; color:white;" onclick="window.exportarFechamentoPDF()">📥 Gerar PDF</button>
+                    <button type="button" class="btn" style="background:#1e293b; color:white; width: auto;" onclick="window.alternarAbaMobile('logs')">📋 Ver Histórico Geral</button>
+                    <button type="button" class="btn" style="background:var(--cor-principal); color:white; width: auto;" onclick="window.calcularFechamentoDiario()">🔒 Processar Turno</button>
+                    <button type="button" id="btn-pdf-id" class="btn" style="background:#475569; color:white; width: auto;" onclick="window.exportarFechamentoPDF()">📥 Gerar PDF</button>
                 </div>
                 
                 <div id="dashboard-vendas-tela" class="dash-container-tela">
@@ -822,12 +823,12 @@
                         </div>
                         <div class="pedido-log-footer">
                             ${p.status === 'Pendente' ? `
-                                <div style="display:flex; gap:6px; align-items:center;">
-                                    <select id="fin-mod-${p.id}" style="padding:6px; font-size:12px; width:auto; margin:0;">
+                                <div style="display:flex; gap:6px; align-items:center; flex-wrap: wrap;">
+                                    <select id="fin-mod-${p.id}" style="padding:6px; font-size:12px; width:auto; margin:0; height: 32px;">
                                         <option value="Pendente" ${p.financeiro === 'Pendente' ? 'selected' : ''}>⚠️ Pendente</option>
                                         <option value="Pago" ${p.financeiro === 'Pago' ? 'selected' : ''}>✅ Já Pago</option>
                                     </select>
-                                    <button class="btn-aprovar" onclick="window.aprovarPedidoWhats('${p.id}')">✅ Aprovar & Imprimir</button>
+                                    <button class="btn-aprovar" style="height: 32px; padding: 0 10px;" onclick="window.aprovarPedidoWhats('${p.id}')">✅ Aprovar</button>
                                 </div>
                             ` : ''}
                             <button class="btn-card-rep" onclick="window.reimprimirTicketPorId('${p.id}')">🖨️ Rep</button>
@@ -914,7 +915,7 @@
             const inputNome = document.getElementById('novo-prato-nome');
             const nomePrato = inputNome.value.trim();
 
-            if (!novoPratoNome) {
+            if (!nomePrato) {
                 alert("Por favor, digite o nome do prato."); return;
             }
 
@@ -954,7 +955,7 @@
                     
                     inputsPrecoHtml += `
                         <div class="input-preco-manage">
-                            <label>${tamanho}:</label>
+                            <label style="font-size: 11px;">${tamanho}:</label>
                             <input type="number" id="${inputId}" step="0.01" value="${parseFloat(precoAtual).toFixed(2)}" 
                                 onblur="window.atualizarPrecoNuvem('${prato}', '${tamanho}', this.value)">
                         </div>`;
