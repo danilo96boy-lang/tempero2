@@ -292,9 +292,9 @@
         .fin-pago { background-color: #d1fae5; color: #065f46; }
         .fin-pendente { background-color: #fee2e2; color: #991b1b; }
 
-        .btn-card-rep { background-color: #2563eb; color: white; border: none; padding: 6px 12px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 12px; }
-        .btn-card-edit { background-color: #f59e0b; color: white; border: none; padding: 6px 12px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 12px; }
-        .btn-card-del { background-color: #dc2626; color: white; border: none; padding: 6px 12px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 13px; }
+        .btn-card-rep { background-color: #2563eb; color: white; border: none; padding: 8px 14px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        .btn-card-edit { background-color: #f59e0b; color: white; border: none; padding: 8px 14px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        .btn-card-del { background-color: #dc2626; color: white; border: none; padding: 8px 14px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 13px; }
 
         .carrinho-container { display: flex; flex-direction: column; justify-content: space-between; background: #f8fafc; }
         .lista-itens { list-style: none; padding: 0; margin: 0; max-height: 40vh; overflow-y: auto; }
@@ -652,6 +652,7 @@
             }
         }
 
+        // CORREÇÃO: Removi a busca redundante pelo ID que estava quebrando o clique do botão de adicionar item
         function adicionarItem(event) {
             event.preventDefault();
             
@@ -844,7 +845,7 @@
                     if (financeiroAtualizado === "Pago") {
                         msgRetorno += `Status do Pagamento: *CONFIRMADO (PAGO)* ✅\n\n`;
                     } else {
-                        msgRetorno += `Status do Pagamento: *PENDENTE* ⚠️ (Preparar o valor de *R$ ${pedido.total.toFixed(2)}* no método *${pedido.pagamento}* para o entregador).\n\n`;
+                        msgRetorno += `Status do Pagamento: *PENDENTE* ⚠️ (Preparar o valor of *R$ ${pedido.total.toFixed(2)}* no método *${pedido.pagamento}* para o entregador).\n\n`;
                     }
                     msgRetorno += `Em breve sairá para entrega. Obrigado pela preferência!`;
                     
@@ -882,7 +883,6 @@
             renderizarBadgesTipos();
         }
 
-        // CORREÇÃO DA VALIDAÇÃO NA COLEÇÃO: Removi a dependência do elemento redundante que quebrava o script
         window.adicionarNovoPratoNuvem = async function() {
             const inputNome = document.getElementById('novo-prato-nome');
             const nomePrato = inputNome ? inputNome.value.trim() : "";
@@ -918,7 +918,7 @@
                 container.innerHTML += `
                     <div class="item-cardapio-manage">
                         <div class="manage-row-header">
-                            <span><b>✨ ${prato}</b></span>
+                            <span><b>#️⃣ ${prato}</b></span>
                             <label class="switch">
                                 <input type="checkbox" ${checked} onchange="window.alternarStatusDisponibilidade('${prato}', this.checked)">
                                 <span class="slider"></span>
@@ -1018,7 +1018,6 @@
         }
 
         window.validarAcessoSecure = validarAcessoSecure;
-        window.alternarAbaMobile = alternator => alternarAbaMobile(alternator);
         window.alternarAbaMobile = alternarAbaMobile;
         window.selecionarPratoBadge = selecionarPratoBadge;
         window.selecionarTipoBadge = selecionarTipoBadge;
