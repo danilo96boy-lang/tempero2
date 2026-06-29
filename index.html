@@ -292,14 +292,14 @@
         .fin-pago { background-color: #d1fae5; color: #065f46; }
         .fin-pendente { background-color: #fee2e2; color: #991b1b; }
 
-        .btn-card-rep { background-color: #2563eb; color: white; border: none; padding: 6px 12px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 12px; }
-        .btn-card-edit { background-color: #f59e0b; color: white; border: none; padding: 6px 12px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 12px; }
-        .btn-card-del { background-color: #dc2626; color: white; border: none; padding: 8px 14px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 13px; }
+        .btn-card-rep { background-color: #2563eb; color: white; border: none; padding: 8px 14px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        .btn-card-edit { background-color: #f59e0b; color: white; border: none; padding: 8px 14px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        .btn-card-del { background-color: #dc2626; color: white; border: none; padding: 8px 14px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 12px; }
 
         .carrinho-container { display: flex; flex-direction: column; justify-content: space-between; background: #f8fafc; }
         .lista-itens { list-style: none; padding: 0; margin: 0; max-height: 40vh; overflow-y: auto; }
         .item-carrinho { background: white; padding: 14px; margin-bottom: 10px; border-radius: var(--border-radius-md); font-size: 14px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--cor-borda); box-shadow: var(--shadow-sm); }
-        .btn-del { background: #fee2e2; color: #ef4444; border: none; border-radius: 50%; width: 28px; height: 28px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .btn-del { background: #fee2e2; color: #ef4444; border: none; border-radius: 50%; width: 24px; height: 24px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
         .grid-cardapio-gestao { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 10px; }
         @media(min-width: 750px) { .grid-cardapio-gestao { grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); } }
@@ -440,7 +440,7 @@
                 </form>
             </div>
 
-            <div class="card" id="card-aba-carrinho">
+            <div class="card carrinho-container" id="card-aba-carrinho">
                 <h3>🛒 Checkout do Pedido</h3>
                 <ul id="lista-itens" class="lista-itens"></ul>
                 <div>
@@ -556,7 +556,6 @@
         let pratoSelecionadoGlobal = "";
         let tipoSelecionadoGlobal = "";
 
-        // DECLARAÇÃO INDEPENDENTE DE TODAS AS FUNÇÕES (EVITA ERRO DE INICIALIZAÇÃO)
         function executarDisparoWhatsDevice(urlDisparo, abaDestino) {
             const isMobileApp = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             if (isMobileApp) {
@@ -1016,7 +1015,8 @@
             escutarPedidosRealtime();
         }
 
-        // AMBIENTAÇÃO DE MAQUETE DE ATRIBUIÇÃO GLOBAL COMPATÍVEL VERCEL
+        // EXPORTANDO AS FUNÇÕES DE FORMA EXPLICITA E SEGURA (RESOLVE O LOGIN DA VERCEL)
+        window.validarAcessoSecure = validarAcessoSecure;
         window.alternarAbaMobile = alternarAbaMobile;
         window.selecionarPratoBadge = selecionarPratoBadge;
         window.selecionarTipoBadge = selecionarTipoBadge;
@@ -1026,7 +1026,6 @@
         window.finalizarPedidoFluxo = finalizarPedidoFluxo;
         window.calcularFechamentoDiario = calcularFechamentoDiario;
 
-        // INICIALIZAÇÃO SEGURA EM SEGUNDO PLANO COMPLETADA
         inicializarModoCompleto();
     </script>
 </body>
