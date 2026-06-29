@@ -105,6 +105,7 @@
             letter-spacing: -0.5px;
         }
 
+        /* BARRA DE NAVEGAÇÃO FIXA EM EMULADOR GLOBAL (ESTILO APP NATIVO) */
         .mobile-tabs-nav {
             display: flex;
             justify-content: space-around;
@@ -133,10 +134,6 @@
         }
         .badge-pendente { background: var(--cor-pendente); }
 
-        @media(min-width: 950px) {
-            .mobile-tabs-nav { display: none !important; }
-        }
-
         .main-grid {
             display: grid;
             grid-template-columns: 1fr;
@@ -145,16 +142,9 @@
             box-sizing: border-box;
         }
 
-        @media(max-width: 949px) {
-            .main-grid > .card { display: none; }
-            .main-grid > .card.active-tab-card { display: block !important; }
-        }
-
-        @media(min-width: 950px) {
-            .main-grid { grid-template-columns: 1.35fr 1fr; gap: 20px; }
-            .main-grid > .card { display: block !important; }
-            #card-aba-painel, #card-aba-cardapio, #card-aba-logs { grid-column: span 2; }
-        }
+        /* CORREÇÃO DA VISÃO COMPACTA: Oculta estritamente todas as abas que não estão ativas, independente do tamanho da tela */
+        .main-grid > .card { display: none !important; }
+        .main-grid > .card.active-tab-card { display: block !important; }
 
         .card {
             background-color: var(--cor-card);
@@ -235,7 +225,6 @@
             box-shadow: 0 0 0 3px rgba(204, 29, 29, 0.1);
         }
 
-        /* BLOCOS VISUAIS EM FORMATO DE TEXTO LIMPO */
         .mobile-badge-selector {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
@@ -399,7 +388,7 @@
         <div class="main-grid no-print">
             
             <div class="card active-tab-card" id="card-aba-venda">
-                <h3 id="label-modo-venda">📝 Registrar Pedido</h3>
+                <h3>📝 Registrar Pedido</h3>
                 <form id="form-item" onsubmit="window.adicionarItem(event)">
                     <div class="secao-titulo">1. Seus Dados / Identificação</div>
                     <div class="form-row dois-campos">
@@ -459,7 +448,7 @@
                 </form>
             </div>
 
-            <div class="card carrinho-container" id="card-aba-carrinho">
+            <div class="card" id="card-aba-carrinho">
                 <h3>🛒 Checkout do Pedido</h3>
                 <ul id="lista-itens" class="lista-itens"></ul>
                 <div>
@@ -613,7 +602,6 @@
             }
         };
 
-        // RENDERIZAÇÃO LIMPA APENAS COM OS BLOCOS DE TEXTO SEM IMAGENS
         window.renderizarBadgesPratos = function() {
             const container = document.getElementById('badge-container-pratos');
             container.innerHTML = '';
@@ -926,7 +914,7 @@
             const inputNome = document.getElementById('novo-prato-nome');
             const nomePrato = inputNome.value.trim();
 
-            if (!nomePrato) {
+            if (!novoPratoNome) {
                 alert("Por favor, digite o nome do prato."); return;
             }
 
@@ -975,7 +963,7 @@
                 container.innerHTML += `
                     <div class="item-cardapio-manage">
                         <div class="manage-row-header">
-                            <span><b>🍔 ${prato}</b></span>
+                            <span><b>✨ ${prato}</b></span>
                             <label class="switch">
                                 <input type="checkbox" ${checked} onchange="window.alternarStatusDisponibilidade('${prato}', this.checked)">
                                 <span class="slider"></span>
