@@ -292,14 +292,14 @@
         .fin-pago { background-color: #d1fae5; color: #065f46; }
         .fin-pendente { background-color: #fee2e2; color: #991b1b; }
 
-        .btn-card-rep { background-color: #2563eb; color: white; border: none; padding: 8px 14px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 13px; }
-        .btn-card-edit { background-color: #f59e0b; color: white; border: none; padding: 8px 14px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 13px; }
-        .btn-card-del { background-color: #dc2626; color: white; border: none; padding: 8px 14px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 13px; }
+        .btn-card-rep { background-color: #2563eb; color: white; border: none; padding: 6px 12px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        .btn-card-edit { background-color: #f59e0b; color: white; border: none; padding: 6px 12px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        .btn-card-del { background-color: #dc2626; color: white; border: none; padding: 6px 12px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 12px; }
 
         .carrinho-container { display: flex; flex-direction: column; justify-content: space-between; background: #f8fafc; }
         .lista-itens { list-style: none; padding: 0; margin: 0; max-height: 40vh; overflow-y: auto; }
         .item-carrinho { background: white; padding: 14px; margin-bottom: 10px; border-radius: var(--border-radius-md); font-size: 14px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--cor-borda); box-shadow: var(--shadow-sm); }
-        .btn-del { background: #fee2e2; color: #ef4444; border: none; border-radius: 50%; width: 28px; height: 28px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .btn-del { background: #fee2e2; color: #ef4444; border: none; border-radius: 50%; width: 24px; height: 24px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
         .total-tela { font-size: 24px; font-weight: 800; text-align: right; margin-top: 16px; padding-top: 16px; border-top: 2px dashed #cbd5e0; }
         .total-tela span { color: var(--cor-principal); }
@@ -316,7 +316,7 @@
         .switch { position: relative; display: inline-block; width: 46px; height: 24px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .3s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
         input:checked + .slider { background-color: #16a34a; }
         input:checked + .slider:before { transform: translateX(22px); }
 
@@ -443,7 +443,7 @@
                 </form>
             </div>
 
-            <div class="card" id="card-aba-carrinho">
+            <div class="card carrinho-container" id="card-aba-carrinho">
                 <h3>🛒 Checkout do Pedido</h3>
                 <ul id="lista-itens" class="lista-itens"></ul>
                 <div>
@@ -783,7 +783,8 @@
         };
 
         function escutarPedidosRealtime() {
-            const q = query(collection(db, "pedidos"), orderBy("timestamp", "asc"));
+            // CORREÇÃO FIRESTORE: Removi a cláusula orderBy para ignorar a necessidade de Índices Compostos no console
+            const q = collection(db, "pedidos");
             onSnapshot(q, (snapshot) => {
                 totalizadorLocalPedidos = [];
                 snapshot.forEach((doc) => {
@@ -791,6 +792,10 @@
                     dados.id = doc.id; 
                     totalizadorLocalPedidos.push(dados);
                 });
+                
+                // Ordenação manual robusta feita localmente em memória Javascript
+                totalizadorLocalPedidos.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+                
                 if (!isClienteView) sincronizarInterfaceAtendente();
             });
         }
@@ -970,7 +975,7 @@
                 container.innerHTML += `
                     <div class="item-cardapio-manage">
                         <div class="manage-row-header">
-                            <span><b>✨ ${prato}</b></span>
+                            <span><b>#️⃣ ${prato}</b></span>
                             <label class="switch">
                                 <input type="checkbox" ${checked} onchange="window.alternarStatusDisponibilidade('${prato}', this.checked)">
                                 <span class="slider"></span>
@@ -1014,39 +1019,38 @@
             }
         };
 
-        // CORREÇÃO CIRÚRGICA DA VARREDURA DO BANCO DE DADOS PARA O RELATÓRIO
+        // LÓGICA REESTRUTURADA: Varre com segurança a memória local populada em realtime pelo banco
         window.calcularFechamentoDiario = function() {
             document.getElementById('dashboard-vendas-tela').style.display = 'grid';
             
-            // Filtra estritamente apenas os pedidos aprovados
-            const pedidosAprovados = totalizadorLocalPedidos.filter(p => p.status === "Aprovado");
+            // Filtra estritamente os registros aprovados
+            const aprovados = totalizadorLocalPedidos.filter(p => p.status === "Aprovado");
             
-            const totalFaturado = pedidosAprovados.reduce((acc, p) => acc + parseFloat(p.total || 0), 0);
-            const qtdAprovados = pedidosAprovados.length;
-
-            document.getElementById('t-dash-faturamento').innerText = `R$ ${totalFaturado.toFixed(2)}`;
-            document.getElementById('t-dash-qtd-pedidos').innerText = qtdAprovados;
-
-            // Varre de forma recursiva os arrays de pratos internos de cada documento do Firebase
+            let totalFaturado = 0;
+            let qtdPedidos = aprovados.length;
             let distribuicaoPratos = {};
-            pedidosAprovados.forEach(p => {
+
+            aprovados.forEach(p => {
+                totalFaturado += parseFloat(p.total || 0);
+                
                 if (p.itens && Array.isArray(p.itens)) {
-                    p.itens.forEach(i => {
-                        const nomeDoPrato = i.prato || "Item Desconhecido";
-                        const quantidadeVendida = parseInt(i.qtd || 1);
-                        distribuicaoPratos[nomeDoPrato] = (distribuicaoPratos[nomeDoPrato] || 0) + quantidadeVendida;
+                    p.itens.forEach(item => {
+                        const nomePrato = item.prato || "Item Extra";
+                        const quantidade = parseInt(item.qtd || 1);
+                        distribuicaoPratos[nomePrato] = (distribuicaoPratos[nomePrato] || 0) + quantidade;
                     });
                 }
             });
 
-            // Se o gráfico já existir na tela, destrói e recria do zero limpando o cache
+            document.getElementById('t-dash-faturamento').innerText = `R$ ${totalFaturado.toFixed(2)}`;
+            document.getElementById('t-dash-qtd-pedidos').innerText = qtdPedidos;
+
             if (chartPizzaInstancia) chartPizzaInstancia.destroy();
             
             const labelsGrafico = Object.keys(distribuicaoPratos);
             const dadosGrafico = Object.values(distribuicaoPratos);
 
-            // Caso não existam vendas ainda, exibe um mockup informativo para o gráfico não quebrar
-            const finalLabels = labelsGrafico.length > 0 ? labelsGrafico : ["Sem vendas no turno"];
+            const finalLabels = labelsGrafico.length > 0 ? labelsGrafico : ["Sem vendas aprovadas"];
             const finalData = dadosGrafico.length > 0 ? dadosGrafico : [1];
             const finalColors = labelsGrafico.length > 0 ? ['#cc1d1d', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#64748b'] : ['#cbd5e1'];
 
@@ -1072,82 +1076,6 @@
             const elemento = document.getElementById('dashboard-vendas-tela');
             const opt = { margin: 10, filename: 'fechamento-turno.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
             html2pdf().set(opt).from(elemento).save();
-        };
-
-        function gerarTemplateFita(p, via) {
-            let pratos = p.itens.map(i => `
-                <div class="ticket-item">
-                    <strong>${i.qtd}x ${i.prato}</strong> [${i.tipo}]<br>
-                    <span style="font-size:10px;">Obs: ${i.descricao}</span><br>
-                    <span class="ticket-item-price">R$ ${i.valor.toFixed(2)}</span>
-                </div>`).join('');
-
-            let boxFinanceiroTicket = "";
-            if (p.financeiro === "Pago") {
-                boxFinanceiroTicket = `<div class="ticket-alert-box" style="background:#e6fee6; border-color:#008000; color:#008000;">>>> PEDIDO PAGO <<<</div>`;
-            } else {
-                boxFinanceiroTicket = `<div class="ticket-alert-box" style="background:#fee6e6; border-color:#cc0000; color:#cc0000;">⚠️ COBRAR NA ENTREGA ⚠️<br>VALOR: R$ ${p.total.toFixed(2)}</div>`;
-            }
-            
-            return `
-                <div class="ticket-wrapper-via">
-                    <div class="ticket-header">
-                        <div class="ticket-via-tag">--- VIA ${via} ---</div>
-                        <span class="ticket-header-num-destaque">#${String(p.numero).padStart(2, '0')}</span>
-                        <div style="font-size:10px;">${p.data} às ${p.hora}</div>
-                    </div>
-                    
-                    ${boxFinanceiroTicket}
-
-                    <div class="ticket-divider">--------------------------------</div>
-                    <div style="font-size:11px; margin-bottom: 5px;">
-                        <b>Cliente:</b> ${p.rawClienteNome}<br>
-                        <b>Tel:</b> ${p.rawClienteCelular}<br>
-                        <b>Endereço:</b> ${p.rawClienteEndereco}
-                    </div>
-                    <div class="ticket-divider">--------------------------------</div>
-                    ${pratos}
-                    <div class="ticket-divider">--------------------------------</div>
-                    <div style="font-size:13px; font-weight:bold; text-align:right;">Total: R$ ${p.total.toFixed(2)}</div>
-                    <div style="font-size:11px;">Forma Pagto: ${p.pagamento} (${p.financeiro === 'Pago' ? 'PAGO' : 'A COBRAR'})</div>
-                    <div class="ticket-divider">--------------------------------</div>
-                    
-                    ${p.financeiro !== 'Pago' ? `<div style="text-align:center; font-weight:bold; font-size:10px; margin:4px 0;">🔴 NÃO ENTREGAR SEM RECEBER 🔴</div>` : ''}
-                    
-                    <div style="text-align:center; font-size:9px; margin-top:5px;">Obrigado pela preferência!</div>
-                </div>`;
-        }
-
-        function imprimirDuplaVia(pedidoObj) {
-            document.getElementById('ticket-print').innerHTML = gerarTemplateFita(pedidoObj, "COZINHA") + gerarTemplateFita(pedidoObj, "CLIENTE");
-            setTimeout(() => { window.print(); }, 200);
-        }
-
-        window.reimprimirTicketPorId = function(id) {
-            const p = totalizadorLocalPedidos.find(x => x.id === id);
-            if(p) imprimirDuplaVia(p);
-        };
-
-        window.alternarAbaMobile = function(abaNome, elementoBtn) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            if (!elementoBtn) {
-                if (abaNome === 'venda') elementoBtn = document.querySelector(".mobile-tabs-nav .tab-btn:nth-child(1)");
-                if (abaNome === 'carrinho') elementoBtn = document.querySelector(".mobile-tabs-nav .tab-btn:nth-child(2)");
-                if (abaNome === 'painel') elementoBtn = document.querySelector(".mobile-tabs-nav .tab-btn:nth-child(3)");
-                if (abaNome === 'cardapio') elementoBtn = document.querySelector(".mobile-tabs-nav .tab-btn:nth-child(4)");
-                if (abaNome === 'fechamento') elementoBtn = document.querySelector(".mobile-tabs-nav .tab-btn:nth-child(5)");
-            }
-            if(elementoBtn) elementoBtn.classList.add('active');
-
-            document.getElementById('card-aba-venda').classList.remove('active-tab-card');
-            document.getElementById('card-aba-carrinho').classList.remove('active-tab-card');
-            document.getElementById('card-aba-painel').classList.remove('active-tab-card');
-            document.getElementById('card-aba-cardapio').classList.remove('active-tab-card');
-            document.getElementById('card-aba-fechamento').classList.remove('active-tab-card');
-            document.getElementById('card-aba-logs').classList.remove('active-tab-card');
-
-            document.getElementById(`card-aba-${abaNome}`).classList.add('active-tab-card');
-            window.scrollTo({ top: 0, behavior: 'instant' });
         };
 
         inicializarSistema();
