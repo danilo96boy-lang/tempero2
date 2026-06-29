@@ -202,7 +202,8 @@
 
         @media(min-width: 480px) {
             .form-row.dois-campos { grid-template-columns: 1fr 1fr; }
-            .form-row.tres-campos { grid-template-columns: 1fr 1fr 1fr; }
+            .form-row.tres-campos { grid-template-columns: repeat(3, 1fr); }
+            .form-row.quatro-campos { grid-template-columns: repeat(4, 1fr); }
         }
 
         .form-group { margin-bottom: 12px; }
@@ -234,7 +235,6 @@
             box-shadow: 0 0 0 3px rgba(204, 29, 29, 0.1);
         }
 
-        /* OTIMIZAÇÃO SMART GRIDS PARA ITENS DO CARDÁPIO NO CELULAR */
         .mobile-badge-selector {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
@@ -303,6 +303,10 @@
         .status-pendente { background-color: var(--cor-pendente); }
         .status-aprovado { background-color: var(--cor-aprovado); }
 
+        .financeiro-badge { padding: 2px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; display: inline-block; margin-top: 4px; }
+        .fin-pago { background-color: #d1fae5; color: #065f46; }
+        .fin-pendente { background-color: #fee2e2; color: #991b1b; }
+
         .btn-card-rep { background-color: #2563eb; color: white; border: none; padding: 8px 14px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 13px; }
         .btn-card-edit { background-color: #f59e0b; color: white; border: none; padding: 8px 14px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 13px; }
         .btn-card-del { background-color: #dc2626; color: white; border: none; padding: 8px 14px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 13px; }
@@ -346,6 +350,7 @@
             .ticket-item { margin: 6px 0; border-bottom: 1px dotted #ccc; padding-bottom: 4px; }
             .ticket-item-price { text-align: right; font-weight: bold; display: block; }
             .ticket-wrapper-via { page-break-after: always !important; display: block; }
+            .ticket-alert-box { text-align: center; border: 2px solid #000; font-weight: 900; font-size: 13px; padding: 4px; margin: 5px 0; text-transform: uppercase; }
         }
     </style>
 </head>
@@ -405,7 +410,6 @@
                     </div>
 
                     <div class="secao-titulo">2. Escolha o Prato</div>
-                    <!-- DESIGN MOBILE REESTRUTURADO: Seleção por Badges Rápidas -->
                     <div class="mobile-badge-selector" id="badge-container-pratos"></div>
 
                     <div class="secao-titulo" id="titulo-especificacao">3. Tamanho / Opção</div>
@@ -413,8 +417,8 @@
                         <div style="color:var(--cor-texto-secundario); font-size:13px; grid-column: span 2;">Selecione o prato acima primeiro...</div>
                     </div>
 
-                    <div class="form-row tres-campos">
-                        <div class="form-group" id="container-valor-interno">
+                    <div class="form-row quatro-campos">
+                        <div class="form-group" id="container-valor-interno" style="grid-column: span 1;">
                             <label>Preço Unitário (R$):</label>
                             <input type="number" id="valor" step="0.01" placeholder="0,00">
                         </div>
@@ -423,11 +427,19 @@
                             <input type="number" id="quantidade" min="1" value="1" required>
                         </div>
                         <div class="form-group">
-                            <label>Forma de Pagamento:</label>
+                            <label>Forma Pagto:</label>
                             <select id="forma-pagamento" required>
                                 <option value="Dinheiro">💵 Dinheiro</option>
                                 <option value="Pix">⚡ Pix</option>
                                 <option value="Cartão">💳 Cartão</option>
+                            </select>
+                        </div>
+                        <!-- NOVO CAMPO: Status de Pagamento no Lançamento -->
+                        <div class="form-group" id="container-status-financeiro">
+                            <label>Status Pagto:</label>
+                            <select id="status-pagamento" required>
+                                <option value="Pago">✅ Pago</option>
+                                <option value="Pendente" selected>⚠️ Pendente</option>
                             </select>
                         </div>
                     </div>
@@ -565,6 +577,7 @@
             document.getElementById('sys-title').innerText = "Tempero de Família - Cardápio";
             document.getElementById('nav-venda-label').innerText = "Cardápio";
             document.getElementById('container-valor-interno').style.display = 'none';
+            document.getElementById('container-status-financeiro').style.display = 'none'; // Esconde escolha do cliente
             document.getElementById('btn-finalizar-checkout').innerText = "🚀 Enviar Pedido via WhatsApp";
             
             document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
@@ -667,7 +680,6 @@
 
             atualizarInterfaceCarrinho();
             
-            // Reseta a seleção atual de itens
             pratoSelecionadoGlobal = "";
             tipoSelecionadoGlobal = "";
             document.getElementById('descricao').value = '';
@@ -676,7 +688,6 @@
             window.renderizarBadgesPratos();
             window.renderizarBadgesTipos();
             
-            // Manda o cliente direto para a aba de carrinho para ele ver o prato adicionado
             window.alternarAbaMobile('carrinho');
         };
 
@@ -713,6 +724,9 @@
             const total = pedidoAtual.reduce((acc, current) => acc + current.valor, 0);
             const numeroPedido = totalizadorLocalPedidos.length + 1;
 
+            // Se for visão do cliente, o financeiro padrão entra como Pendente até ser validado no Whats
+            const statusFin = isClienteView ? "Pendente" : document.getElementById('status-pagamento').value;
+
             const novoPedido = {
                 numero: numeroPedido,
                 data: new Date().toLocaleString('pt-BR'),
@@ -724,6 +738,7 @@
                 total: total,
                 pagamento: document.getElementById('forma-pagamento').value,
                 status: isClienteView ? "Pendente" : "Aprovado",
+                financeiro: statusFin, 
                 timestamp: Date.now()
             };
 
@@ -782,11 +797,17 @@
 
             [...totalizadorLocalPedidos].reverse().forEach(p => {
                 const resumoItens = p.itens.map(i => `<b style="color:var(--cor-principal)">(${i.qtd}x)</b> ${i.prato} [${i.tipo}]`).join('<br>');
+                const finBadgeClass = p.financeiro === 'Pago' ? 'fin-pago' : 'fin-pendente';
+                const finBadgeLabel = p.financeiro === 'Pago' ? '✅ PAGO' : '⚠️ PENDENTE (COBRAR)';
+
                 const htmlCard = `
                     <div class="pedido-log-card">
                         <div class="pedido-log-header">
                             <span style="font-size:15px; font-weight:800; color:var(--cor-principal);">PEDIDO #${String(p.numero).padStart(2, '0')}</span>
-                            <span class="status-badge status-${p.status.toLowerCase()}">${p.status}</span>
+                            <div>
+                                <span class="status-badge status-${p.status.toLowerCase()}">${p.status}</span>
+                                <span class="financeiro-badge ${finBadgeClass}">${finBadgeLabel}</span>
+                            </div>
                         </div>
                         <div class="pedido-log-corpo">
                             <b>Cliente:</b> ${p.rawClienteNome} | Tel: ${p.rawClienteCelular}<br>
@@ -796,7 +817,15 @@
                             <b>Total: <span style="color:var(--cor-principal)">R$ ${p.total.toFixed(2)}</span></b>
                         </div>
                         <div class="pedido-log-footer">
-                            ${p.status === 'Pendente' ? `<button class="btn-aprovar" onclick="window.aprovarPedidoWhats('${p.id}')">✅ Aprovar & Imprimir</button>` : ''}
+                            ${p.status === 'Pendente' ? `
+                                <div style="display:flex; gap:6px; align-items:center;">
+                                    <select id="fin-mod-${p.id}" style="padding:6px; font-size:12px; width:auto; margin:0;">
+                                        <option value="Pendente" ${p.financeiro === 'Pendente' ? 'selected' : ''}>⚠️ Pendente</option>
+                                        <option value="Pago" ${p.financeiro === 'Pago' ? 'selected' : ''}>✅ Já Pago</option>
+                                    </select>
+                                    <button class="btn-aprovar" onclick="window.aprovarPedidoWhats('${p.id}')">✅ Aprovar & Imprimir</button>
+                                </div>
+                            ` : ''}
                             <button class="btn-card-rep" onclick="window.reimprimirTicketPorId('${p.id}')">🖨️ Rep</button>
                             <button class="btn-card-del" onclick="window.excluirPedidoDefinitivo('${p.id}')">❌ Exc</button>
                         </div>
@@ -816,13 +845,29 @@
 
         window.aprovarPedidoWhats = async function(pedidoId) {
             try {
+                // Captura a opção financeira selecionada pelo atendente no momento de aprovar
+                const selectFin = document.getElementById(`fin-mod-${pedidoId}`);
+                const financeiroAtualizado = selectFin ? selectFin.value : "Pendente";
+
                 const pRef = doc(db, "pedidos", pedidoId);
-                await updateDoc(pRef, { status: "Aprovado" });
+                await updateDoc(pRef, { 
+                    status: "Aprovado",
+                    financeiro: financeiroAtualizado
+                });
                 
+                // Recarrega o objeto local atualizado antes de disparar a fita de impressão
                 const pedido = totalizadorLocalPedidos.find(p => p.id === pedidoId);
                 if (pedido) {
+                    pedido.financeiro = financeiroAtualizado; // Força atualização local imediata para o print
                     imprimirDuplaVia(pedido);
-                    let msgRetorno = `Olá *${pedido.rawClienteNome}*, seu pedido de número *#${pedido.numero}* foi recebido e *ACEITO* pela cozinha! \n\nEm breve sairá para entrega. Obrigado pela preferência!`;
+                    
+                    let msgRetorno = `Olá *${pedido.rawClienteNome}*, seu pedido de número *#${pedido.numero}* foi recebido e *ACEITO* pela cozinha! \n\n`;
+                    if (financeiroAtualizado === "Pago") {
+                        msgRetorno += `Status do Pagamento: *CONFIRMADO (PAGO)* ✅\n\n`;
+                    } else {
+                        msgRetorno += `Status do Pagamento: *PENDENTE* ⚠️ (Preparar o valor de *R$ ${pedido.total.toFixed(2)}* no método *${pedido.pagamento}* para o entregador).\n\n`;
+                    }
+                    msgRetorno += `Em breve sairá para entrega. Obrigado pela preferência!`;
                     
                     const celularLimpo = pedido.rawClienteCelular.replace(/\D/g, "");
                     const urlRetorno = `https://api.whatsapp.com/send?phone=55${celularLimpo}&text=${encodeURIComponent(msgRetorno)}`;
@@ -885,6 +930,14 @@
                     <span style="font-size:10px;">Obs: ${i.descricao}</span><br>
                     <span class="ticket-item-price">R$ ${i.valor.toFixed(2)}</span>
                 </div>`).join('');
+
+            // Lógica visual do box de alerta do ticket
+            let boxFinanceiroTicket = "";
+            if (p.financeiro === "Pago") {
+                boxFinanceiroTicket = `<div class="ticket-alert-box" style="background:#e6fee6; border-color:#008000; color:#008000;">>>> PEDIDO PAGO <<<</div>`;
+            } else {
+                boxFinanceiroTicket = `<div class="ticket-alert-box" style="background:#fee6e6; border-color:#cc0000; color:#cc0000;">⚠️ COBRAR NA ENTREGA ⚠️<br>VALOR: R$ ${p.total.toFixed(2)}</div>`;
+            }
             
             return `
                 <div class="ticket-wrapper-via">
@@ -893,6 +946,9 @@
                         <span class="ticket-header-num-destaque">#${String(p.numero).padStart(2, '0')}</span>
                         <div style="font-size:10px;">${p.data} às ${p.hora}</div>
                     </div>
+                    
+                    ${boxFinanceiroTicket}
+
                     <div class="ticket-divider">--------------------------------</div>
                     <div style="font-size:11px; margin-bottom: 5px;">
                         <b>Cliente:</b> ${p.rawClienteNome}<br>
@@ -903,8 +959,11 @@
                     ${pratos}
                     <div class="ticket-divider">--------------------------------</div>
                     <div style="font-size:13px; font-weight:bold; text-align:right;">Total: R$ ${p.total.toFixed(2)}</div>
-                    <div style="font-size:11px;">Forma Pagto: ${p.pagamento}</div>
+                    <div style="font-size:11px;">Forma Pagto: ${p.pagamento} (${p.financeiro === 'Pago' ? 'PAGO' : 'A COBRAR'})</div>
                     <div class="ticket-divider">--------------------------------</div>
+                    
+                    ${p.financeiro !== 'Pago' ? `<div style="text-align:center; font-weight:bold; font-size:10px; margin:4px 0;">🔴 NÃO ENTREGAR SEM RECEBER 🔴</div>` : ''}
+                    
                     <div style="text-align:center; font-size:9px; margin-top:5px;">Obrigado pela preferência!</div>
                 </div>`;
         }
