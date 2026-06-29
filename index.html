@@ -19,10 +19,10 @@
             --cor-borda: #e2e8f0;
             --cor-pendente: #f59e0b;
             --cor-aprovado: #16a34a;
-            --border-radius-lg: 12px;
-            --border-radius-md: 8px;
-            --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
-            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
+            --border-radius-lg: 16px;
+            --border-radius-md: 10px;
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.02);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.05);
             --transition: all 0.2s ease-in-out;
         }
 
@@ -36,7 +36,7 @@
             align-items: center;
             color: var(--cor-texto);
             -webkit-font-smoothing: antialiased;
-            padding-bottom: 70px;
+            padding-bottom: 90px;
         }
 
         @media(min-width: 950px) {
@@ -80,7 +80,7 @@
             justify-content: flex-start;
             gap: 12px;
             background: var(--cor-card);
-            padding: 12px 16px;
+            padding: 14px 16px;
             border-radius: var(--border-radius-lg);
             width: 100%;
             box-shadow: var(--shadow-sm);
@@ -90,7 +90,7 @@
         }
 
         .brand-logo {
-            width: 35px;
+            width: 40px;
             height: 40px;
             object-fit: cover;
             border-radius: 50%;
@@ -99,16 +99,10 @@
 
         .brand-header h1 {
             margin: 0;
-            font-size: 16px;
+            font-size: 18px;
             font-weight: 800;
             color: var(--cor-texto);
             letter-spacing: -0.5px;
-        }
-
-        @media(min-width: 950px) {
-            .brand-header { gap: 16px; padding: 16px 28px; margin-bottom: 20px; }
-            .brand-logo { width: 45px; height: 45px; }
-            .brand-header h1 { font-size: 20px; }
         }
 
         .mobile-tabs-nav {
@@ -118,9 +112,9 @@
             bottom: 0; left: 0; width: 100%;
             background: #ffffff;
             border-top: 1px solid var(--cor-borda);
-            padding: 10px 0;
+            padding: 12px 0;
             z-index: 999;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.07);
         }
 
         .tab-btn {
@@ -135,7 +129,7 @@
             position: absolute; top: -6px; right: 15%;
             background: var(--cor-principal); color: white;
             font-size: 10px; font-weight: bold; border-radius: 10px;
-            padding: 1px 6px; display: none;
+            padding: 2px 6px; display: none;
         }
         .badge-pendente { background: var(--cor-pendente); }
 
@@ -179,7 +173,7 @@
         h3 {
             margin: 0 0 16px 0;
             color: var(--cor-texto);
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -192,11 +186,11 @@
         }
 
         .secao-titulo {
-            font-size: 11px;
+            font-size: 12px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             color: var(--cor-principal);
-            margin: 14px 0 8px 0;
+            margin: 18px 0 10px 0;
             font-weight: 700;
         }
 
@@ -211,19 +205,19 @@
             .form-row.tres-campos { grid-template-columns: 1fr 1fr 1fr; }
         }
 
-        .form-group { margin-bottom: 10px; }
+        .form-group { margin-bottom: 12px; }
 
         label {
             display: block;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
             font-weight: 600;
             color: var(--cor-texto);
-            font-size: 12px;
+            font-size: 13px;
         }
 
         input, select, textarea {
             width: 100%;
-            padding: 12px; 
+            padding: 14px; 
             border: 1px solid #cbd5e1;
             border-radius: var(--border-radius-md);
             box-sizing: border-box;
@@ -234,14 +228,53 @@
             transition: var(--transition);
         }
 
-        @media(min-width: 950px) {
-            input, select, textarea { font-size: 14px; padding: 10px 12px; }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--cor-principal);
+            box-shadow: 0 0 0 3px rgba(204, 29, 29, 0.1);
+        }
+
+        /* OTIMIZAÇÃO SMART GRIDS PARA ITENS DO CARDÁPIO NO CELULAR */
+        .mobile-badge-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .badge-option {
+            background: #fff;
+            border: 2px solid var(--cor-borda);
+            border-radius: var(--border-radius-md);
+            padding: 12px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .badge-option.selected {
+            border-color: var(--cor-principal);
+            background-color: rgba(204, 29, 29, 0.04);
+            color: var(--cor-principal);
+        }
+
+        .badge-option span {
+            font-size: 12px;
+            color: var(--cor-texto-secundario);
+            font-weight: 500;
         }
 
         .btn {
             border: none;
-            padding: 14px 20px;
-            font-size: 14px;
+            padding: 16px 20px;
+            font-size: 15px;
             border-radius: var(--border-radius-md);
             cursor: pointer;
             font-weight: 700;
@@ -253,46 +286,42 @@
             width: 100%;
         }
 
-        @media(min-width: 950px) {
-            .btn { width: auto; padding: 10px 20px; }
-        }
-
-        .btn-add { background-color: var(--cor-principal); color: white; margin-top: 10px; }
+        .btn-add { background-color: var(--cor-principal); color: white; margin-top: 15px; box-shadow: 0 4px 10px rgba(204, 29, 29, 0.2); }
         .btn-add:hover { background-color: var(--cor-principal-hover); }
-        .btn-print { background-color: #16a34a; color: white; font-size: 15px; }
-        .btn-aprovar { background-color: #16a34a; color: white; padding: 6px 12px; font-size: 12px; border-radius: 4px; }
+        .btn-print { background-color: #16a34a; color: white; font-size: 16px; box-shadow: 0 4px 10px rgba(22, 163, 74, 0.2); }
+        .btn-aprovar { background-color: #16a34a; color: white; padding: 8px 14px; font-size: 13px; border-radius: 6px; }
 
-        .container-logs-cards { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 10px; }
+        .container-logs-cards { display: grid; grid-template-columns: 1fr; gap: 14px; margin-top: 10px; }
         @media(min-width: 750px) { .container-logs-cards { grid-template-columns: 1fr 1fr; } }
         
-        .pedido-log-card { background: #f8fafc; border: 1px solid var(--cor-borda); border-radius: var(--border-radius-md); padding: 14px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: var(--shadow-sm); }
-        .pedido-log-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--cor-borda); padding-bottom: 6px; margin-bottom: 8px; }
-        .pedido-log-corpo { font-size: 13px; color: var(--cor-texto); line-height: 1.4; margin-bottom: 12px; }
-        .pedido-log-footer { display: flex; gap: 6px; justify-content: flex-end; border-top: 1px solid var(--cor-borda); padding-top: 10px; }
+        .pedido-log-card { background: #f8fafc; border: 1px solid var(--cor-borda); border-radius: var(--border-radius-md); padding: 16px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: var(--shadow-sm); }
+        .pedido-log-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--cor-borda); padding-bottom: 8px; margin-bottom: 10px; }
+        .pedido-log-corpo { font-size: 14px; color: var(--cor-texto); line-height: 1.5; margin-bottom: 12px; }
+        .pedido-log-footer { display: flex; gap: 8px; justify-content: flex-end; border-top: 1px solid var(--cor-borda); padding-top: 12px; }
         
-        .status-badge { padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: bold; color: white; }
+        .status-badge { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; color: white; }
         .status-pendente { background-color: var(--cor-pendente); }
         .status-aprovado { background-color: var(--cor-aprovado); }
 
-        .btn-card-rep { background-color: #2563eb; color: white; border: none; padding: 6px 12px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 12px; }
-        .btn-card-edit { background-color: #f59e0b; color: white; border: none; padding: 6px 12px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 12px; }
-        .btn-card-del { background-color: #dc2626; color: white; border: none; padding: 6px 12px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        .btn-card-rep { background-color: #2563eb; color: white; border: none; padding: 8px 14px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 13px; }
+        .btn-card-edit { background-color: #f59e0b; color: white; border: none; padding: 8px 14px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 13px; }
+        .btn-card-del { background-color: #dc2626; color: white; border: none; padding: 8px 14px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 13px; }
 
         .carrinho-container { display: flex; flex-direction: column; justify-content: space-between; background: #f8fafc; }
-        .lista-itens { list-style: none; padding: 0; margin: 0; max-height: 260px; overflow-y: auto; }
-        .item-carrinho { background: white; padding: 12px; margin-bottom: 8px; border-radius: var(--border-radius-md); font-size: 13px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--cor-borda); }
-        .btn-del { background: #fee2e2; color: #ef4444; border: none; border-radius: 50%; width: 24px; height: 24px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .lista-itens { list-style: none; padding: 0; margin: 0; max-height: 350px; overflow-y: auto; }
+        .item-carrinho { background: white; padding: 14px; margin-bottom: 10px; border-radius: var(--border-radius-md); font-size: 14px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--cor-borda); box-shadow: var(--shadow-sm); }
+        .btn-del { background: #fee2e2; color: #ef4444; border: none; border-radius: 50%; width: 28px; height: 28px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
-        .total-tela { font-size: 22px; font-weight: 800; text-align: right; margin-top: 14px; padding-top: 14px; border-top: 2px dashed #cbd5e0; }
+        .total-tela { font-size: 24px; font-weight: 800; text-align: right; margin-top: 16px; padding-top: 16px; border-top: 2px dashed #cbd5e0; }
         .total-tela span { color: var(--cor-principal); }
 
         .grid-cardapio-gestao { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 10px; }
         @media(min-width: 600px) { .grid-cardapio-gestao { grid-template-columns: 1fr 1fr; } }
-        .item-cardapio-manage { padding: 12px; background: #f8fafc; border: 1px solid var(--cor-borda); border-radius: var(--border-radius-md); display: flex; justify-content: space-between; align-items: center; }
-        .switch { position: relative; display: inline-block; width: 44px; height: 22px; }
+        .item-cardapio-manage { padding: 14px; background: #f8fafc; border: 1px solid var(--cor-borda); border-radius: var(--border-radius-md); display: flex; justify-content: space-between; align-items: center; }
+        .switch { position: relative; display: inline-block; width: 46px; height: 24px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .3s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
         input:checked + .slider { background-color: #16a34a; }
         input:checked + .slider:before { transform: translateX(22px); }
 
@@ -367,29 +396,23 @@
                         </div>
                         <div class="form-group">
                             <label>Nome Completo:</label>
-                            <input type="text" id="cliente-nome" placeholder="Nome" required>
+                            <input type="text" id="cliente-nome" placeholder="Seu Nome" required>
                         </div>
                     </div>
                     <div class="form-group">
                         <label>Endereço de Entrega Completo:</label>
-                        <input type="text" id="cliente-endereco" placeholder="Digite rua, número, bairro ou informe BALCÃO">
+                        <input type="text" id="cliente-endereco" placeholder="Rua, número, bairro ou informe BALCÃO">
                     </div>
 
-                    <div class="secao-titulo">2. Escolha os Pratos</div>
-                    <div class="form-row dois-campos">
-                        <div class="form-group">
-                            <label>Produto / Categoria:</label>
-                            <select id="categoria-prato" onchange="window.atualizarOpcoesMenu()" required>
-                                <option value="">-- Selecione o Prato --</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Tamanho / Especificação:</label>
-                            <select id="tipo" onchange="window.inserirPrecoSugerido()" required>
-                                <option value="">-- Selecione o prato primeiro --</option>
-                            </select>
-                        </div>
+                    <div class="secao-titulo">2. Escolha o Prato</div>
+                    <!-- DESIGN MOBILE REESTRUTURADO: Seleção por Badges Rápidas -->
+                    <div class="mobile-badge-selector" id="badge-container-pratos"></div>
+
+                    <div class="secao-titulo" id="titulo-especificacao">3. Tamanho / Opção</div>
+                    <div class="mobile-badge-selector" id="badge-container-tipos">
+                        <div style="color:var(--cor-texto-secundario); font-size:13px; grid-column: span 2;">Selecione o prato acima primeiro...</div>
                     </div>
+
                     <div class="form-row tres-campos">
                         <div class="form-group" id="container-valor-interno">
                             <label>Preço Unitário (R$):</label>
@@ -521,6 +544,9 @@
         let isClienteView = false;
         let chartPizzaInstancia = null;
 
+        let pratoSelecionadoGlobal = "";
+        let tipoSelecionadoGlobal = "";
+
         function inicializarSistema() {
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('cliente') === 'true') {
@@ -536,7 +562,7 @@
         function configurarModoCliente() {
             document.getElementById('tela-login').style.display = 'none';
             document.getElementById('conteudo-sistema').style.display = 'block';
-            document.getElementById('sys-title').innerText = "Tempero de Família - Faça seu Pedido";
+            document.getElementById('sys-title').innerText = "Tempero de Família - Cardápio";
             document.getElementById('nav-venda-label').innerText = "Cardápio";
             document.getElementById('container-valor-interno').style.display = 'none';
             document.getElementById('btn-finalizar-checkout').innerText = "🚀 Enviar Pedido via WhatsApp";
@@ -558,36 +584,52 @@
             }
         };
 
-        window.atualizarSelectCategorias = function() {
-            const select = document.getElementById('categoria-prato');
-            select.innerHTML = '<option value="">-- Selecione o Prato --</option>';
+        window.renderizarBadgesPratos = function() {
+            const container = document.getElementById('badge-container-pratos');
+            container.innerHTML = '';
             Object.keys(cardapioEstruturado).forEach(prato => {
                 if (isClienteView && prato === "Outros Pratos") return;
                 if (!isClienteView || statusCardapioDisponivel[prato]) {
-                    select.innerHTML += `<option value="${prato}">${prato}</option>`;
+                    const isSelected = prato === pratoSelecionadoGlobal ? 'selected' : '';
+                    container.innerHTML += `
+                        <div class="badge-option ${isSelected}" onclick="window.selecionarPratoBadge('${prato}')">
+                            ${prato}
+                        </div>`;
                 }
             });
         };
 
-        window.atualizarOpcoesMenu = function() {
-            const categorySel = document.getElementById('categoria-prato').value;
-            const selectTipo = document.getElementById('tipo');
-            selectTipo.innerHTML = '';
-            if (!categorySel || !cardapioEstruturado[categorySel]) {
-                selectTipo.innerHTML = '<option value="">-- Selecione o prato primeiro --</option>'; return;
-            }
-            cardapioEstruturado[categorySel].forEach(opcao => {
-                selectTipo.innerHTML += `<option value="${opcao}">${opcao}</option>`;
-            });
-            window.inserirPrecoSugerido();
+        window.selecionarPratoBadge = function(prato) {
+            pratoSelecionadoGlobal = prato;
+            tipoSelecionadoGlobal = ""; 
+            window.renderizarBadgesPratos();
+            window.renderizarBadgesTipos();
         };
 
-        window.inserirPrecoSugerido = function() {
-            const prato = document.getElementById('categoria-prato').value;
-            const tamanho = document.getElementById('tipo').value;
-            if (prato && tamanho && tabelaPrecosSugeridos[prato] && tabelaPrecosSugeridos[prato][tamanho] !== undefined) {
-                document.getElementById('valor').value = tabelaPrecosSugeridos[prato][tamanho].toFixed(2);
-            } else { document.getElementById('valor').value = ''; }
+        window.renderizarBadgesTipos = function() {
+            const container = document.getElementById('badge-container-tipos');
+            container.innerHTML = '';
+            
+            if (!pratoSelecionadoGlobal || !cardapioEstruturado[pratoSelecionadoGlobal]) {
+                container.innerHTML = '<div style="color:var(--cor-texto-secundario); font-size:13px; grid-column: span 2;">Selecione o prato acima primeiro...</div>';
+                return;
+            }
+
+            cardapioEstruturado[pratoSelecionadoGlobal].forEach(opcao => {
+                const preco = tabelaPrecosSugeridos[pratoSelecionadoGlobal][opcao];
+                const isSelected = opcao === tipoSelecionadoGlobal ? 'selected' : '';
+                container.innerHTML += `
+                    <div class="badge-option ${isSelected}" onclick="window.selecionarTipoBadge('${opcao}', ${preco})">
+                        ${opcao}
+                        <span>R$ ${preco.toFixed(2)}</span>
+                    </div>`;
+            });
+        };
+
+        window.selecionarTipoBadge = function(opcao, preco) {
+            tipoSelecionadoGlobal = opcao;
+            document.getElementById('valor').value = preco.toFixed(2);
+            window.renderizarBadgesTipos();
         };
 
         window.buscarClientePorTelefone = function(telDigitado) {
@@ -602,19 +644,21 @@
 
         window.adicionarItem = function(event) {
             event.preventDefault();
-            const prato = document.getElementById('categoria-prato').value;
-            const tipo = document.getElementById('tipo').value;
+            
+            if (!pratoSelecionadoGlobal) {
+                alert("Por favor, selecione um prato no cardápio."); return;
+            }
+            if (!tipoSelecionadoGlobal) {
+                alert("Por favor, selecione o tamanho ou opção do prato."); return;
+            }
+
             const precoUnitario = parseFloat(document.getElementById('valor').value);
             const qtd = parseInt(document.getElementById('quantidade').value);
 
-            if (isNaN(precoUnitario) || precoUnitario <= 0) {
-                alert("Por favor, defina um preço válido."); return;
-            }
-
             pedidoAtual.push({
                 id: Date.now(),
-                prato: prato,
-                tipo: tipo,
+                prato: pratoSelecionadoGlobal,
+                tipo: tipoSelecionadoGlobal,
                 descricao: document.getElementById('descricao').value.trim() || "Sem obs",
                 precoUnitario: precoUnitario,
                 qtd: qtd,
@@ -622,9 +666,18 @@
             });
 
             atualizarInterfaceCarrinho();
+            
+            // Reseta a seleção atual de itens
+            pratoSelecionadoGlobal = "";
+            tipoSelecionadoGlobal = "";
             document.getElementById('descricao').value = '';
-            document.getElementById('categoria-prato').value = '';
-            document.getElementById('tipo').innerHTML = '<option value="">-- Selecione o prato primeiro --</option>';
+            document.getElementById('valor').value = '';
+            document.getElementById('quantidade').value = '1';
+            window.renderizarBadgesPratos();
+            window.renderizarBadgesTipos();
+            
+            // Manda o cliente direto para a aba de carrinho para ele ver o prato adicionado
+            window.alternarAbaMobile('carrinho');
         };
 
         function atualizarInterfaceCarrinho() {
@@ -650,7 +703,7 @@
         };
 
         window.finalizarPedidoFluxo = async function() {
-            if (pedidoAtual.length === 0) return alert("Carrinho vazio!");
+            if (pedidoAtual.length === 0) return alert("Seu carrinho está vazio!");
             
             const nome = document.getElementById('cliente-nome').value.trim();
             const celular = document.getElementById('cliente-celular').value.trim();
@@ -687,7 +740,6 @@
                     textoWhats += `\n*Forma de Pagamento:* ${novoPedido.pagamento}`;
                     textoWhats += `\n*Total Geral:* R$ ${total.toFixed(2)}\n\n_Aguardando aprovação do atendente..._`;
 
-                    // NÚMERO CORRIGIDO INTEGRALMENTE: Forçando o final 73141 correto
                     const urlWhats = `https://api.whatsapp.com/send?phone=5511999973141&text=${encodeURIComponent(textoWhats)}`;
                     window.open(urlWhats, '_blank');
                     alert("Seu pedido foi enviado! Aguarde a mensagem de confirmação do atendente.");
@@ -699,6 +751,7 @@
                 pedidoAtual = [];
                 atualizarInterfaceCarrinho();
                 document.getElementById('form-item').reset();
+                window.alternarAbaMobile('venda');
             } catch (error) {
                 alert("Erro ao gravar dados no Firebase: " + error.message);
             }
@@ -771,7 +824,6 @@
                     imprimirDuplaVia(pedido);
                     let msgRetorno = `Olá *${pedido.rawClienteNome}*, seu pedido de número *#${pedido.numero}* foi recebido e *ACEITO* pela cozinha! \n\nEm breve sairá para entrega. Obrigado pela preferência!`;
                     
-                    // HIGIENIZAÇÃO MÁXIMA: Garante o envio por número numérico puro limpando qualquer espaço do input
                     const celularLimpo = pedido.rawClienteCelular.replace(/\D/g, "");
                     const urlRetorno = `https://api.whatsapp.com/send?phone=55${celularLimpo}&text=${encodeURIComponent(msgRetorno)}`;
                     window.open(urlRetorno, '_blank');
@@ -796,7 +848,7 @@
                     statusCardapioDisponivel[doc.id] = doc.data().disponivel;
                 });
                 renderizarGerenciamentoCardapio();
-                window.atualizarSelectCategorias();
+                window.renderizarBadgesPratos();
             });
         }
 
@@ -822,7 +874,7 @@
                 await setDoc(cRef, { disponivel: disponibilizar }, { merge: true });
             } catch (e) {
                 statusCardapioDisponivel[prato] = disponibilizar;
-                window.atualizarSelectCategorias();
+                window.renderizarBadgesPratos();
             }
         };
 
@@ -869,6 +921,13 @@
 
         window.alternarAbaMobile = function(abaNome, elementoBtn) {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            if (!elementoBtn) {
+                if (abaNome === 'venda') elementoBtn = document.querySelector(".mobile-tabs-nav .tab-btn:nth-child(1)");
+                if (abaNome === 'carrinho') elementoBtn = document.querySelector(".mobile-tabs-nav .tab-btn:nth-child(2)");
+                if (abaNome === 'painel') elementoBtn = document.querySelector(".mobile-tabs-nav .tab-btn:nth-child(3)");
+                if (abaNome === 'cardapio') elementoBtn = document.querySelector(".mobile-tabs-nav .tab-btn:nth-child(4)");
+                if (abaNome === 'fechamento') elementoBtn = document.querySelector(".mobile-tabs-nav .tab-btn:nth-child(5)");
+            }
             if(elementoBtn) elementoBtn.classList.add('active');
 
             document.getElementById('card-aba-venda').classList.remove('active-tab-card');
