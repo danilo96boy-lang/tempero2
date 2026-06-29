@@ -472,7 +472,24 @@
 
     <div id="ticket-print"></div>
 
-    <script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAp-heSrhEA1WOW30gbUJ8DVJQNYH8hVCY",
+            authDomain: "tempero2.firebaseapp.com",
+            projectId: "tempero2",
+            storageBucket: "tempero2.firebasestorage.app",
+            messagingSenderId: "811694441776",
+            appId: "1:811694441776:web:c3bd2ffb8312eff402f4f5",
+            measurementId: "G-SFS66CD08V"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // CARDÁPIO DE PRODUTOS
         const cardapioEstruturado = {
             "Parmegiana de Frango": ["Marmita (P)", "Marmita (M)", "Marmita (G)"],
             "Frango à Milanesa": ["Marmita (P)", "Marmita (M)", "Marmita (G)"],
@@ -495,15 +512,14 @@
             "Outros Pratos": {"Especial do Dia": 30.00}
         };
 
-        let statusCardapioDisponivel = JSON.parse(localStorage.getItem('status_cardapio')) || {
+        let statusCardapioDisponivel = {
             "Parmegiana de Frango": true, "Frango à Milanesa": true, "Parmegiana de Berinjela": true,
             "Feijoada": true, "Marmitex": true, "Prato Feito": true, "Bebidas": true, "Outros Pratos": true
         };
 
         let pedidoAtual = [];
-        let totalizadorLocalPedidos = JSON.parse(localStorage.getItem('banco_pedidos')) || [];
+        let totalizadorLocalPedidos = []; 
         let isClienteView = false;
-        let idPedidoEdicaoGlobal = null;
         let chartPizzaInstancia = null;
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -514,20 +530,8 @@
             } else {
                 document.getElementById('tela-login').style.display = 'flex';
             }
-            renderizarGerenciamentoCardapio();
-            atualizarSelectCategorias();
-
-            // ESCUTADOR EM TEMPO REAL: Se houver alteração de dados em qualquer outra aba, atualiza a tela do atendente na hora!
-            window.addEventListener('storage', (e) => {
-                if (e.key === 'banco_pedidos') {
-                    totalizadorLocalPedidos = JSON.parse(e.newValue) || [];
-                    if(!isClienteView) sincronizarInterfaceAtendente();
-                }
-                if (e.key === 'status_cardapio') {
-                    statusCardapioDisponivel = JSON.parse(e.newValue) || {};
-                    atualizarSelectCategorias();
-                }
-            });
+            sincronizarCardapioNuvem();
+            escutarPedidosRealtime();
         });
 
         function configurarModoCliente() {
@@ -646,7 +650,8 @@
             atualizarInterfaceCarrinho();
         };
 
-        window.finalizarPedidoFluxo = function() {
+        // SALVAMENTO NA NUVEM FIRESTORE (AÇÃO INTEGRADA)
+        window.finalizarPedidoFluxo = async function() {
             if (pedidoAtual.length === 0) return alert("Carrinho vazio!");
             
             const nome = document.getElementById('cliente-nome').value.trim();
@@ -658,7 +663,6 @@
             const numeroPedido = totalizadorLocalPedidos.length + 1;
 
             const novoPedido = {
-                id: 'PED_' + Date.now(),
                 numero: numeroPedido,
                 data: new Date().toLocaleString('pt-BR'),
                 hora: new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}),
@@ -668,36 +672,53 @@
                 itens: [...pedidoAtual],
                 total: total,
                 pagamento: document.getElementById('forma-pagamento').value,
-                status: isClienteView ? "Pendente" : "Aprovado"
+                status: isClienteView ? "Pendente" : "Aprovado",
+                timestamp: Date.now()
             };
 
-            totalizadorLocalPedidos.push(novoPedido);
-            localStorage.setItem('banco_pedidos', JSON.stringify(totalizadorLocalPedidos));
+            try {
+                // Adiciona o documento direto na sua nova coleção do Cloud Firestore
+                await addDoc(collection(db, "pedidos"), novoPedido);
 
-            if (isClienteView) {
-                let textoWhats = `*Novo Pedido - Tempero de Família (nº ${numeroPedido})*\n\n`;
-                textoWhats += `*Cliente:* ${nome}\n*Contato:* ${celular}\n*Endereço:* ${endereco}\n\n`;
-                textoWhats += `*Itens do Pedido:*\n`;
-                pedidoAtual.forEach(i => {
-                    textoWhats += `- ${i.qtd}x ${i.prato} [${i.tipo}] (Obs: ${i.descricao})\n`;
-                });
-                textoWhats += `\n*Forma de Pagamento:* ${novoPedido.pagamento}`;
-                textoWhats += `\n*Total Geral:* R$ ${total.toFixed(2)}\n\n_Aguardando aprovação do atendente..._`;
+                if (isClienteView) {
+                    let textoWhats = `*Novo Pedido - Tempero de Família (nº ${numeroPedido})*\n\n`;
+                    textoWhats += `*Cliente:* ${nome}\n*Contato:* ${celular}\n*Endereço:* ${endereco}\n\n`;
+                    textoWhats += `*Itens do Pedido:*\n`;
+                    pedidoAtual.forEach(i => {
+                        textoWhats += `- ${i.qtd}x ${i.prato} [${i.tipo}] (Obs: ${i.descricao})\n`;
+                    });
+                    textoWhats += `\n*Forma de Pagamento:* ${novoPedido.pagamento}`;
+                    textoWhats += `\n*Total Geral:* R$ ${total.toFixed(2)}\n\n_Aguardando aprovação do atendente..._`;
 
-                // AJUSTADO: Número de telefone inserido dinamicamente aqui conforme solicitado
-                const urlWhats = `https://api.whatsapp.com/send?phone=5511999993141&text=${encodeURIComponent(textoWhats)}`;
-                window.open(urlWhats, '_blank');
-                alert("Seu pedido foi enviado! Aguarde a mensagem de confirmação do atendente.");
-            } else {
-                imprimirDuplaVia(novoPedido);
-                alert("Pedido interno de Balcão registrado com sucesso!");
+                    const urlWhats = `https://api.whatsapp.com/send?phone=5511999993141&text=${encodeURIComponent(textoWhats)}`;
+                    window.open(urlWhats, '_blank');
+                    alert("Seu pedido foi enviado! Aguarde a mensagem de confirmação do atendente.");
+                } else {
+                    imprimirDuplaVia(novoPedido);
+                    alert("Pedido interno de Balcão registrado com sucesso!");
+                }
+
+                pedidoAtual = [];
+                atualizarInterfaceCarrinho();
+                document.getElementById('form-item').reset();
+            } catch (error) {
+                alert("Erro ao gravar dados no Firebase cloud: " + error.message);
             }
-
-            pedidoAtual = [];
-            atualizarInterfaceCarrinho();
-            document.getElementById('form-item').reset();
-            if(!isClienteView) sincronizarInterfaceAtendente();
         };
+
+        // ESCUTADOR REALTIME DO FIRESTORE (ATUALIZA ATENDENTE EM TEMPO REAL)
+        function escutarPedidosRealtime() {
+            const q = query(collection(db, "pedidos"), orderBy("timestamp", "asc"));
+            onSnapshot(q, (snapshot) => {
+                totalizadorLocalPedidos = [];
+                snapshot.forEach((doc) => {
+                    let dados = doc.data();
+                    dados.id = doc.id; // Vincula a Hash ID gerada pelo Firebase
+                    totalizadorLocalPedidos.push(dados);
+                });
+                if (!isClienteView) sincronizarInterfaceAtendente();
+            });
+        }
 
         function sincronizarInterfaceAtendente() {
             if (isClienteView) return;
@@ -709,7 +730,8 @@
 
             let countPendentes = 0;
 
-            totalizadorLocalPedidos.forEach(p => {
+            // Percorre a lista invertida para exibir os mais recentes no topo
+            [...totalizadorLocalPedidos].reverse().forEach(p => {
                 const resumoItens = p.itens.map(i => `<b style="color:var(--cor-principal)">(${i.qtd}x)</b> ${i.prato} [${i.tipo}]`).join('<br>');
                 const htmlCard = `
                     <div class="pedido-log-card">
@@ -743,26 +765,42 @@
             document.getElementById('badge-pendentes-id').style.display = countPendentes > 0 ? 'block' : 'none';
         }
 
-        window.aprovarPedidoWhats = function(pedidoId) {
-            const pedido = totalizadorLocalPedidos.find(p => p.id === pedidoId);
-            if (!pedido) return;
-
-            pedido.status = "Aprovado";
-            localStorage.setItem('banco_pedidos', JSON.stringify(totalizadorLocalPedidos));
-            sincronizarInterfaceAtendente();
-            imprimirDuplaVia(pedido);
-
-            let msgRetorno = `Olá *${pedido.rawClienteNome}*, seu pedido de número *#${pedido.numero}* foi recebido e *ACEITO* pela cozinha! \n\nEm breve sairá para entrega. Obrigado pela preferência!`;
-            const urlRetorno = `https://api.whatsapp.com/send?phone=55${pedido.rawClienteCelular.replace(/\D/g, "")}&text=${encodeURIComponent(msgRetorno)}`;
-            window.open(urlRetorno, '_blank');
+        window.aprovarPedidoWhats = async function(pedidoId) {
+            try {
+                const pRef = doc(db, "pedidos", pedidoId);
+                await updateDoc(pRef, { status: "Aprovado" });
+                
+                const pedido = totalizadorLocalPedidos.find(p => p.id === pedidoId);
+                if (pedido) {
+                    imprimirDuplaVia(pedido);
+                    let msgRetorno = `Olá *${pedido.rawClienteNome}*, seu pedido de número *#${pedido.numero}* foi recebido e *ACEITO* pela cozinha! \n\nEm breve sairá para entrega. Obrigado pela preferência!`;
+                    const urlRetorno = `https://api.whatsapp.com/send?phone=55${pedido.rawClienteCelular.replace(/\D/g, "")}&text=${encodeURIComponent(msgRetorno)}`;
+                    window.open(urlRetorno, '_blank');
+                }
+            } catch (e) {
+                alert("Erro ao aprovar pedido: " + e.message);
+            }
         };
 
-        window.excluirPedidoDefinitivo = function(id) {
-            if (!confirm("Remover permanentemente este registro?")) return;
-            totalizadorLocalPedidos = totalizadorLocalPedidos.filter(p => p.id !== id);
-            localStorage.setItem('banco_pedidos', JSON.stringify(totalizadorLocalPedidos));
-            sincronizarInterfaceAtendente();
+        window.excluirPedidoDefinitivo = async function(id) {
+            if (!confirm("Remover permanentemente este registro da nuvem do Firebase?")) return;
+            try {
+                await deleteDoc(doc(db, "pedidos", id));
+            } catch (e) {
+                alert("Erro ao deletar: " + e.message);
+            }
         };
+
+        // CONTROLE DO CARDÁPIO NA NUVEM (FIRESTORE)
+        function sincronizarCardapioNuvem() {
+            onSnapshot(collection(db, "status_cardapio"), (snapshot) => {
+                snapshot.forEach((doc) => {
+                    statusCardapioDisponivel[doc.id] = doc.data().disponivel;
+                });
+                renderizarGerenciamentoCardapio();
+                atualizarSelectCategorias();
+            });
+        }
 
         function renderizarGerenciamentoCardapio() {
             const container = document.getElementById('container-gestao-cardapio');
@@ -780,10 +818,18 @@
             });
         }
 
-        window.alternarStatusDisponibilidade = function(prato, disponibilizar) {
-            statusCardapioDisponivel[prato] = disponibilizar;
-            localStorage.setItem('status_cardapio', JSON.stringify(statusCardapioDisponivel));
-            atualizarSelectCategorias();
+        window.alternarStatusDisponibilidade = async function(prato, disponibilizar) {
+            try {
+                // Altera o status dinâmico na nuvem refletindo em todos os dispositivos clientes conectados
+                const cRef = doc(db, "status_cardapio", prato);
+                // Cria ou atualiza o registro
+                import { setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+                await setDoc(cRef, { disponivel: disponibilizar }, { merge: true });
+            } catch (e) {
+                // fallback interno caso regras do Firestore barrem antes do setup de permissões completo
+                statusCardapioDisponivel[prato] = disponibilizar;
+                atualizarSelectCategorias();
+            }
         };
 
         function gerarTemplateFita(p, via) {
