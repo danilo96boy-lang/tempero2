@@ -235,10 +235,11 @@
             box-shadow: 0 0 0 3px rgba(204, 29, 29, 0.1);
         }
 
+        /* CARDÁPIO COM IMAGENS OTIMIZADO PARA O CELULAR */
         .mobile-badge-selector {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-            gap: 10px;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px;
             margin-bottom: 14px;
         }
 
@@ -246,7 +247,7 @@
             background: #fff;
             border: 2px solid var(--cor-borda);
             border-radius: var(--border-radius-md);
-            padding: 12px;
+            padding: 0 0 10px 0;
             text-align: center;
             font-weight: 700;
             font-size: 14px;
@@ -254,21 +255,41 @@
             transition: var(--transition);
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            gap: 4px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .badge-option img {
+            width: 100%;
+            height: 100px;
+            object-fit: cover;
+            border-bottom: 1px solid var(--cor-borda);
+            margin-bottom: 8px;
+        }
+
+        .badge-option .prato-info-title {
+            padding: 0 8px;
+            line-height: 1.3;
+        }
+
+        .badge-option .ilustrativa-tag {
+            font-size: 9px;
+            color: var(--cor-texto-secundario);
+            font-weight: 400;
+            margin-top: 2px;
         }
 
         .badge-option.selected {
             border-color: var(--cor-principal);
-            background-color: rgba(204, 29, 29, 0.04);
+            background-color: rgba(204, 29, 29, 0.03);
             color: var(--cor-principal);
         }
 
         .badge-option span {
-            font-size: 12px;
-            color: var(--cor-texto-secundario);
-            font-weight: 500;
+            font-size: 13px;
+            color: var(--cor-texto);
+            font-weight: 700;
+            margin-top: 4px;
         }
 
         .btn {
@@ -472,9 +493,8 @@
             </div>
 
             <div class="card admin-only" id="card-aba-cardapio">
-                <h3>🍔 Gerenciamento de Pratos e Tabela de Preços</h3>
+                <h3>🍔 Gerenciamento de Pratos, Fotos e Preços</h3>
                 
-                <!-- NOVO FORMULÁRIO: Cadastro de Pratos Extras Dinâmicos -->
                 <div style="background: #f8fafc; border: 1px solid var(--cor-borda); padding: 14px; border-radius: var(--border-radius-md); margin-bottom: 16px;">
                     <label style="color:var(--cor-principal); font-weight:800; font-size:12px; text-transform:uppercase;">＋ Cadastrar Prato Novo no Menu</label>
                     <div style="display:flex; gap:10px; margin-top:6px;">
@@ -483,7 +503,7 @@
                     </div>
                 </div>
 
-                <p style="font-size: 13px; color: var(--cor-texto-secundario);">Ative/desative pratos ou modifique os valores de cada tamanho diretamente na tabela abaixo. Salva na nuvem na hora!</p>
+                <p style="font-size: 13px; color: var(--cor-texto-secundario);">Ative/desative pratos, modifique os valores ou cole o link de uma imagem ilustrativa. Salva na nuvem automaticamente!</p>
                 <div class="grid-cardapio-gestao" id="container-gestao-cardapio"></div>
             </div>
 
@@ -539,8 +559,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // AJUSTADO: Feijoada agora segue o padrão P, M, G como as outras marmitas
-        let cardapioEstruturado = {
+        const cardapioEstruturado = {
             "Parmegiana de Frango": ["Marmita (P)", "Marmita (M)", "Marmita (G)"],
             "Frango à Milanesa": ["Marmita (P)", "Marmita (M)", "Marmita (G)"],
             "Parmegiana de Berinjela": ["Marmita (P)", "Marmita (M)", "Marmita (G)"],
@@ -566,6 +585,20 @@
             "Parmegiana de Frango": true, "Frango à Milanesa": true, "Parmegiana de Berinjela": true,
             "Feijoada": true, "Marmitex": true, "Prato Feito": true, "Bebidas": true, "Outros Pratos": true
         };
+
+        // Banco local para guardar links das imagens ilustrativas
+        let tabelaImagensDinamicas = {
+            "Parmegiana de Frango": "https://images.unsplash.com/photo-1532550907401-a500c9a57435?w=400",
+            "Frango à Milanesa": "https://images.unsplash.com/photo-1562967914-608f82629710?w=400",
+            "Parmegiana de Berinjela": "https://images.unsplash.com/photo-1625938146369-adc83368bda7?w=400",
+            "Feijoada": "https://images.unsplash.com/photo-1541518763669-27fef04b14ea?w=400",
+            "Marmitex": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400",
+            "Prato Feito": "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=400",
+            "Bebidas": "https://images.unsplash.com/photo-1497534446932-c925b458314e?w=400",
+            "Outros Pratos": "https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?w=400"
+        };
+
+        const imagemFallbackDefault = "https://images.unsplash.com/photo-1546549032-9571cd6b27df?w=400"; // Prato genérico caso fique sem link
 
         let pedidoAtual = [];
         let totalizadorLocalPedidos = []; 
@@ -613,6 +646,7 @@
             }
         };
 
+        // RENDERIZAÇÃO DO CARDÁPIO DIGITAL DO CLIENTE COM FOTO E AVISO ILUSTRATIVO
         window.renderizarBadgesPratos = function() {
             const container = document.getElementById('badge-container-pratos');
             container.innerHTML = '';
@@ -620,9 +654,13 @@
                 if (isClienteView && prato === "Outros Pratos") return;
                 if (!isClienteView || statusCardapioDisponivel[prato]) {
                     const isSelected = prato === pratoSelecionadoGlobal ? 'selected' : '';
+                    const fotoUrl = tabelaImagensDinamicas[prato] || imagemFallbackDefault;
+                    
                     container.innerHTML += `
                         <div class="badge-option ${isSelected}" onclick="window.selecionarPratoBadge('${prato}')">
-                            ${prato}
+                            <img src="${fotoUrl}" alt="${prato}">
+                            <div class="prato-info-title">${prato}</div>
+                            <div class="ilustrativa-tag">*Foto ilustrativa</div>
                         </div>`;
                 }
             });
@@ -648,8 +686,8 @@
                 const preco = tabelaPrecosDinamicos[pratoSelecionadoGlobal]?.[opcao] || 0;
                 const isSelected = opcao === tipoSelecionadoGlobal ? 'selected' : '';
                 container.innerHTML += `
-                    <div class="badge-option ${isSelected}" onclick="window.selecionarTipoBadge('${opcao}', ${preco})">
-                        ${opcao}
+                    <div class="badge-option ${isSelected}" style="padding:14px; min-height:auto;" onclick="window.selecionarTipoBadge('${opcao}', ${preco})">
+                        <div style="font-weight:700;">${opcao}</div>
                         <span>R$ ${parseFloat(preco).toFixed(2)}</span>
                     </div>`;
             });
@@ -905,16 +943,18 @@
                 snapshot.forEach((doc) => {
                     const dados = doc.data();
                     
-                    // Se o prato vier da nuvem e não estiver no objeto local, adiciona a estrutura P, M, G padrão
                     if (!cardapioEstruturado[doc.id]) {
                         cardapioEstruturado[doc.id] = ["Marmita (P)", "Marmita (M)", "Marmita (G)"];
                     }
-
                     if(dados.hasOwnProperty('disponivel')) {
                         statusCardapioDisponivel[doc.id] = dados.disponivel;
                     }
                     if(dados.hasOwnProperty('precos')) {
                         tabelaPrecosDinamicos[doc.id] = dados.precos;
+                    }
+                    // Sincroniza o link da foto do banco para o array local do app
+                    if(dados.hasOwnProperty('foto')) {
+                        tabelaImagensDinamicas[doc.id] = dados.foto;
                     }
                 });
                 renderizarGerenciamentoCardapio();
@@ -923,7 +963,6 @@
             });
         }
 
-        // NOVO RECURSO: Adiciona um Prato Customizado com estrutura P, M, G direto na nuvem
         window.adicionarNovoPratoNuvem = async function() {
             const inputNome = document.getElementById('novo-prato-nome');
             const nomePrato = inputNome.value.trim();
@@ -936,9 +975,9 @@
                 alert("Este prato já está cadastrado no cardápio."); return;
             }
 
-            // Cria estrutura básica na nuvem com valores zerados para posterior edição
             const estruturaInicial = {
                 disponivel: true,
+                foto: "", 
                 precos: {
                     "Marmita (P)": 0.00,
                     "Marmita (M)": 0.00,
@@ -948,7 +987,7 @@
 
             try {
                 await setDoc(doc(db, "status_cardapio", nomePrato), estruturaInicial);
-                alert(`🍽️ "${nomePrato}" cadastrado com sucesso com tamanhos P, M e G! Defina os preços dele na lista abaixo.`);
+                alert(`🍽️ "${nomePrato}" cadastrado com sucesso! Defina os preços e cole o link da foto dele na lista abaixo.`);
                 inputNome.value = '';
             } catch (e) {
                 alert("Erro ao salvar o prato na nuvem: " + e.message);
@@ -961,6 +1000,7 @@
             
             Object.keys(cardapioEstruturado).forEach(prato => {
                 const checked = statusCardapioDisponivel[prato] !== false ? 'checked' : '';
+                const fotoAtual = tabelaImagensDinamicas[prato] || '';
                 
                 let inputsPrecoHtml = '';
                 cardapioEstruturado[prato].forEach(tamanho => {
@@ -984,6 +1024,14 @@
                                 <span class="slider"></span>
                             </label>
                         </div>
+                        
+                        <!-- NOVO CAMPO: Edição da Foto Ilustrativa na visão do operador -->
+                        <div class="form-group" style="margin: 4px 0 8px 0;">
+                            <label style="font-size:11px; color:var(--cor-texto-secundario);">Link da Foto Ilustrativa:</label>
+                            <input type="text" placeholder="Cole aqui a URL da imagem (http://...)" value="${fotoUrlFilter(fotoAtual)}"
+                                onblur="window.atualizarFotoNuvem('${prato}', this.value)" style="padding:8px; font-size:13px; margin:0;">
+                        </div>
+
                         <div class="manage-precos-grid">
                             ${inputsPrecoHtml}
                         </div>
@@ -991,10 +1039,16 @@
             });
         }
 
+        // Filtro rápido de segurança para strings vazias de imagem
+        function fotoUrlFilter(url) {
+            if(url && url.startsWith("http")) return url;
+            return "";
+        }
+
         window.alternarStatusDisponibilidade = async function(prato, disponibilizar) {
             try {
                 const cRef = doc(db, "status_cardapio", prato);
-                await setDoc(cRef, { disponibilivel: disponibilizar, disponible: disponibilizar, disponivel: disponibilizar }, { merge: true });
+                await setDoc(cRef, { disponivel: disponibilizar }, { merge: true });
             } catch (e) {
                 statusCardapioDisponivel[prato] = disponibilizar;
                 window.renderizarBadgesPratos();
@@ -1019,6 +1073,19 @@
                 }, { merge: true });
             } catch (e) {
                 console.error("Erro ao sincronizar preço na nuvem: ", e);
+            }
+        };
+
+        // SALVAMENTO AUTOMÁTICO DE NOVAS FOTOS NO FIRESTORE
+        window.atualizarFotoNuvem = async function(prato, novoLink) {
+            const urlLimpa = novoLink.trim();
+            tabelaImagensDinamicas[prato] = urlLimpa;
+            
+            try {
+                const cRef = doc(db, "status_cardapio", prato);
+                await setDoc(cRef, { foto: urlLimpa }, { merge: true });
+            } catch (e) {
+                console.error("Erro ao sincronizar link da foto: ", e);
             }
         };
 
