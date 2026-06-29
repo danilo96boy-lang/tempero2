@@ -4,182 +4,101 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Tempero de Família - PDV Premium</title>
-    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
     <style>
-        :root {
-            --cor-principal: #cc1d1d; 
-            --cor-principal-hover: #b71c1c;
-            --cor-fundo: #f4f6f9;
-            --cor-card: #ffffff;
-            --cor-texto: #1e293b;
-            --cor-texto-secundario: #64748b;
-            --cor-borda: #e2e8f0;
-            --cor-pendente: #f59e0b;
-            --cor-aprovado: #16a34a;
-            --border-radius-lg: 16px;
-            --border-radius-md: 10px;
-            --shadow-sm: 0 2px 4px rgba(0,0,0,0.02);
-            --shadow-md: 0 4px 12px rgba(0,0,0,0.05);
-            --transition: all 0.2s ease-in-out;
-        }
-
-        * { box-sizing: border-box; }
-
-        body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background-color: var(--cor-fundo);
-            margin: 0; padding: 8px; display: flex; flex-direction: column; align-items: center;
-            color: var(--cor-texto); padding-bottom: 90px; min-height: 100vh;
-        }
-
-        @media(min-width: 480px) { body { padding: 12px; padding-bottom: 95px; } }
-
-        #tela-login {
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: var(--cor-fundo); z-index: 9999;
-        }
-
-        .card-login {
-            background: var(--cor-card); padding: 30px 20px; border-radius: var(--border-radius-lg);
-            box-shadow: var(--shadow-md); width: 100%; max-width: 380px; text-align: center; border-top: 5px solid var(--cor-principal);
-        }
-
-        #conteudo-sistema { display: none; width: 100%; max-width: 1180px; }
-
-        .brand-header {
-            display: flex; align-items: center; gap: 12px; background: var(--cor-card);
-            padding: 14px 16px; border-radius: var(--border-radius-lg); width: 100%;
-            box-shadow: var(--shadow-sm); border: 1px solid var(--cor-borda); margin-bottom: 12px;
-        }
-
-        .mobile-tabs-nav {
-            display: flex; justify-content: space-around; position: fixed; bottom: 0; left: 0; width: 100%;
-            background: #ffffff; border-top: 1px solid var(--cor-borda); padding: 12px 0; z-index: 999; box-shadow: 0 -4px 20px rgba(0,0,0,0.07);
-        }
-
-        .tab-btn {
-            background: none; border: none; font-size: 11px; font-weight: 700; color: var(--cor-texto-secundario);
-            display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer;
-        }
-
-        .tab-btn.active { color: var(--cor-principal); }
-
-        .main-grid { display: grid; grid-template-columns: 1fr; gap: 16px; width: 100%; }
-        .main-grid > .card { display: none !important; }
-        .main-grid > .card.active-tab-card { display: block !important; }
-
-        .card {
-            background-color: var(--cor-card); padding: 20px; border-radius: var(--border-radius-lg);
-            box-shadow: var(--shadow-sm); border: 1px solid var(--cor-borda); margin-bottom: 15px; width: 100%;
-        }
-
-        .mobile-badge-selector { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
-        
-        .badge-option {
-            background: #fff; border: 2px solid var(--cor-borda); border-radius: var(--border-radius-md);
-            padding: 12px; text-align: center; font-weight: 700; cursor: pointer; display: flex; flex-direction: column;
-        }
-
-        .badge-option.selected { border-color: var(--cor-principal); background-color: rgba(204, 29, 29, 0.05); color: var(--cor-principal); }
-
-        .btn { border: none; padding: 16px; font-size: 15px; border-radius: var(--border-radius-md); cursor: pointer; font-weight: 700; width: 100%; }
-        .btn-add { background-color: var(--cor-principal); color: white; }
+        :root { --cor-principal: #cc1d1d; --cor-fundo: #f4f6f9; --cor-card: #ffffff; --cor-texto: #1e293b; --cor-borda: #e2e8f0; }
+        body { font-family: sans-serif; background-color: var(--cor-fundo); margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        #tela-login { display: flex; flex-direction: column; justify-content: center; align-items: center; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--cor-fundo); z-index: 9999; }
+        .card-login { background: var(--cor-card); padding: 30px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 90%; max-width: 350px; text-align: center; }
+        #conteudo-sistema { display: none; width: 100%; max-width: 600px; }
+        .card { background: var(--cor-card); padding: 20px; border-radius: 16px; border: 1px solid var(--cor-borda); margin-bottom: 15px; }
+        .badge-option { padding: 15px; border: 2px solid var(--cor-borda); border-radius: 10px; cursor: pointer; text-align: center; margin-bottom: 5px; font-weight: bold; }
+        .badge-option.selected { border-color: var(--cor-principal); background: #fee2e2; color: var(--cor-principal); }
+        .btn { border: none; padding: 15px; border-radius: 10px; width: 100%; font-weight: bold; cursor: pointer; background: var(--cor-principal); color: white; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-    <div id="tela-login" class="no-print">
+    <div id="tela-login">
         <div class="card-login">
             <h2>Acesso Restrito</h2>
-            <form id="form-login-id" onsubmit="window.validarAcessoSecure(event)">
-                <input type="text" id="login-usuario" required placeholder="Usuário" style="margin-bottom:10px;">
-                <input type="password" id="login-senha" required placeholder="Senha" style="margin-bottom:20px;">
-                <button type="submit" class="btn btn-add">Entrar</button>
-            </form>
+            <input type="text" id="login-usuario" placeholder="Usuário" style="padding:10px; width:100%; margin-bottom:10px;">
+            <input type="password" id="login-senha" placeholder="Senha" style="padding:10px; width:100%; margin-bottom:20px;">
+            <button class="btn" onclick="window.realizarLogin()">Entrar</button>
         </div>
     </div>
 
-    <nav class="mobile-tabs-nav no-print" id="navegacao-abas-id">
-        <button class="tab-btn active" onclick="window.alternarAbaMobile('venda', this)">📝 Lançar</button>
-        <button class="tab-btn" onclick="window.alternarAbaMobile('carrinho', this)">🛒 Carrinho</button>
-        <button class="tab-btn admin-only" onclick="window.alternarAbaMobile('painel', this)">🔔 Pedidos</button>
-    </nav>
-
     <div id="conteudo-sistema">
-        <div class="brand-header"><h1>Tempero de Família</h1></div>
-        <div class="main-grid">
-            <div class="card active-tab-card" id="card-aba-venda">
-                <h3>📝 Registrar Pedido</h3>
-                <div class="form-group"><label>Nome:</label><input type="text" id="cliente-nome"></div>
-                <div class="secao-titulo">Escolha o Prato</div>
-                <div class="mobile-badge-selector" id="badge-container-pratos"></div>
-                <div class="secao-titulo">Tamanho</div>
-                <div class="mobile-badge-selector" id="badge-container-tipos"></div>
-                <div class="form-group"><label>Valor:</label><input type="number" id="valor" step="0.01"></div>
-                <div class="form-group"><label>Qtd:</label><input type="number" id="quantidade" value="1"></div>
-                <button type="button" class="btn btn-add" onclick="window.adicionarItem()">＋ Adicionar ao Pedido</button>
-            </div>
-            <div class="card" id="card-aba-carrinho">
-                <h3>🛒 Carrinho</h3>
-                <ul id="lista-itens"></ul>
-                <button type="button" class="btn btn-add" onclick="window.finalizarPedido()">Finalizar</button>
-            </div>
+        <div class="card" id="tela-pedido">
+            <h3>📝 Registrar Pedido</h3>
+            <div class="secao-titulo">Prato</div>
+            <div id="container-pratos" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"></div>
+            <div class="secao-titulo" style="margin-top:20px;">Tamanho</div>
+            <div id="container-tipos" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;"></div>
+            <button class="btn" onclick="window.adicionarAoCarrinho()">＋ Adicionar ao Pedido</button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        const db = getFirestore(initializeApp({ /* SEUS DADOS DO FIREBASE AQUI */ }));
+        const db = getFirestore(initializeApp({ /* SEUS DADOS AQUI */ }));
 
-        // Variáveis de estado
-        window.pedidoAtual = [];
-        const cardapio = {
-            "Parmegiana": ["P", "M", "G"],
-            "Feijoada": ["P", "M", "G"]
+        // Variáveis globais de estado
+        window.pratoAtual = "";
+        window.tamanhoAtual = "";
+        window.carrinho = [];
+
+        // Lógica de Login
+        window.realizarLogin = function() {
+            const u = document.getElementById('login-usuario').value;
+            const s = document.getElementById('login-senha').value;
+            if(u === "gabriele" && s === "190620") {
+                document.getElementById('tela-login').style.display = 'none';
+                document.getElementById('conteudo-sistema').style.display = 'block';
+            } else { alert("Erro de acesso"); }
         };
 
-        // Renderiza os pratos
-        function renderizar() {
-            const container = document.getElementById('badge-container-pratos');
-            container.innerHTML = '';
-            Object.keys(cardapio).forEach(prato => {
-                container.innerHTML += `<div class="badge-option" onclick="this.classList.toggle('selected'); window.pratoSelecionado='${prato}'">${prato}</div>`;
-            });
+        // Lógica de Seleção
+        window.selecionarPrato = (el, nome) => {
+            document.querySelectorAll('#container-pratos .badge-option').forEach(x => x.classList.remove('selected'));
+            el.classList.add('selected');
+            window.pratoAtual = nome;
+        };
+
+        window.selecionarTamanho = (el, tamanho) => {
+            document.querySelectorAll('#container-tipos .badge-option').forEach(x => x.classList.remove('selected'));
+            el.classList.add('selected');
+            window.tamanhoAtual = tamanho;
+        };
+
+        // Lógica blindada de Adicionar
+        window.adicionarAoCarrinho = function() {
+            if(!window.pratoAtual || !window.tamanhoAtual) return alert("Selecione prato e tamanho!");
+            window.carrinho.push({ prato: window.pratoAtual, tamanho: window.tamanhoAtual });
+            alert("Adicionado ao carrinho!");
+        };
+
+        // Inicialização
+        function init() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if(urlParams.get('cliente') === 'true') {
+                document.getElementById('tela-login').style.display = 'none';
+                document.getElementById('conteudo-sistema').style.display = 'block';
+            }
+
+            // Renderiza botões na tela
+            const pratos = ["Parmegiana", "Feijoada", "Marmitex"];
+            const containerP = document.getElementById('container-pratos');
+            pratos.forEach(p => containerP.innerHTML += `<div class="badge-option" onclick="window.selecionarPrato(this, '${p}')">${p}</div>`);
+            
+            const tamanhos = ["P", "M", "G"];
+            const containerT = document.getElementById('container-tipos');
+            tamanhos.forEach(t => containerT.innerHTML += `<div class="badge-option" onclick="window.selecionarTamanho(this, '${t}')">${t}</div>`);
         }
-
-        // Função de clique blindada
-        window.adicionarItem = function() {
-            const pratoSel = document.querySelector('#badge-container-pratos .badge-option.selected');
-            if(!pratoSel) return alert("Selecione um prato!");
-            
-            const item = {
-                prato: pratoSel.innerText,
-                valor: document.getElementById('valor').value,
-                qtd: document.getElementById('quantidade').value
-            };
-            
-            window.pedidoAtual.push(item);
-            alert("Adicionado!");
-            window.alternarAbaMobile('carrinho');
-        };
-
-        window.alternarAbaMobile = function(aba, btn) {
-            document.querySelectorAll('.card').forEach(c => c.classList.remove('active-tab-card'));
-            document.getElementById('card-aba-'+aba).classList.add('active-tab-card');
-        };
-
-        window.validarAcessoSecure = function(e) {
-            e.preventDefault();
-            document.getElementById('tela-login').style.display = 'none';
-            document.getElementById('conteudo-sistema').style.display = 'block';
-        };
-
-        renderizar();
+        init();
     </script>
 </body>
 </html>
