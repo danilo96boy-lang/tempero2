@@ -320,11 +320,12 @@
         input:checked + .slider { background-color: #16a34a; }
         input:checked + .slider:before { transform: translateX(22px); }
 
-        .dash-container-tela { display: none; grid-template-columns: 1fr; gap: 16px; margin-top: 15px; padding: 12px; background: #f8fafc; border: 1px solid var(--cor-borda); border-radius: var(--border-radius-lg); }
+        .dash-container-tela { display: none; grid-template-columns: 1fr; gap: 16px; margin-top: 15px; padding: 12px; background: #f8fafc; border: 1px solid var(--cor-borda); border-radius: var(--border-radius-lg); width: 100%; }
         @media(min-width: 650px) { .dash-container-tela { grid-template-columns: 1fr 1fr; } .dash-full { grid-column: span 2; } }
         .bloco-metricas-caixa { display: flex; flex-direction: column; gap: 10px; }
         .card-metrica { background: #fff; border: 1px solid var(--cor-borda); padding: 14px; border-radius: var(--border-radius-md); }
         .card-metrica p { margin: 4px 0 0 0; font-size: 20px; font-weight: bold; }
+        .bloco-grafico-caixa { background: #fff; border: 1px solid var(--cor-borda); padding: 14px; border-radius: var(--border-radius-md); display: flex; justify-content: center; align-items: center; min-height: 250px; }
 
         #ticket-print { display: none; }
         body.modo-impressao-ticket #conteudo-sistema, body.modo-impressao-ticket #navegacao-abas-id, body.modo-impressao-ticket #tela-login { display: none !important; }
@@ -442,7 +443,7 @@
                 </form>
             </div>
 
-            <div class="card carrinho-container" id="card-aba-carrinho">
+            <div class="card" id="card-aba-carrinho">
                 <h3>🛒 Checkout do Pedido</h3>
                 <ul id="lista-itens" class="lista-itens"></ul>
                 <div>
@@ -467,13 +468,13 @@
                     </div>
                 </div>
 
-                <p style="font-size: 13px; color: var(--cor-texto-secundario);">Ative/desative pratos ou modifique os valores de cada tamanho diretamente na tabela abaixo. Salva na na nuvem na hora!</p>
+                <p style="font-size: 13px; color: var(--cor-texto-secundario);">Ative/desative pratos ou modifique os valores de cada tamanho diretamente na tabela abaixo. Salva na nuvem na hora!</p>
                 <div class="grid-cardapio-gestao" id="container-gestao-cardapio"></div>
             </div>
 
             <div class="card admin-only" id="card-aba-fechamento">
                 <h3>🔒 Fechamento Consolidado de Caixa</h3>
-                <div style="display:flex; gap:10px; flex-wrap: wrap;">
+                <div style="display:flex; gap:10px; flex-wrap: wrap; margin-bottom: 20px;">
                     <button type="button" class="btn" style="background:#1e293b; color:white; width: auto;" onclick="window.alternarAbaMobile('logs')">📋 Ver Histórico Geral</button>
                     <button type="button" class="btn" style="background:var(--cor-principal); color:white; width: auto;" onclick="window.calcularFechamentoDiario()">🔒 Processar Turno</button>
                     <button type="button" id="btn-pdf-id" class="btn" style="background:#475569; color:white; width: auto;" onclick="window.exportarFechamentoPDF()">📥 Gerar PDF</button>
@@ -491,7 +492,7 @@
                         </div>
                     </div>
                     <div class="bloco-grafico-caixa">
-                        <canvas id="graficoPizzaFechamento"></canvas>
+                        <canvas id="graficoPizzaFechamento" style="max-height: 280px; max-width: 280px;"></canvas>
                     </div>
                 </div>
             </div>
@@ -558,17 +559,12 @@
         let pratoSelecionadoGlobal = "";
         let tipoSelecionadoGlobal = "";
 
-        // FUNÇÃO INTELIGENTE DE DISPARO DINÂMICO CONFORME O APARELHO
         function executarDisparoWhatsDevice(urlDisparo, abaDestino) {
-            // Verifica se o usuário está acessando por celular/mobile
             const isMobileApp = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            
             if (isMobileApp) {
-                // Se for celular, converte o link para a API móvel e abre o app nativo direto
                 const urlMobile = urlDisparo.replace("web.whatsapp.com", "api.whatsapp.com");
                 window.open(urlMobile, '_blank');
             } else {
-                // Se for computador, mantém na mesma aba fixa correspondente
                 window.open(urlDisparo, abaDestino);
             }
         }
@@ -770,7 +766,6 @@
 
                     const urlWhats = `https://web.whatsapp.com/send?phone=5511999973141&text=${encodeURIComponent(textoWhats)}`;
                     
-                    // DISPARO INTELIGENTE: Puxa o app no celular ou a aba fixa no PC
                     executarDisparoWhatsDevice(urlWhats, 'whatsapp_restaurante');
                     alert("Seu pedido foi enviado! Aguarde a mensagem de confirmação do atendente.");
                 } else {
@@ -885,7 +880,6 @@
                     const celularLimpo = pedido.rawClienteCelular.replace(/\D/g, "");
                     const urlRetorno = `https://web.whatsapp.com/send?phone=55${celularLimpo}&text=${encodeURIComponent(msgRetorno)}`;
                     
-                    // DISPARO INTELIGENTE NO RETORNO: Detecta se o atendente está no celular ou PC
                     executarDisparoWhatsDevice(urlRetorno, 'whatsapp_atendimento');
                 }
             } catch (e) {
@@ -1020,6 +1014,66 @@
             }
         };
 
+        // CORREÇÃO CIRÚRGICA DA VARREDURA DO BANCO DE DADOS PARA O RELATÓRIO
+        window.calcularFechamentoDiario = function() {
+            document.getElementById('dashboard-vendas-tela').style.display = 'grid';
+            
+            // Filtra estritamente apenas os pedidos aprovados
+            const pedidosAprovados = totalizadorLocalPedidos.filter(p => p.status === "Aprovado");
+            
+            const totalFaturado = pedidosAprovados.reduce((acc, p) => acc + parseFloat(p.total || 0), 0);
+            const qtdAprovados = pedidosAprovados.length;
+
+            document.getElementById('t-dash-faturamento').innerText = `R$ ${totalFaturado.toFixed(2)}`;
+            document.getElementById('t-dash-qtd-pedidos').innerText = qtdAprovados;
+
+            // Varre de forma recursiva os arrays de pratos internos de cada documento do Firebase
+            let distribuicaoPratos = {};
+            pedidosAprovados.forEach(p => {
+                if (p.itens && Array.isArray(p.itens)) {
+                    p.itens.forEach(i => {
+                        const nomeDoPrato = i.prato || "Item Desconhecido";
+                        const quantidadeVendida = parseInt(i.qtd || 1);
+                        distribuicaoPratos[nomeDoPrato] = (distribuicaoPratos[nomeDoPrato] || 0) + quantidadeVendida;
+                    });
+                }
+            });
+
+            // Se o gráfico já existir na tela, destrói e recria do zero limpando o cache
+            if (chartPizzaInstancia) chartPizzaInstancia.destroy();
+            
+            const labelsGrafico = Object.keys(distribuicaoPratos);
+            const dadosGrafico = Object.values(distribuicaoPratos);
+
+            // Caso não existam vendas ainda, exibe um mockup informativo para o gráfico não quebrar
+            const finalLabels = labelsGrafico.length > 0 ? labelsGrafico : ["Sem vendas no turno"];
+            const finalData = dadosGrafico.length > 0 ? dadosGrafico : [1];
+            const finalColors = labelsGrafico.length > 0 ? ['#cc1d1d', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#64748b'] : ['#cbd5e1'];
+
+            const ctx = document.getElementById('graficoPizzaFechamento').getContext('2d');
+            chartPizzaInstancia = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: finalLabels,
+                    datasets: [{
+                        data: finalData,
+                        backgroundColor: finalColors
+                    }]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } } 
+                }
+            });
+        };
+
+        window.exportarFechamentoPDF = function() {
+            const elemento = document.getElementById('dashboard-vendas-tela');
+            const opt = { margin: 10, filename: 'fechamento-turno.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
+            html2pdf().set(opt).from(elemento).save();
+        };
+
         function gerarTemplateFita(p, via) {
             let pratos = p.itens.map(i => `
                 <div class="ticket-item">
@@ -1094,43 +1148,6 @@
 
             document.getElementById(`card-aba-${abaNome}`).classList.add('active-tab-card');
             window.scrollTo({ top: 0, behavior: 'instant' });
-        };
-
-        window.calcularFechamentoDiario = function() {
-            document.getElementById('dashboard-vendas-tela').style.display = 'grid';
-            
-            const totalFaturado = totalizadorLocalPedidos.filter(p=>p.status === "Aprovado").reduce((acc, p) => acc + p.total, 0);
-            const qtdAprovados = totalizadorLocalPedidos.filter(p=>p.status === "Aprovado").length;
-
-            document.getElementById('t-dash-faturamento').innerText = `R$ ${totalFaturado.toFixed(2)}`;
-            document.getElementById('t-dash-qtd-pedidos').innerText = qtdAprovados;
-
-            let distribuicaoPratos = {};
-            totalizadorLocalPedidos.filter(p=>p.status === "Aprovado").forEach(p => {
-                p.itens.forEach(i => {
-                    distribuicaoPratos[i.prato] = (distribuicaoPratos[i.prato] || 0) + i.qtd;
-                });
-            });
-
-            if (chartPizzaInstancia) chartPizzaInstancia.destroy();
-            const ctx = document.getElementById('graficoPizzaFechamento').getContext('2d');
-            chartPizzaInstancia = new Chart(ctx, {
-                type: 'pie',
-                data: {
-                    labels: Object.keys(distribuicaoPratos),
-                    datasets: [{
-                        data: Object.values(distribuicaoPratos),
-                        backgroundColor: ['#cc1d1d', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#64748b']
-                    }]
-                },
-                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
-            });
-        };
-
-        window.exportarFechamentoPDF = function() {
-            const elemento = document.getElementById('dashboard-vendas-tela');
-            const opt = { margin: 10, filename: 'fechamento-turno.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
-            html2pdf().set(opt).from(elemento).save();
         };
 
         inicializarSistema();
