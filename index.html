@@ -434,7 +434,6 @@
                                 <option value="Cartão">💳 Cartão</option>
                             </select>
                         </div>
-                        <!-- NOVO CAMPO: Status de Pagamento no Lançamento -->
                         <div class="form-group" id="container-status-financeiro">
                             <label>Status Pagto:</label>
                             <select id="status-pagamento" required>
@@ -577,7 +576,7 @@
             document.getElementById('sys-title').innerText = "Tempero de Família - Cardápio";
             document.getElementById('nav-venda-label').innerText = "Cardápio";
             document.getElementById('container-valor-interno').style.display = 'none';
-            document.getElementById('container-status-financeiro').style.display = 'none'; // Esconde escolha do cliente
+            document.getElementById('container-status-financeiro').style.display = 'none'; 
             document.getElementById('btn-finalizar-checkout').innerText = "🚀 Enviar Pedido via WhatsApp";
             
             document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
@@ -724,7 +723,6 @@
             const total = pedidoAtual.reduce((acc, current) => acc + current.valor, 0);
             const numeroPedido = totalizadorLocalPedidos.length + 1;
 
-            // Se for visão do cliente, o financeiro padrão entra como Pendente até ser validado no Whats
             const statusFin = isClienteView ? "Pendente" : document.getElementById('status-pagamento').value;
 
             const novoPedido = {
@@ -755,8 +753,8 @@
                     textoWhats += `\n*Forma de Pagamento:* ${novoPedido.pagamento}`;
                     textoWhats += `\n*Total Geral:* R$ ${total.toFixed(2)}\n\n_Aguardando aprovação do atendente..._`;
 
-                    const urlWhats = `https://api.whatsapp.com/send?phone=5511999973141&text=${encodeURIComponent(textoWhats)}`;
-                    window.open(urlWhats, '_blank');
+                    const urlWhats = `https://web.whatsapp.com/send?phone=5511999973141&text=${encodeURIComponent(textoWhats)}`;
+                    window.open(urlWhats, 'whatsapp_restaurante');
                     alert("Seu pedido foi enviado! Aguarde a mensagem de confirmação do atendente.");
                 } else {
                     imprimirDuplaVia(novoPedido);
@@ -845,7 +843,6 @@
 
         window.aprovarPedidoWhats = async function(pedidoId) {
             try {
-                // Captura a opção financeira selecionada pelo atendente no momento de aprovar
                 const selectFin = document.getElementById(`fin-mod-${pedidoId}`);
                 const financeiroAtualizado = selectFin ? selectFin.value : "Pendente";
 
@@ -855,10 +852,9 @@
                     financeiro: financeiroAtualizado
                 });
                 
-                // Recarrega o objeto local atualizado antes de disparar a fita de impressão
                 const pedido = totalizadorLocalPedidos.find(p => p.id === pedidoId);
                 if (pedido) {
-                    pedido.financeiro = financeiroAtualizado; // Força atualização local imediata para o print
+                    pedido.financeiro = financeiroAtualizado; 
                     imprimirDuplaVia(pedido);
                     
                     let msgRetorno = `Olá *${pedido.rawClienteNome}*, seu pedido de número *#${pedido.numero}* foi recebido e *ACEITO* pela cozinha! \n\n`;
@@ -870,8 +866,8 @@
                     msgRetorno += `Em breve sairá para entrega. Obrigado pela preferência!`;
                     
                     const celularLimpo = pedido.rawClienteCelular.replace(/\D/g, "");
-                    const urlRetorno = `https://api.whatsapp.com/send?phone=55${celularLimpo}&text=${encodeURIComponent(msgRetorno)}`;
-                    window.open(urlRetorno, '_blank');
+                    const urlRetorno = `https://web.whatsapp.com/send?phone=55${celularLimpo}&text=${encodeURIComponent(msgRetorno)}`;
+                    window.open(urlRetorno, 'whatsapp_atendimento');
                 }
             } catch (e) {
                 alert("Erro ao aprovar pedido: " + e.message);
@@ -931,7 +927,6 @@
                     <span class="ticket-item-price">R$ ${i.valor.toFixed(2)}</span>
                 </div>`).join('');
 
-            // Lógica visual do box de alerta do ticket
             let boxFinanceiroTicket = "";
             if (p.financeiro === "Pago") {
                 boxFinanceiroTicket = `<div class="ticket-alert-box" style="background:#e6fee6; border-color:#008000; color:#008000;">>>> PEDIDO PAGO <<<</div>`;
