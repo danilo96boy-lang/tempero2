@@ -235,7 +235,7 @@
             box-shadow: 0 0 0 3px rgba(204, 29, 29, 0.1);
         }
 
-        /* CARDÁPIO COM IMAGENS OTIMIZADO PARA O CELULAR */
+        /* BLOCOS VISUAIS COM IMAGENS REAIS */
         .mobile-badge-selector {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -261,7 +261,7 @@
 
         .badge-option img {
             width: 100%;
-            height: 100px;
+            height: 105px;
             object-fit: cover;
             border-bottom: 1px solid var(--cor-borda);
             margin-bottom: 8px;
@@ -483,7 +483,7 @@
                 <ul id="lista-itens" class="lista-itens"></ul>
                 <div>
                     <div class="total-tela">Total: <span>R$ <span id="total-valor">0.00</span></span></div>
-                    <button type="button" class="btn btn-print" style="margin-top: 15px;" id="btn-finalizar-checkout" onclick="window.finalizarPedidoFluxo()">🚀 Enviar e Finalizar Pedido</button>
+                    <button type="button" class="btn Rog" style="margin-top: 15px;" id="btn-finalizar-checkout" onclick="window.finalizarPedidoFluxo()">🚀 Enviar e Finalizar Pedido</button>
                 </div>
             </div>
 
@@ -493,17 +493,8 @@
             </div>
 
             <div class="card admin-only" id="card-aba-cardapio">
-                <h3>🍔 Gerenciamento de Pratos, Fotos e Preços</h3>
-                
-                <div style="background: #f8fafc; border: 1px solid var(--cor-borda); padding: 14px; border-radius: var(--border-radius-md); margin-bottom: 16px;">
-                    <label style="color:var(--cor-principal); font-weight:800; font-size:12px; text-transform:uppercase;">＋ Cadastrar Prato Novo no Menu</label>
-                    <div style="display:flex; gap:10px; margin-top:6px;">
-                        <input type="text" id="novo-prato-nome" placeholder="Ex: Bife Acebolado, Cupim Assado..." style="margin:0;">
-                        <button type="button" class="btn" style="background:var(--cor-principal); color:white; padding:0 20px; width:auto; font-size:13px;" onclick="window.adicionarNovoPratoNuvem()">Cadastrar</button>
-                    </div>
-                </div>
-
-                <p style="font-size: 13px; color: var(--cor-texto-secundario);">Ative/desative pratos, modifique os valores ou cole o link de uma imagem ilustrativa. Salva na nuvem automaticamente!</p>
+                <h3>🍔 Gerenciamento de Pratos e Tabela de Preços</h3>
+                <p style="font-size: 13px; color: var(--cor-texto-secundario);">Ative/desative pratos ou modifique os valores de cada tamanho diretamente na tabela abaixo. Salva na nuvem na hora!</p>
                 <div class="grid-cardapio-gestao" id="container-gestao-cardapio"></div>
             </div>
 
@@ -586,19 +577,19 @@
             "Feijoada": true, "Marmitex": true, "Prato Feito": true, "Bebidas": true, "Outros Pratos": true
         };
 
-        // Banco local para guardar links das imagens ilustrativas
+        // IMAGENS REAIS DE COMIDA BRASILEIRA (APETITOSAS)
         let tabelaImagensDinamicas = {
-            "Parmegiana de Frango": "https://images.unsplash.com/photo-1532550907401-a500c9a57435?w=400",
-            "Frango à Milanesa": "https://images.unsplash.com/photo-1562967914-608f82629710?w=400",
-            "Parmegiana de Berinjela": "https://images.unsplash.com/photo-1625938146369-adc83368bda7?w=400",
-            "Feijoada": "https://images.unsplash.com/photo-1541518763669-27fef04b14ea?w=400",
-            "Marmitex": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400",
-            "Prato Feito": "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=400",
-            "Bebidas": "https://images.unsplash.com/photo-1497534446932-c925b458314e?w=400",
-            "Outros Pratos": "https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?w=400"
+            "Parmegiana de Frango": "https://images.unsplash.com/photo-1632778149955-e80f8ceca318?w=500&auto=format&fit=crop&q=80",
+            "Frango à Milanesa": "https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?w=500&auto=format&fit=crop&q=80",
+            "Parmegiana de Berinjela": "https://images.unsplash.com/photo-1625938146369-adc83368bda7?w=500&auto=format&fit=crop&q=80",
+            "Feijoada": "https://images.unsplash.com/photo-1541518763669-27fef04b14ea?w=500&auto=format&fit=crop&q=80",
+            "Marmitex": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=80",
+            "Prato Feito": "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=500&auto=format&fit=crop&q=80",
+            "Bebidas": "https://images.unsplash.com/photo-1497534446932-c925b458314e?w=500&auto=format&fit=crop&q=80",
+            "Outros Pratos": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=500&auto=format&fit=crop&q=80"
         };
 
-        const imagemFallbackDefault = "https://images.unsplash.com/photo-1546549032-9571cd6b27df?w=400"; // Prato genérico caso fique sem link
+        const imagemFallbackDefault = "https://images.unsplash.com/photo-1546549032-9571cd6b27df?w=500";
 
         let pedidoAtual = [];
         let totalizadorLocalPedidos = []; 
@@ -646,7 +637,7 @@
             }
         };
 
-        // RENDERIZAÇÃO DO CARDÁPIO DIGITAL DO CLIENTE COM FOTO E AVISO ILUSTRATIVO
+        // AJUSTADO: Fotos aparecem agora tanto para Atendente (Lançamento lateral) quanto para o Cliente
         window.renderizarBadgesPratos = function() {
             const container = document.getElementById('badge-container-pratos');
             container.innerHTML = '';
@@ -952,7 +943,6 @@
                     if(dados.hasOwnProperty('precos')) {
                         tabelaPrecosDinamicos[doc.id] = dados.precos;
                     }
-                    // Sincroniza o link da foto do banco para o array local do app
                     if(dados.hasOwnProperty('foto')) {
                         tabelaImagensDinamicas[doc.id] = dados.foto;
                     }
@@ -1025,7 +1015,6 @@
                             </label>
                         </div>
                         
-                        <!-- NOVO CAMPO: Edição da Foto Ilustrativa na visão do operador -->
                         <div class="form-group" style="margin: 4px 0 8px 0;">
                             <label style="font-size:11px; color:var(--cor-texto-secundario);">Link da Foto Ilustrativa:</label>
                             <input type="text" placeholder="Cole aqui a URL da imagem (http://...)" value="${fotoUrlFilter(fotoAtual)}"
@@ -1039,7 +1028,6 @@
             });
         }
 
-        // Filtro rápido de segurança para strings vazias de imagem
         function fotoUrlFilter(url) {
             if(url && url.startsWith("http")) return url;
             return "";
@@ -1076,7 +1064,6 @@
             }
         };
 
-        // SALVAMENTO AUTOMÁTICO DE NOVAS FOTOS NO FIRESTORE
         window.atualizarFotoNuvem = async function(prato, novoLink) {
             const urlLimpa = novoLink.trim();
             tabelaImagensDinamicas[prato] = urlLimpa;
