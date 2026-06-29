@@ -319,9 +319,15 @@
         .total-tela { font-size: 24px; font-weight: 800; text-align: right; margin-top: 16px; padding-top: 16px; border-top: 2px dashed #cbd5e0; }
         .total-tela span { color: var(--cor-principal); }
 
-        .grid-cardapio-gestao { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 10px; }
-        @media(min-width: 600px) { .grid-cardapio-gestao { grid-template-columns: 1fr 1fr; } }
-        .item-cardapio-manage { padding: 14px; background: #f8fafc; border: 1px solid var(--cor-borda); border-radius: var(--border-radius-md); display: flex; justify-content: space-between; align-items: center; }
+        .grid-cardapio-gestao { display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 10px; }
+        @media(min-width: 750px) { .grid-cardapio-gestao { grid-template-columns: 1fr 1fr; } }
+        
+        .item-cardapio-manage { padding: 16px; background: #f8fafc; border: 1px solid var(--cor-borda); border-radius: var(--border-radius-lg); display: flex; flex-direction: column; gap: 12px; box-shadow: var(--shadow-sm); }
+        .manage-row-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--cor-borda); padding-bottom: 8px; }
+        .manage-precos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+        .input-preco-manage { display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: 600; }
+        .input-preco-manage input { padding: 8px; font-size: 14px; }
+
         .switch { position: relative; display: inline-block; width: 46px; height: 24px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .3s; border-radius: 34px; }
@@ -465,9 +471,10 @@
                 <div class="container-logs-cards" id="container-pedidos-pendentes"></div>
             </div>
 
+            <!-- MENU DO ATENDENTE AMPLIADO COM EDICÃO DE PREÇO -->
             <div class="card admin-only" id="card-aba-cardapio">
-                <h3>🍔 Gerenciamento de Disponibilidade do Cardápio</h3>
-                <p style="font-size: 13px; color: var(--cor-texto-secundario);">Desative os pratos abaixo se esgotarem na cozinha. Eles sumirão instantaneamente para o cliente final.</p>
+                <h3>🍔 Gerenciamento de Pratos e Tabela de Preços</h3>
+                <p style="font-size: 13px; color: var(--cor-texto-secundario);">Ative/desative pratos ou modifique os valores de cada tamanho diretamente na tabela abaixo. Salva na nuvem na hora!</p>
                 <div class="grid-cardapio-gestao" id="container-gestao-cardapio"></div>
             </div>
 
@@ -534,7 +541,8 @@
             "Outros Pratos": ["Especial do Dia"]
         };
 
-        const tabelaPrecosSugeridos = {
+        // Valores padrão de fallback caso o banco esteja vazio no primeiro carregamento
+        let tabelaPrecosDinamicos = {
             "Parmegiana de Frango": {"Marmita (P)": 18.00, "Marmita (M)": 28.00, "Marmita (G)": 35.00},
             "Frango à Milanesa": {"Marmita (P)": 16.00, "Marmita (M)": 26.00, "Marmita (G)": 32.00},
             "Parmegiana de Berinjela": {"Marmita (P)": 21.00, "Marmita (M)": 27.00, "Marmita (G)": 34.00},
@@ -628,19 +636,20 @@
             }
 
             cardapioEstruturado[pratoSelecionadoGlobal].forEach(opcao => {
-                const preco = tabelaPrecosSugeridos[pratoSelecionadoGlobal][opcao];
+                // Puxa o preço diretamente da tabela dinâmica carregada do banco
+                const preco = tabelaPrecosDinamicos[pratoSelecionadoGlobal]?.[opcao] || 0;
                 const isSelected = opcao === tipoSelecionadoGlobal ? 'selected' : '';
                 container.innerHTML += `
                     <div class="badge-option ${isSelected}" onclick="window.selecionarTipoBadge('${opcao}', ${preco})">
                         ${opcao}
-                        <span>R$ ${preco.toFixed(2)}</span>
+                        <span>R$ ${parseFloat(preco).toFixed(2)}</span>
                     </div>`;
             });
         };
 
         window.selecionarTipoBadge = function(opcao, preco) {
             tipoSelecionadoGlobal = opcao;
-            document.getElementById('valor').value = preco.toFixed(2);
+            document.getElementById('valor').value = parseFloat(preco).toFixed(2);
             window.renderizarBadgesTipos();
         };
 
@@ -883,28 +892,59 @@
             }
         };
 
+        // ESCUTADOR E SINCRONIZADOR INTEGRAL DE CARDÁPIO E PREÇOS DO FIREBASE
         function sincronizarCardapioNuvem() {
             onSnapshot(collection(db, "status_cardapio"), (snapshot) => {
                 snapshot.forEach((doc) => {
-                    statusCardapioDisponivel[doc.id] = doc.data().disponivel;
+                    const dados = doc.data();
+                    if(dados.hasOwnProperty('disponivel')) {
+                        statusCardapioDisponivel[doc.id] = dados.disponivel;
+                    }
+                    if(dados.hasOwnProperty('precos')) {
+                        tabelaPrecosDinamicos[doc.id] = dados.precos;
+                    }
                 });
                 renderizarGerenciamentoCardapio();
                 window.renderizarBadgesPratos();
+                window.renderizarBadgesTipos();
             });
         }
 
+        // EDICÃO COMPLETA DE PREÇOS POR DOCUMENTO NO PAINEL DO ATENDENTE
         function renderizarGerenciamentoCardapio() {
             const container = document.getElementById('container-gestao-cardapio');
             container.innerHTML = '';
+            
             Object.keys(cardapioEstruturado).forEach(prato => {
                 const checked = statusCardapioDisponivel[prato] ? 'checked' : '';
+                
+                // Gera a lista de inputs de preço dinamicamente dependendo dos tamanhos existentes
+                let inputsPrecoHtml = '';
+                cardapioEstruturado[prato].forEach(tamanho => {
+                    const precoAtual = tabelaPrecosDinamicos[prato]?.[tamanho] || 0;
+                    // id estruturado para capturar os novos valores no evento blur (quando tira o foco do input)
+                    const inputId = `input-price-${prato.replace(/\s+/g, '_')}-${tamanho.replace(/\s+|\(|\)/g, '_')}`;
+                    
+                    inputsPrecoHtml += `
+                        <div class="input-preco-manage">
+                            <label>${tamanho}:</label>
+                            <input type="number" id="${inputId}" step="0.01" value="${parseFloat(precoAtual).toFixed(2)}" 
+                                onblur="window.atualizarPrecoNuvem('${prato}', '${tamanho}', this.value)">
+                        </div>`;
+                });
+
                 container.innerHTML += `
                     <div class="item-cardapio-manage">
-                        <span><b>${prato}</b></span>
-                        <label class="switch">
-                            <input type="checkbox" ${checked} onchange="window.alternarStatusDisponibilidade('${prato}', this.checked)">
-                            <span class="slider"></span>
-                        </label>
+                        <div class="manage-row-header">
+                            <span><b>🍔 ${prato}</b></span>
+                            <label class="switch">
+                                <input type="checkbox" ${checked} onchange="window.alternarStatusDisponibilidade('${prato}', this.checked)">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="manage-precos-grid">
+                            ${inputsPrecoHtml}
+                        </div>
                     </div>`;
             });
         }
@@ -912,10 +952,33 @@
         window.alternarStatusDisponibilidade = async function(prato, disponibilizar) {
             try {
                 const cRef = doc(db, "status_cardapio", prato);
-                await setDoc(cRef, { disponivel: disponibilizar }, { merge: true });
+                await setDoc(cRef, { disponibilivel: disponibilizar }, { merge: true });
             } catch (e) {
                 statusCardapioDisponivel[prato] = disponibilizar;
                 window.renderizarBadgesPratos();
+            }
+        };
+
+        // SALVAMENTO AUTOMÁTICO DE NOVOS VALORES NO FIRESTORE
+        window.atualizarPrecoNuvem = async function(prato, tamanho, novoPreco) {
+            const valorNumerico = parseFloat(novoPreco);
+            if (isNaN(valorNumerico) || valorNumerico < 0) {
+                alert("Insira um valor numérico válido."); return;
+            }
+
+            // Atualiza a árvore local primeiro para reatividade veloz
+            if(!tabelaPrecosDinamicos[prato]) tabelaPrecosDinamicos[prato] = {};
+            tabelaPrecosDinamicos[prato][tamanho] = valorNumerico;
+
+            try {
+                const cRef = doc(db, "status_cardapio", prato);
+                await setDoc(cRef, { 
+                    precos: {
+                        [tamanho]: valorNumerico
+                    } 
+                }, { merge: true });
+            } catch (e) {
+                console.error("Erro ao sincronizar preço na nuvem: ", e);
             }
         };
 
