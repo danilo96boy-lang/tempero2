@@ -471,9 +471,18 @@
                 <div class="container-logs-cards" id="container-pedidos-pendentes"></div>
             </div>
 
-            <!-- MENU DO ATENDENTE AMPLIADO COM EDICÃO DE PREÇO -->
             <div class="card admin-only" id="card-aba-cardapio">
                 <h3>🍔 Gerenciamento de Pratos e Tabela de Preços</h3>
+                
+                <!-- NOVO FORMULÁRIO: Cadastro de Pratos Extras Dinâmicos -->
+                <div style="background: #f8fafc; border: 1px solid var(--cor-borda); padding: 14px; border-radius: var(--border-radius-md); margin-bottom: 16px;">
+                    <label style="color:var(--cor-principal); font-weight:800; font-size:12px; text-transform:uppercase;">＋ Cadastrar Prato Novo no Menu</label>
+                    <div style="display:flex; gap:10px; margin-top:6px;">
+                        <input type="text" id="novo-prato-nome" placeholder="Ex: Bife Acebolado, Cupim Assado..." style="margin:0;">
+                        <button type="button" class="btn" style="background:var(--cor-principal); color:white; padding:0 20px; width:auto; font-size:13px;" onclick="window.adicionarNovoPratoNuvem()">Cadastrar</button>
+                    </div>
+                </div>
+
                 <p style="font-size: 13px; color: var(--cor-texto-secundario);">Ative/desative pratos ou modifique os valores de cada tamanho diretamente na tabela abaixo. Salva na nuvem na hora!</p>
                 <div class="grid-cardapio-gestao" id="container-gestao-cardapio"></div>
             </div>
@@ -530,23 +539,23 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        const cardapioEstruturado = {
+        // AJUSTADO: Feijoada agora segue o padrão P, M, G como as outras marmitas
+        let cardapioEstruturado = {
             "Parmegiana de Frango": ["Marmita (P)", "Marmita (M)", "Marmita (G)"],
             "Frango à Milanesa": ["Marmita (P)", "Marmita (M)", "Marmita (G)"],
             "Parmegiana de Berinjela": ["Marmita (P)", "Marmita (M)", "Marmita (G)"],
-            "Feijoada": ["Marmita (M)", "Marmita (G)", "Completa"],
+            "Feijoada": ["Marmita (P)", "Marmita (M)", "Marmita (G)"],
             "Marmitex": ["Marmita (P)", "Marmita (M)", "Marmita (G)"],
             "Prato Feito": ["Tradicional", "Especial"],
             "Bebidas": ["Refrigerante Lata", "Suco Natural", "Água Mineral"],
             "Outros Pratos": ["Especial do Dia"]
         };
 
-        // Valores padrão de fallback caso o banco esteja vazio no primeiro carregamento
         let tabelaPrecosDinamicos = {
             "Parmegiana de Frango": {"Marmita (P)": 18.00, "Marmita (M)": 28.00, "Marmita (G)": 35.00},
             "Frango à Milanesa": {"Marmita (P)": 16.00, "Marmita (M)": 26.00, "Marmita (G)": 32.00},
             "Parmegiana de Berinjela": {"Marmita (P)": 21.00, "Marmita (M)": 27.00, "Marmita (G)": 34.00},
-            "Feijoada": {"Marmita (M)": 27.00, "Marmita (G)": 35.00, "Completa": 45.00},
+            "Feijoada": {"Marmita (P)": 18.00, "Marmita (M)": 27.00, "Marmita (G)": 35.00},
             "Marmitex": {"Marmita (P)": 18.00, "Marmita (M)": 22.00, "Marmita (G)": 26.00},
             "Prato Feito": {"Tradicional": 20.00, "Especial": 25.00},
             "Bebidas": {"Refrigerante Lata": 6.00, "Suco Natural": 8.00, "Água Mineral": 4.00},
@@ -636,7 +645,6 @@
             }
 
             cardapioEstruturado[pratoSelecionadoGlobal].forEach(opcao => {
-                // Puxa o preço diretamente da tabela dinâmica carregada do banco
                 const preco = tabelaPrecosDinamicos[pratoSelecionadoGlobal]?.[opcao] || 0;
                 const isSelected = opcao === tipoSelecionadoGlobal ? 'selected' : '';
                 container.innerHTML += `
@@ -892,11 +900,16 @@
             }
         };
 
-        // ESCUTADOR E SINCRONIZADOR INTEGRAL DE CARDÁPIO E PREÇOS DO FIREBASE
         function sincronizarCardapioNuvem() {
             onSnapshot(collection(db, "status_cardapio"), (snapshot) => {
                 snapshot.forEach((doc) => {
                     const dados = doc.data();
+                    
+                    // Se o prato vier da nuvem e não estiver no objeto local, adiciona a estrutura P, M, G padrão
+                    if (!cardapioEstruturado[doc.id]) {
+                        cardapioEstruturado[doc.id] = ["Marmita (P)", "Marmita (M)", "Marmita (G)"];
+                    }
+
                     if(dados.hasOwnProperty('disponivel')) {
                         statusCardapioDisponivel[doc.id] = dados.disponivel;
                     }
@@ -910,19 +923,48 @@
             });
         }
 
-        // EDICÃO COMPLETA DE PREÇOS POR DOCUMENTO NO PAINEL DO ATENDENTE
+        // NOVO RECURSO: Adiciona um Prato Customizado com estrutura P, M, G direto na nuvem
+        window.adicionarNovoPratoNuvem = async function() {
+            const inputNome = document.getElementById('novo-prato-nome');
+            const nomePrato = inputNome.value.trim();
+
+            if (!nomePrato) {
+                alert("Por favor, digite o nome do prato."); return;
+            }
+
+            if (cardapioEstruturado[nomePrato]) {
+                alert("Este prato já está cadastrado no cardápio."); return;
+            }
+
+            // Cria estrutura básica na nuvem com valores zerados para posterior edição
+            const estruturaInicial = {
+                disponivel: true,
+                precos: {
+                    "Marmita (P)": 0.00,
+                    "Marmita (M)": 0.00,
+                    "Marmita (G)": 0.00
+                }
+            };
+
+            try {
+                await setDoc(doc(db, "status_cardapio", nomePrato), estruturaInicial);
+                alert(`🍽️ "${nomePrato}" cadastrado com sucesso com tamanhos P, M e G! Defina os preços dele na lista abaixo.`);
+                inputNome.value = '';
+            } catch (e) {
+                alert("Erro ao salvar o prato na nuvem: " + e.message);
+            }
+        };
+
         function renderizarGerenciamentoCardapio() {
             const container = document.getElementById('container-gestao-cardapio');
             container.innerHTML = '';
             
             Object.keys(cardapioEstruturado).forEach(prato => {
-                const checked = statusCardapioDisponivel[prato] ? 'checked' : '';
+                const checked = statusCardapioDisponivel[prato] !== false ? 'checked' : '';
                 
-                // Gera a lista de inputs de preço dinamicamente dependendo dos tamanhos existentes
                 let inputsPrecoHtml = '';
                 cardapioEstruturado[prato].forEach(tamanho => {
                     const precoAtual = tabelaPrecosDinamicos[prato]?.[tamanho] || 0;
-                    // id estruturado para capturar os novos valores no evento blur (quando tira o foco do input)
                     const inputId = `input-price-${prato.replace(/\s+/g, '_')}-${tamanho.replace(/\s+|\(|\)/g, '_')}`;
                     
                     inputsPrecoHtml += `
@@ -952,21 +994,19 @@
         window.alternarStatusDisponibilidade = async function(prato, disponibilizar) {
             try {
                 const cRef = doc(db, "status_cardapio", prato);
-                await setDoc(cRef, { disponibilivel: disponibilizar }, { merge: true });
+                await setDoc(cRef, { disponibilivel: disponibilizar, disponible: disponibilizar, disponivel: disponibilizar }, { merge: true });
             } catch (e) {
                 statusCardapioDisponivel[prato] = disponibilizar;
                 window.renderizarBadgesPratos();
             }
         };
 
-        // SALVAMENTO AUTOMÁTICO DE NOVOS VALORES NO FIRESTORE
         window.atualizarPrecoNuvem = async function(prato, tamanho, novoPreco) {
             const valorNumerico = parseFloat(novoPreco);
             if (isNaN(valorNumerico) || valorNumerico < 0) {
                 alert("Insira um valor numérico válido."); return;
             }
 
-            // Atualiza a árvore local primeiro para reatividade veloz
             if(!tabelaPrecosDinamicos[prato]) tabelaPrecosDinamicos[prato] = {};
             tabelaPrecosDinamicos[prato][tamanho] = valorNumerico;
 
