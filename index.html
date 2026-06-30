@@ -559,11 +559,7 @@
         let pratoSelecionadoGlobal = "";
         let tipoSelecionadoGlobal = "";
 
-        // ==========================================
-        //  CORREÇÃO: IMPLEMENTAÇÃO DO ALTERNAR ABA
-        // ==========================================
         window.alternarAbaMobile = function(aba, botaoClicado) {
-            // 1. Alternar estado visual ativo dos botões do menu inferior
             const botoes = document.querySelectorAll('.tab-btn');
             botoes.forEach(btn => btn.classList.remove('active'));
             
@@ -574,11 +570,9 @@
                 if (btnCorrespondente) btnCorrespondente.classList.add('active');
             }
 
-            // 2. Ocultar todos os cards da Grid Principal
             const cards = document.querySelectorAll('.main-grid > .card');
             cards.forEach(card => card.classList.remove('active-tab-card'));
 
-            // 3. Exibir o card alvo correspondente
             let idCardAlvo = `card-aba-${aba}`;
             const cardAlvo = document.getElementById(idCardAlvo);
             if (cardAlvo) {
@@ -613,7 +607,11 @@
             document.getElementById('conteudo-sistema').style.display = 'block';
             document.getElementById('sys-title').innerText = "Tempero de Família - Cardápio";
             document.getElementById('nav-venda-label').innerText = "Cardápio";
-            document.getElementById('container-valor-interno').style.display = 'none';
+            
+            // LÓGICA DE CAIXA: Mantém preço visível para o cliente, mas impede que ele altere o valor digitando
+            document.getElementById('container-valor-interno').style.display = 'block';
+            document.getElementById('valor').readOnly = true;
+            
             document.getElementById('container-status-financeiro').style.display = 'none'; 
             document.getElementById('btn-finalizar-checkout').innerText = "🚀 Enviar Pedido via WhatsApp";
             
@@ -717,6 +715,9 @@
 
             atualizarInterfaceCarrinho();
             
+            // LÓGICA DE CAIXA: Avisa o usuário que funcionou em vez de pular abruptamente de tela
+            alert(`✅ ${qtd}x ${pratoSelecionadoGlobal} adicionado ao carrinho com sucesso!`);
+            
             pratoSelecionadoGlobal = "";
             tipoSelecionadoGlobal = "";
             document.getElementById('descricao').value = '';
@@ -725,7 +726,7 @@
             window.renderizarBadgesPratos();
             window.renderizarBadgesTipos();
             
-            window.alternarAbaMobile('carrinho');
+            // Mantém a pessoa na página para adicionar mais pratos (Muda de tela apenas quando ela clicar no menu inferior)
         };
 
         function atualizarInterfaceCarrinho() {
@@ -757,6 +758,12 @@
             const celular = document.getElementById('cliente-celular').value.trim();
             let addressInput = document.getElementById('cliente-endereco').value.trim();
             let endereco = addressInput ? addressInput : "BALCÃO";
+
+            if (!nome || !celular) {
+                alert("Por favor, preencha seu Nome e Celular/WhatsApp antes de finalizar o pedido.");
+                window.alternarAbaMobile('venda');
+                return;
+            }
 
             const total = pedidoAtual.reduce((acc, current) => acc + current.valor, 0);
             const numeroPedido = totalizadorLocalPedidos.length + 1;
@@ -794,7 +801,7 @@
                     const urlWhats = `https://web.whatsapp.com/send?phone=5511999973141&text=${encodeURIComponent(textoWhats)}`;
                     
                     executarDisparoWhatsDevice(urlWhats, 'whatsapp_restaurante');
-                    alert("Seu pedido foi enviado! Aguarde a mensagem de confirmação do atendente.");
+                    alert("Seu pedido completo foi enviado! Aguarde a mensagem de confirmação do atendente.");
                 } else {
                     alert("Pedido interno de Balcão registrado com sucesso!");
                 }
@@ -861,7 +868,7 @@
                                         <option value="Pendente" ${p.financeiro === 'Pendente' ? 'selected' : ''}>⚠️ Pendente</option>
                                         <option value="Pago" ${p.financeiro === 'Pago' ? 'selected' : ''}>✅ Já Pago</option>
                                     </select>
-                                    <button class="btn-aprovar" style="height: 32px; padding: 0 10px;" onclick="window.aprovarPedidoWhats('${p.id}')">✅ Approvar</button>
+                                    <button class="btn-aprovar" style="height: 32px; padding: 0 10px;" onclick="window.aprovarPedidoWhats('${p.id}')">✅ Aprovar</button>
                                 </div>
                             ` : ''}
                             <button class="btn-card-del" onclick="window.excluirPedidoDefinitivo('${p.id}')">❌ Exc</button>
@@ -1056,7 +1063,7 @@
                     p.itens.forEach(item => {
                         const nomePrato = item.prato || "Item Extra";
                         const quantidade = parseInt(item.qtd || 1);
-                        distribuicaoPratos[nomePrato] = (distribuicaoPratos[nomePrato] || 0) + quantity;
+                        distribuicaoPratos[nomePrato] = (distribuicaoPratos[nomePrato] || 0) + quantidade;
                     });
                 }
             });
