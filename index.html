@@ -321,22 +321,6 @@
         .total-tela { font-size: 22px; font-weight: 800; text-align: right; margin-top: 12px; padding-top: 12px; border-top: 2px dashed #cbd5e0; }
         .total-tela span { color: var(--cor-principal); }
 
-        .grid-cardapio-gestao { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 10px; }
-        @media(min-width: 750px) { .grid-cardapio-gestao { grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); } }
-        
-        .item-cardapio-manage { padding: 16px; background: #f8fafc; border: 1px solid var(--cor-borda); border-radius: var(--border-radius-lg); display: flex; flex-direction: column; gap: 12px; box-shadow: var(--shadow-sm); }
-        .manage-row-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--cor-borda); padding-bottom: 8px; }
-        .manage-precos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); gap: 8px; }
-        .input-preco-manage { display: flex; flex-direction: column; gap: 4px; font-size: 11px; font-weight: 600; }
-        .input-preco-manage input { padding: 8px; font-size: 14px; }
-
-        .switch { position: relative; display: inline-block; width: 46px; height: 24px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .3s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
-        input:checked + .slider { background-color: #16a34a; }
-        input:checked + .slider:before { transform: translateX(22px); }
-
         #ticket-print { display: none; }
         body.modo-impressao-ticket #conteudo-sistema, body.modo-impressao-ticket #tela-login { display: none !important; }
 
@@ -537,7 +521,7 @@
 
         const firebaseConfig = {
             apiKey: "AIzaSyAp-heSrhEA1WOW30gbUJ8DVJQNYH8hVCY",
-            authDomain: "tempero2.firebaseapp.com",
+            authDomain: "temper2.firebaseapp.com",
             projectId: "tempero2",
             storageBucket: "tempero2.firebasestorage.app",
             messagingSenderId: "811694441776",
@@ -611,6 +595,14 @@
             if (urlParams.get('cliente') === 'true') {
                 isClienteView = true;
                 configurarModoCliente();
+                
+                // TENTA RECUPERAR OS DADOS SALVOS DO CLIENTE NO NAVEGADOR DELE (Para não precisar digitar toda hora)
+                if(localStorage.getItem('tempero_cliente_celular')) {
+                    document.getElementById('cliente-celular').value = localStorage.getItem('tempero_cliente_celular');
+                    document.getElementById('cliente-nome').value = localStorage.getItem('tempero_cliente_nome') || '';
+                    document.getElementById('cliente-endereco').value = localStorage.getItem('tempero_cliente_endereco') || '';
+                }
+
                 const pId = urlParams.get('pedidoId');
                 if (pId) {
                     idPedidoSendoAjustado = pId;
@@ -679,21 +671,24 @@
         window.selecionarTipoBadge = function(opcao, preco) { tipoSelecionadoGlobal = opcao; document.getElementById('valor').value = parseFloat(preco).toFixed(2); window.renderizarBadgesTipos(); };
 
         // ==========================================
-        //  CORREÇÃO: REGRA DE AUTOCOMPLETAR ENDEREÇO
+        //  CORREÇÃO: VINCULAÇÃO DE NOME E ENDEREÇO
         // ==========================================
         window.buscarClientePorTelefone = function(telDigitado) {
             if (idPedidoSendoAjustado) return;
             const telLimpo = telDigitado.replace(/\D/g, ""); if (telLimpo.length < 8) return;
             const historico = totalizadorLocalPedidos.find(p => p.rawClienteCelular.replace(/\D/g, "") === telLimpo);
+            
             if (historico) { 
-                document.getElementById('cliente-nome').value = historico.rawClienteNome || ''; 
-                
-                // REGRA ATUALIZADA: Só preenche o endereço se NÃO for a visão do cliente (ou seja, se for o operador)
+                // REGRA ATUALIZADA: Só preenche o nome e endereço antigos se o OPERADOR estiver usando
                 if (!isClienteView) {
+                    document.getElementById('cliente-nome').value = historico.rawClienteNome || ''; 
                     document.getElementById('cliente-endereco').value = historico.rawClienteEndereco || ''; 
                 } else {
-                    // No modo cliente, limpa o campo ou deixa em branco para obrigar a digitação
-                    document.getElementById('cliente-endereco').value = '';
+                    // Se for o cliente em ambiente externo, o campo fica em branco (ou com o dado salvo dele em localStorage)
+                    if (!localStorage.getItem('tempero_cliente_celular')) {
+                        document.getElementById('cliente-nome').value = '';
+                        document.getElementById('cliente-endereco').value = '';
+                    }
                 }
             }
         };
@@ -792,6 +787,13 @@
             const celular = document.getElementById('cliente-celular').value.trim();
             let endereco = document.getElementById('cliente-endereco').value.trim() || "BALCÃO";
             if (!nome || !celular) return alert("Preencha Nome e Celular.");
+
+            // SE FOR CLIENTE EXTERNO, SALVA EM CACHE OS DADOS DELE PARA O PRÓXIMO ACESSO JÁ VIR PREENCHIDO
+            if (isClienteView) {
+                localStorage.setItem('tempero_cliente_celular', celular);
+                localStorage.setItem('tempero_cliente_nome', nome);
+                localStorage.setItem('tempero_cliente_endereco', endereco);
+            }
 
             const total = pedidoAtual.reduce((acc, current) => acc + current.valor, 0);
             const statusFin = isClienteView ? "Pendente" : document.getElementById('status-pagamento').value;
