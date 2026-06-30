@@ -34,18 +34,14 @@
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             background-color: var(--cor-fundo);
             margin: 0;
-            padding: 8px;
+            padding: 12px;
             display: flex;
             flex-direction: column;
             align-items: center;
             color: var(--cor-texto);
             -webkit-font-smoothing: antialiased;
-            padding-bottom: 90px;
             min-height: 100vh;
         }
-
-        @media(min-width: 480px) { body { padding: 12px; padding-bottom: 95px; } }
-        @media(min-width: 950px) { body { padding: 20px; padding-bottom: 100px; } }
 
         #tela-login {
             display: flex;
@@ -73,7 +69,7 @@
         #conteudo-sistema {
             display: none;
             width: 100%;
-            max-width: 1180px;
+            max-width: 1280px;
             transition: var(--transition);
         }
 
@@ -91,14 +87,6 @@
             margin-bottom: 12px;
         }
 
-        .brand-logo {
-            width: 40px;
-            height: 40px;
-            object-fit: cover;
-            border-radius: 50%;
-            border: 2px solid var(--cor-principal);
-        }
-
         .brand-header h1 {
             margin: 0;
             font-size: clamp(15px, 4vw, 20px);
@@ -107,38 +95,57 @@
             letter-spacing: -0.5px;
         }
 
-        .mobile-tabs-nav {
+        /* Menu Superior para Administração */
+        .admin-nav-header {
             display: flex;
-            justify-content: space-around;
-            position: fixed;
-            bottom: 0; left: 0; width: 100%;
+            gap: 8px;
             background: #ffffff;
-            border-top: 1px solid var(--cor-borda);
-            padding: clamp(8px, 2vh, 14px) 0;
-            z-index: 999;
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.07);
+            border: 1px solid var(--cor-borda);
+            padding: 8px;
+            border-radius: var(--border-radius-md);
+            margin-bottom: 12px;
+            width: 100%;
+            overflow-x: auto;
         }
 
-        .tab-btn {
-            background: none; border: none; font-size: clamp(10px, 2.5vw, 12px); font-weight: 700;
-            color: var(--cor-texto-secundario); display: flex; flex-direction: column;
-            align-items: center; gap: 4px; cursor: pointer; position: relative; width: 20%;
+        .admin-nav-btn {
+            background: #f8fafc;
+            border: 1px solid var(--cor-borda);
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--cor-texto-secundario);
+            cursor: pointer;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
-        .tab-btn.active { color: var(--cor-principal); }
-        
-        .badge-carrinho, .badge-pendente {
-            position: absolute; top: -6px; right: 15%;
-            background: var(--cor-principal); color: white;
-            font-size: 10px; font-weight: bold; border-radius: 10px;
-            padding: 2px 6px; display: none;
+        .admin-nav-btn.active {
+            background: var(--cor-principal);
+            color: white;
+            border-color: var(--cor-principal);
         }
-        .badge-pendente { background: var(--cor-pendente); }
 
-        .main-grid {
+        /* LAYOUT UNIFICADO EM DUAS COLUNAS */
+        .layout-pdv-unificado {
             display: grid;
             grid-template-columns: 1fr;
             gap: 16px;
+            width: 100%;
+            align-items: start;
+        }
+
+        @media(min-width: 900px) {
+            .layout-pdv-unificado {
+                grid-template-columns: 1fr 380px; /* Formulário à esquerda, Checkout à direita */
+            }
+        }
+
+        .main-grid {
+            display: block;
             width: 100%;
         }
 
@@ -203,10 +210,10 @@
 
         input, select, textarea {
             width: 100%;
-            padding: 14px; 
+            padding: 12px; 
             border: 1px solid #cbd5e1;
             border-radius: var(--border-radius-md);
-            font-size: 16px; 
+            font-size: 15px; 
             font-family: inherit;
             background-color: #fff;
             color: var(--cor-texto);
@@ -221,8 +228,8 @@
 
         .mobile-badge-selector {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(clamp(115px, 28vw, 150px), 1fr));
-            gap: 10px;
+            grid-template-columns: repeat(auto-fill, minmax(clamp(115px, 28vw, 140px), 1fr));
+            gap: 8px;
             margin-bottom: 14px;
         }
 
@@ -230,10 +237,10 @@
             background: #fff;
             border: 2px solid var(--cor-borda);
             border-radius: var(--border-radius-md);
-            padding: clamp(12px, 2.5vw, 16px) 8px;
+            padding: 12px 6px;
             text-align: center;
             font-weight: 700;
-            font-size: clamp(13px, 3vw, 15px);
+            font-size: 14px;
             cursor: pointer;
             transition: var(--transition);
             display: flex;
@@ -251,14 +258,14 @@
         }
 
         .badge-option span {
-            font-size: 12px;
+            font-size: 11px;
             color: var(--cor-texto-secundario);
             font-weight: 500;
         }
 
         .btn {
             border: none;
-            padding: 16px 20px;
+            padding: 14px 20px;
             font-size: 15px;
             border-radius: var(--border-radius-md);
             cursor: pointer;
@@ -292,16 +299,24 @@
         .fin-pago { background-color: #d1fae5; color: #065f46; }
         .fin-pendente { background-color: #fee2e2; color: #991b1b; }
 
-        .btn-card-rep { background-color: #2563eb; color: white; border: none; padding: 6px 12px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 12px; }
-        .btn-card-edit { background-color: #f59e0b; color: white; border: none; padding: 6px 12px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 12px; }
         .btn-card-del { background-color: #dc2626; color: white; border: none; padding: 6px 12px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 12px; }
 
-        .carrinho-container { display: flex; flex-direction: column; justify-content: space-between; background: #f8fafc; }
-        .lista-itens { list-style: none; padding: 0; margin: 0; max-height: 40vh; overflow-y: auto; }
-        .item-carrinho { background: white; padding: 14px; margin-bottom: 10px; border-radius: var(--border-radius-md); font-size: 14px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--cor-borda); box-shadow: var(--shadow-sm); }
-        .btn-del { background: #fee2e2; color: #ef4444; border: none; border-radius: 50%; width: 24px; height: 24px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        /* Estilo do Caixa Lateral Fixo */
+        .carrinho-lateral-pdv {
+            position: sticky;
+            top: 12px;
+            background: var(--cor-card);
+            border: 1px solid var(--cor-borda);
+            border-radius: var(--border-radius-lg);
+            padding: 16px;
+            box-shadow: var(--shadow-sm);
+        }
 
-        .total-tela { font-size: 24px; font-weight: 800; text-align: right; margin-top: 16px; padding-top: 16px; border-top: 2px dashed #cbd5e0; }
+        .lista-itens { list-style: none; padding: 0; margin: 0; max-height: 45vh; overflow-y: auto; }
+        .item-carrinho { background: #f8fafc; padding: 12px; margin-bottom: 8px; border-radius: var(--border-radius-md); font-size: 13px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--cor-borda); }
+        .btn-del { background: #fee2e2; color: #ef4444; border: none; border-radius: 50%; width: 22px; height: 22px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px; }
+
+        .total-tela { font-size: 22px; font-weight: 800; text-align: right; margin-top: 12px; padding-top: 12px; border-top: 2px dashed #cbd5e0; }
         .total-tela span { color: var(--cor-principal); }
 
         .grid-cardapio-gestao { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 10px; }
@@ -328,27 +343,12 @@
         .bloco-grafico-caixa { background: #fff; border: 1px solid var(--cor-borda); padding: 14px; border-radius: var(--border-radius-md); display: flex; justify-content: center; align-items: center; min-height: 250px; }
 
         #ticket-print { display: none; }
-        body.modo-impressao-ticket #conteudo-sistema, body.modo-impressao-ticket #navegacao-abas-id, body.modo-impressao-ticket #tela-login { display: none !important; }
-
-        @media print {
-            @page { size: 58mm auto; margin: 0mm; }
-            .no-print { display: none !important; }
-            body { background: #fff; padding: 0; margin: 0; display: block; width: 58mm; }
-            #ticket-print { display: block !important; font-family: 'Courier New', Courier, monospace; width: 48mm; max-width: 48mm; padding: 1mm 0.5mm; font-size: 11px; color: #000; line-height: 1.25; word-wrap: break-word; }
-            .ticket-header { text-align: center; }
-            .ticket-via-tag { font-size: 12px; font-weight: bold; border: 1px solid #000; display: inline-block; padding: 2px 4px; }
-            .ticket-header-num-destaque { font-size: 26px !important; font-weight: 950 !important; text-align: center; display: block; width: 100%; }
-            .ticket-divider { text-align: center; margin: 2px 0; font-weight: bold; }
-            .ticket-item { margin: 6px 0; border-bottom: 1px dotted #ccc; padding-bottom: 4px; }
-            .ticket-item-price { text-align: right; font-weight: bold; display: block; }
-            .ticket-wrapper-via { page-break-after: always !important; display: block; }
-            .ticket-alert-box { text-align: center; border: 2px solid #000; font-weight: 900; font-size: 13px; padding: 4px; margin: 5px 0; text-transform: uppercase; }
-        }
     </style>
 </head>
 <body>
 
-    <div id="tela-login" class="no-print">
+    <!-- Tela de Login Inicial -->
+    <div id="tela-login">
         <div class="card-login">
             <h2 style="color: var(--cor-principal); margin: 0 0 6px 0; text-transform: uppercase; font-size: 18px; font-weight: 800;">Acesso Restrito</h2>
             <p style="font-size: 13px; color: var(--cor-texto-secundario); margin: 0 0 24px 0;">Painel PDV Comercial Cloud</p>
@@ -366,140 +366,150 @@
         </div>
     </div>
 
-    <nav class="mobile-tabs-nav no-print" id="navegacao-abas-id">
-        <button class="tab-btn active" onclick="window.alternarAbaMobile('venda', this)">📝 <span id="nav-venda-label">Lançar</span></button>
-        <button class="tab-btn" onclick="window.alternarAbaMobile('carrinho', this)">🛒 <span>Carrinho</span><span class="badge-carrinho" id="badge-contador-id">0</span></button>
-        <button class="tab-btn admin-only" onclick="window.alternarAbaMobile('painel', this)">🔔 <span>Pedidos</span><span class="badge-pendente" id="badge-pendentes-id">0</span></button>
-        <button class="tab-btn admin-only" onclick="window.alternarAbaMobile('cardapio', this)">🍔 <span>Menu</span></button>
-        <button class="tab-btn admin-only" onclick="window.alternarAbaMobile('fechamento', this)">🔒 <span>Turno</span></button>
-    </nav>
-
+    <!-- Conteúdo Principal do Sistema -->
     <div id="conteudo-sistema">
-        <div class="brand-header no-print">
-            <img src="logo.png" alt="Logo" class="brand-logo" onerror="this.style.display='none'">
-            <h1 id="sys-title">Tempero de Família - Painel Interno</h1>
+        <div class="brand-header">
+            <h1 id="sys-title">Tempero de Família - Painel Operacional</h1>
         </div>
 
-        <div class="main-grid no-print">
+        <!-- Menu Superior (Aparece apenas para Admin logado mudar de contexto) -->
+        <nav class="admin-nav-header" id="navegacao-abas-id">
+            <button class="admin-nav-btn active" onclick="window.alternarContextoPainel('pedido', this)">📝 Lançar Novo Pedido</button>
+            <button class="admin-nav-btn admin-only" onclick="window.alternarContextoPainel('painel', this)">🔔 Pendentes <span id="badge-pendentes-id" style="background:var(--cor-pendente); color:white; padding:1px 6px; border-radius:10px; font-size:11px; display:none;">0</span></button>
+            <button class="admin-nav-btn admin-only" onclick="window.alternarContextoPainel('cardapio', this)">🍔 Configurar Menu</button>
+            <button class="admin-nav-btn admin-only" onclick="window.alternarContextoPainel('fechamento', this)">🔒 Turno / Caixa</button>
+        </nav>
+
+        <!-- LAYOUT FIXO: Conteúdo Principal e Caixa à Direita -->
+        <div class="layout-pdv-unificado">
             
-            <div class="card active-tab-card" id="card-aba-venda">
-                <h3>📝 Registrar Pedido</h3>
-                <form id="form-item" onsubmit="window.adicionarItem(event)">
-                    <div class="secao-titulo">1. Seus Dados / Identificação</div>
-                    <div class="form-row dois-campos">
-                        <div class="form-group">
-                            <label>Celular / WhatsApp:</label>
-                            <input type="tel" id="cliente-celular" oninput="window.buscarClientePorTelefone(this.value)" placeholder="(00) 00000-0000" required>
+            <!-- Coluna da Esquerda: Abas Dinâmicas de Trabalho -->
+            <div class="main-grid">
+                
+                <!-- ABA PRINCIPAL: Form de Lançamento sempre visível -->
+                <div class="card active-tab-card" id="card-aba-venda">
+                    <h3>📝 Registrar Lançamento</h3>
+                    <form id="form-item" onsubmit="window.adicionarItem(event)">
+                        <div class="secao-titulo">1. Dados do Cliente / Identificação</div>
+                        <div class="form-row dois-campos">
+                            <div class="form-group">
+                                <label>Celular / WhatsApp:</label>
+                                <input type="tel" id="cliente-celular" oninput="window.buscarClientePorTelefone(this.value)" placeholder="(00) 00000-0000" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Nome Completo:</label>
+                                <input type="text" id="cliente-nome" placeholder="Nome do Cliente" required>
+                            </div>
                         </div>
                         <div class="form-group">
-                            <label>Nome Completo:</label>
-                            <input type="text" id="cliente-nome" placeholder="Seu Nome" required>
+                            <label>Endereço de Delivery Completo:</label>
+                            <input type="text" id="cliente-endereco" placeholder="Rua, número, bairro ou informe BALCÃO">
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Endereço de Delivery Completo:</label>
-                        <input type="text" id="cliente-endereco" placeholder="Rua, número, bairro ou informe BALCÃO">
-                    </div>
 
-                    <div class="secao-titulo">2. Escolha o Prato</div>
-                    <div class="mobile-badge-selector" id="badge-container-pratos"></div>
+                        <div class="secao-titulo">2. Escolha o Prato</div>
+                        <div class="mobile-badge-selector" id="badge-container-pratos"></div>
 
-                    <div class="secao-titulo" id="titulo-especificacao">3. Tamanho / Opção</div>
-                    <div class="mobile-badge-selector" id="badge-container-tipos">
-                        <div style="color:var(--cor-texto-secundario); font-size:13px; grid-column: span 2;">Selecione o prato acima primeiro...</div>
-                    </div>
+                        <div class="secao-titulo" id="titulo-especificacao">3. Tamanho / Opção</div>
+                        <div class="mobile-badge-selector" id="badge-container-tipos">
+                            <div style="color:var(--cor-texto-secundario); font-size:13px; grid-column: span 2;">Selecione o prato acima primeiro...</div>
+                        </div>
 
-                    <div class="form-row quatro-campos">
-                        <div class="form-group" id="container-valor-interno" style="grid-column: span 1;">
-                            <label>Preço Unitário (R$):</label>
-                            <input type="number" id="valor" step="0.01" placeholder="0,00">
+                        <div class="form-row quatro-campos">
+                            <div class="form-group" id="container-valor-interno">
+                                <label>Preço Unitário (R$):</label>
+                                <input type="number" id="valor" step="0.01" placeholder="0,00">
+                            </div>
+                            <div class="form-group">
+                                <label>Quantidade:</label>
+                                <input type="number" id="quantidade" min="1" value="1" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Forma Pagto:</label>
+                                <select id="forma-pagamento" required>
+                                    <option value="Dinheiro">💵 Dinheiro</option>
+                                    <option value="Pix">⚡ Pix</option>
+                                    <option value="Cartão">💳 Cartão</option>
+                                </select>
+                            </div>
+                            <div class="form-group" id="container-status-financeiro">
+                                <label>Status Pagto:</label>
+                                <select id="status-pagamento" required>
+                                    <option value="Pago">✅ Pago</option>
+                                    <option value="Pendente" selected>⚠️ Pendente</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="form-group">
-                            <label>Quantidade:</label>
-                            <input type="number" id="quantidade" min="1" value="1" required>
+                            <label>Observações do Pedido:</label>
+                            <textarea id="descricao" placeholder="Ex: Sem cebola, ponto da carne, trocar acompanhamento..."></textarea>
                         </div>
-                        <div class="form-group">
-                            <label>Forma Pagto:</label>
-                            <select id="forma-pagamento" required>
-                                <option value="Dinheiro">💵 Dinheiro</option>
-                                <option value="Pix">⚡ Pix</option>
-                                <option value="Cartão">💳 Cartão</option>
-                            </select>
-                        </div>
-                        <div class="form-group" id="container-status-financeiro">
-                            <label>Status Pagto:</label>
-                            <select id="status-pagamento" required>
-                                <option value="Pago">✅ Pago</option>
-                                <option value="Pendente" selected>⚠️ Pendente</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Observações do Pedido:</label>
-                        <textarea id="descricao" placeholder="Ex: Sem cebola, ponto da carne, trocar acompanhamento..."></textarea>
-                    </div>
 
-                    <button type="submit" class="btn btn-add">＋ Adicionar ao Pedido</button>
-                </form>
+                        <button type="submit" class="btn btn-add">＋ Inserir no Caixa (Direita)</button>
+                    </form>
+                </div>
+
+                <!-- ABA ADMIN: Pedidos Pendentes -->
+                <div class="card" id="card-aba-painel">
+                    <h3>🔔 Pedidos Pendentes de Aprovação</h3>
+                    <div class="container-logs-cards" id="container-pedidos-pendentes"></div>
+                </div>
+
+                <!-- ABA ADMIN: Gestão do Cardápio -->
+                <div class="card" id="card-aba-cardapio">
+                    <h3>🍔 Gerenciamento de Pratos e Tabela de Preços</h3>
+                    <div style="background: #f8fafc; border: 1px solid var(--cor-borda); padding: 14px; border-radius: var(--border-radius-md); margin-bottom: 16px;">
+                        <label style="color:var(--cor-principal); font-weight:800; font-size:12px; text-transform:uppercase;">＋ Cadastrar Prato Novo no Menu</label>
+                        <div style="display:flex; gap:10px; margin-top:6px; flex-wrap: wrap;">
+                            <input type="text" id="novo-prato-nome" placeholder="Ex: Bife Acebolado, Cupim Assado..." style="margin:0; flex: 1; min-width: 200px;">
+                            <button type="button" class="btn" style="background:var(--cor-principal); color:white; padding:0 20px; width:auto; font-size:13px;" onclick="window.adicionarNovoPratoNuvem()">Cadastrar</button>
+                        </div>
+                    </div>
+                    <div class="grid-cardapio-gestao" id="container-gestao-cardapio"></div>
+                </div>
+
+                <!-- ABA ADMIN: Turno / Caixa Geral -->
+                <div class="card" id="card-aba-fechamento">
+                    <h3>🔒 Fechamento Consolidado de Caixa</h3>
+                    <div style="display:flex; gap:10px; flex-wrap: wrap; margin-bottom: 20px;">
+                        <button type="button" class="btn" style="background:#1e293b; color:white; width: auto;" onclick="window.alternarContextoPainel('logs')">📋 Ver Histórico Geral</button>
+                        <button type="button" class="btn" style="background:var(--cor-principal); color:white; width: auto;" onclick="window.calcularFechamentoDiario()">🔒 Processar Turno</button>
+                        <button type="button" id="btn-pdf-id" class="btn" style="background:#475569; color:white; width: auto;" onclick="window.exportarFechamentoPDF()">📥 Gerar PDF</button>
+                    </div>
+                    <div id="dashboard-vendas-tela" class="dash-container-tela">
+                        <div class="bloco-metricas-caixa">
+                            <div class="card-metrica">
+                                <h4>Faturamento Bruto Acumulado</h4>
+                                <p id="t-dash-faturamento">R$ 0.00</p>
+                            </div>
+                            <div class="card-metrica">
+                                <h4>Total de Pedidos Processados</h4>
+                                <p id="t-dash-qtd-pedidos">0</p>
+                            </div>
+                        </div>
+                        <div class="bloco-grafico-caixa">
+                            <canvas id="graficoPizzaFechamento" style="max-height: 280px; max-width: 280px;"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ABA ADMIN: Histórico de Logs -->
+                <div class="card" id="card-aba-logs">
+                    <h3>📋 Histórico Analítico de Transações (Turno Ativo)</h3>
+                    <div class="container-logs-cards" id="container-historico-cards"></div>
+                </div>
+
             </div>
 
-            <div class="card carrinho-container" id="card-aba-carrinho">
-                <h3>🛒 Checkout do Pedido</h3>
-                <ul id="lista-itens" class="lista-itens"></ul>
+            <!-- Coluna da Direita: Carrinho / Checkout Fixo e Unificado -->
+            <div class="carrinho-lateral-pdv" id="caixa-checkout-fixo">
+                <h3 style="border-bottom: 2px solid var(--cor-texto); padding-bottom: 4px; margin-bottom: 12px;">🛒 Caixa / Itens</h3>
+                <ul id="lista-itens" class="lista-itens">
+                    <li style="color: var(--cor-texto-secundario); font-size: 13px; text-align: center; padding: 20px;">Nenhum produto adicionado...</li>
+                </ul>
                 <div>
                     <div class="total-tela">Total: <span>R$ <span id="total-valor">0.00</span></span></div>
-                    <button type="button" class="btn btn-print" style="margin-top: 15px;" id="btn-finalizar-checkout" onclick="window.finalizarPedidoFluxo()">🚀 Enviar e Finalizar Pedido</button>
+                    <button type="button" class="btn btn-print" style="margin-top: 15px;" id="btn-finalizar-checkout" onclick="window.finalizarPedidoFluxo()">🚀 Concluir e Fechar Pedido</button>
                 </div>
-            </div>
-
-            <div class="card admin-only" id="card-aba-painel">
-                <h3>🔔 Pedidos Pendentes de Aprovação</h3>
-                <div class="container-logs-cards" id="container-pedidos-pendentes"></div>
-            </div>
-
-            <div class="card admin-only" id="card-aba-cardapio">
-                <h3>🍔 Gerenciamento de Pratos e Tabela de Preços</h3>
-                
-                <div style="background: #f8fafc; border: 1px solid var(--cor-borda); padding: 14px; border-radius: var(--border-radius-md); margin-bottom: 16px;">
-                    <label style="color:var(--cor-principal); font-weight:800; font-size:12px; text-transform:uppercase;">＋ Cadastrar Prato Novo no Menu</label>
-                    <div style="display:flex; gap:10px; margin-top:6px; flex-wrap: wrap;">
-                        <input type="text" id="novo-prato-nome" placeholder="Ex: Bife Acebolado, Cupim Assado..." style="margin:0; flex: 1; min-width: 200px;">
-                        <button type="button" class="btn" style="background:var(--cor-principal); color:white; padding:0 20px; width:auto; font-size:13px;" onclick="window.adicionarNovoPratoNuvem()">Cadastrar</button>
-                    </div>
-                </div>
-
-                <p style="font-size: 13px; color: var(--cor-texto-secundario);">Ative/desative pratos ou modifique os valores de cada tamanho diretamente na tabela abaixo. Salva na nuvem na hora!</p>
-                <div class="grid-cardapio-gestao" id="container-gestao-cardapio"></div>
-            </div>
-
-            <div class="card admin-only" id="card-aba-fechamento">
-                <h3>🔒 Fechamento Consolidado de Caixa</h3>
-                <div style="display:flex; gap:10px; flex-wrap: wrap; margin-bottom: 20px;">
-                    <button type="button" class="btn" style="background:#1e293b; color:white; width: auto;" onclick="window.alternarAbaMobile('logs')">📋 Ver Histórico Geral</button>
-                    <button type="button" class="btn" style="background:var(--cor-principal); color:white; width: auto;" onclick="window.calcularFechamentoDiario()">🔒 Processar Turno</button>
-                    <button type="button" id="btn-pdf-id" class="btn" style="background:#475569; color:white; width: auto;" onclick="window.exportarFechamentoPDF()">📥 Gerar PDF</button>
-                </div>
-                
-                <div id="dashboard-vendas-tela" class="dash-container-tela">
-                    <div class="bloco-metricas-caixa">
-                        <div class="card-metrica">
-                            <h4>Faturamento Bruto Acumulado</h4>
-                            <p id="t-dash-faturamento">R$ 0.00</p>
-                        </div>
-                        <div class="card-metrica">
-                            <h4>Total de Pedidos Processados</h4>
-                            <p id="t-dash-qtd-pedidos">0</p>
-                        </div>
-                    </div>
-                    <div class="bloco-grafico-caixa">
-                        <canvas id="graficoPizzaFechamento" style="max-height: 280px; max-width: 280px;"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card admin-only" id="card-aba-logs">
-                <h3>📋 Histórico Analítico de Transações (Turno Ativo)</h3>
-                <div class="container-logs-cards" id="container-historico-cards"></div>
             </div>
 
         </div>
@@ -509,7 +519,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, query, orderBy, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAp-heSrhEA1WOW30gbUJ8DVJQNYH8hVCY",
@@ -559,25 +569,21 @@
         let pratoSelecionadoGlobal = "";
         let tipoSelecionadoGlobal = "";
 
-        window.alternarAbaMobile = function(aba, botaoClicado) {
-            const botoes = document.querySelectorAll('.tab-btn');
+        // CONTROLE DE NAVEGAÇÃO INTERNA DA COLUNA ESQUERDA
+        window.alternarContextoPainel = function(contexto, botaoClicado) {
+            const botoes = document.querySelectorAll('.admin-nav-btn');
             botoes.forEach(btn => btn.classList.remove('active'));
             
             if (botaoClicado) {
                 botaoClicado.classList.add('active');
-            } else {
-                const btnCorrespondente = document.querySelector(`button[onclick*="'${aba}'"]`);
-                if (btnCorrespondente) btnCorrespondente.classList.add('active');
             }
 
             const cards = document.querySelectorAll('.main-grid > .card');
             cards.forEach(card => card.classList.remove('active-tab-card'));
 
-            let idCardAlvo = `card-aba-${aba}`;
-            const cardAlvo = document.getElementById(idCardAlvo);
-            if (cardAlvo) {
-                cardAlvo.classList.add('active-tab-card');
-            }
+            let idAlvo = contexto === 'pedido' ? 'card-aba-venda' : `card-aba-${contexto}`;
+            const cardAlvo = document.getElementById(idAlvo);
+            if (cardAlvo) cardAlvo.classList.add('active-tab-card');
         };
 
         function executarDisparoWhatsDevice(urlDisparo, abaDestino) {
@@ -605,18 +611,16 @@
         function configurarModoCliente() {
             document.getElementById('tela-login').style.display = 'none';
             document.getElementById('conteudo-sistema').style.display = 'block';
-            document.getElementById('sys-title').innerText = "Tempero de Família - Cardápio";
-            document.getElementById('nav-venda-label').innerText = "Cardápio";
+            document.getElementById('sys-title').innerText = "Tempero de Família - Cardápio & Checkout";
             
-            // LÓGICA DE CAIXA: Mantém preço visível para o cliente, mas impede que ele altere o valor digitando
             document.getElementById('container-valor-interno').style.display = 'block';
             document.getElementById('valor').readOnly = true;
-            
             document.getElementById('container-status-financeiro').style.display = 'none'; 
             document.getElementById('btn-finalizar-checkout').innerText = "🚀 Enviar Pedido via WhatsApp";
             
             document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
-            window.alternarAbaMobile('venda');
+            document.getElementById('navegacao-abas-id').style.display = 'none';
+            window.alternarContextoPainel('pedido');
         }
 
         window.validarAcessoSecure = function(event) {
@@ -694,10 +698,10 @@
             event.preventDefault();
             
             if (!pratoSelecionadoGlobal) {
-                alert("Por favor, selecione um prato no cardápio."); return;
+                alert("Por favor, selecione um prato."); return;
             }
             if (!tipoSelecionadoGlobal) {
-                alert("Por favor, selecione o tamanho ou opção do prato."); return;
+                alert("Por favor, selecione o tamanho."); return;
             }
 
             const precoUnitario = parseFloat(document.getElementById('valor').value);
@@ -715,9 +719,7 @@
 
             atualizarInterfaceCarrinho();
             
-            // LÓGICA DE CAIXA: Avisa o usuário que funcionou em vez de pular abruptamente de tela
-            alert(`✅ ${qtd}x ${pratoSelecionadoGlobal} adicionado ao carrinho com sucesso!`);
-            
+            // Limpa os campos do prato na esquerda, e o item surge instantaneamente na direita
             pratoSelecionadoGlobal = "";
             tipoSelecionadoGlobal = "";
             document.getElementById('descricao').value = '';
@@ -725,13 +727,18 @@
             document.getElementById('quantidade').value = '1';
             window.renderizarBadgesPratos();
             window.renderizarBadgesTipos();
-            
-            // Mantém a pessoa na página para adicionar mais pratos (Muda de tela apenas quando ela clicar no menu inferior)
         };
 
         function atualizarInterfaceCarrinho() {
             const container = document.getElementById('lista-itens');
             container.innerHTML = '';
+            
+            if(pedidoAtual.length === 0) {
+                container.innerHTML = `<li style="color: var(--cor-texto-secundario); font-size: 13px; text-align: center; padding: 20px;">Nenhum produto adicionado...</li>`;
+                document.getElementById('total-valor').innerText = "0.00";
+                return;
+            }
+
             let total = 0;
             pedidoAtual.forEach(item => {
                 total += item.valor;
@@ -742,8 +749,6 @@
                     </li>`;
             });
             document.getElementById('total-valor').innerText = total.toFixed(2);
-            document.getElementById('badge-contador-id').innerText = pedidoAtual.length;
-            document.getElementById('badge-contador-id').style.display = pedidoAtual.length > 0 ? 'block' : 'none';
         }
 
         window.removerItem = function(id) {
@@ -752,7 +757,7 @@
         };
 
         window.finalizarPedidoFluxo = async function() {
-            if (pedidoAtual.length === 0) return alert("Seu carrinho está vazio!");
+            if (pedidoAtual.length === 0) return alert("Adicione pelo menos um item à direita antes de fechar!");
             
             const nome = document.getElementById('cliente-nome').value.trim();
             const celular = document.getElementById('cliente-celular').value.trim();
@@ -760,14 +765,13 @@
             let endereco = addressInput ? addressInput : "BALCÃO";
 
             if (!nome || !celular) {
-                alert("Por favor, preencha seu Nome e Celular/WhatsApp antes de finalizar o pedido.");
-                window.alternarAbaMobile('venda');
+                alert("Por favor, preencha o Nome e o Celular/WhatsApp na ficha à esquerda antes de concluir!");
+                window.alternarContextoPainel('pedido');
                 return;
             }
 
             const total = pedidoAtual.reduce((acc, current) => acc + current.valor, 0);
             const numeroPedido = totalizadorLocalPedidos.length + 1;
-
             const statusFin = isClienteView ? "Pendente" : document.getElementById('status-pagamento').value;
 
             const novoPedido = {
@@ -796,20 +800,19 @@
                         textoWhats += `- ${i.qtd}x ${i.prato} [${i.tipo}] (Obs: ${i.descricao})\n`;
                     });
                     textoWhats += `\n*Forma de Pagamento:* ${novoPedido.pagamento}`;
-                    textoWhats += `\n*Total Geral:* R$ ${total.toFixed(2)}\n\n_Aguardando aprovação do atendente..._`;
+                    textoWhats += `\n*Total Geral:* R$ ${total.toFixed(2)}`;
 
                     const urlWhats = `https://web.whatsapp.com/send?phone=5511999973141&text=${encodeURIComponent(textoWhats)}`;
-                    
                     executarDisparoWhatsDevice(urlWhats, 'whatsapp_restaurante');
-                    alert("Seu pedido completo foi enviado! Aguarde a mensagem de confirmação do atendente.");
+                    alert("Seu pedido acumulado foi enviado via WhatsApp!");
                 } else {
-                    alert("Pedido interno de Balcão registrado com sucesso!");
+                    alert("Pedido lançado e finalizado no caixa interno!");
                 }
 
                 pedidoAtual = [];
                 atualizarInterfaceCarrinho();
                 document.getElementById('form-item').reset();
-                window.alternarAbaMobile('venda');
+                window.alternarContextoPainel('pedido');
             } catch (error) {
                 alert("Erro ao gravar dados no Firebase: " + error.message);
             }
@@ -824,7 +827,6 @@
                     dados.id = doc.id; 
                     totalizadorLocalPedidos.push(dados);
                 });
-                
                 totalizadorLocalPedidos.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
                 if (!isClienteView) sincronizarInterfaceAtendente();
             });
@@ -893,15 +895,10 @@
                 const financeiroAtualizado = selectFin ? selectFin.value : "Pendente";
 
                 const pRef = doc(db, "pedidos", pedidoId);
-                await updateDoc(pRef, { 
-                    status: "Aprovado",
-                    financeiro: financeiroAtualizado
-                });
+                await updateDoc(pRef, { status: "Aprovado", financeiro: financeiroAtualizado });
                 
                 const pedido = totalizadorLocalPedidos.find(p => p.id === pedidoId);
                 if (pedido) {
-                    pedido.financeiro = financeiroAtualizado; 
-                    
                     let msgRetorno = `Olá *${pedido.rawClienteNome}*, seu pedido de número *#${pedido.numero}* foi recebido e *ACEITO* pela cozinha! \n\n`;
                     if (financeiroAtualizado === "Pago") {
                         msgRetorno += `Status do Pagamento: *CONFIRMADO (PAGO)* ✅\n\n`;
@@ -912,16 +909,15 @@
                     
                     const celularLimpo = pedido.rawClienteCelular.replace(/\D/g, "");
                     const urlRetorno = `https://web.whatsapp.com/send?phone=55${celularLimpo}&text=${encodeURIComponent(msgRetorno)}`;
-                    
                     executarDisparoWhatsDevice(urlRetorno, 'whatsapp_atendimento');
                 }
             } catch (e) {
-                alert("Erro ao aprovar pedido: " + e.message);
+                alert("Erro ao aprovar: " + e.message);
             }
         };
 
         window.excluirPedidoDefinitivo = async function(id) {
-            if (!confirm("Remover permanentemente este registro da nuvem do Firebase?")) return;
+            if (!confirm("Remover permanentemente este registro da nuvem?")) return;
             try {
                 await deleteDoc(doc(db, "pedidos", id));
             } catch (e) {
@@ -933,16 +929,9 @@
             onSnapshot(collection(db, "status_cardapio"), (snapshot) => {
                 snapshot.forEach((doc) => {
                     const dados = doc.data();
-                    
-                    if (!cardapioEstruturado[doc.id]) {
-                        cardapioEstruturado[doc.id] = ["Marmita (P)", "Marmita (M)", "Marmita (G)"];
-                    }
-                    if(dados.hasOwnProperty('disponivel')) {
-                        statusCardapioDisponivel[doc.id] = dados.disponivel;
-                    }
-                    if(dados.hasOwnProperty('precos')) {
-                        tabelaPrecosDinamicos[doc.id] = dados.precos;
-                    }
+                    if (!cardapioEstruturado[doc.id]) cardapioEstruturado[doc.id] = ["Marmita (P)", "Marmita (M)", "Marmita (G)"];
+                    if(dados.hasOwnProperty('disponivel')) statusCardapioDisponivel[doc.id] = dados.disponivel;
+                    if(dados.hasOwnProperty('precos')) tabelaPrecosDinamicos[doc.id] = dados.precos;
                 });
                 renderizarGerenciamentoCardapio();
                 window.renderizarBadgesPratos();
@@ -953,53 +942,31 @@
         window.adicionarNovoPratoNuvem = async function() {
             const inputNome = document.getElementById('novo-prato-nome');
             const nomePrato = inputNome.value.trim();
+            if (!nomePrato) return alert("Digite o nome.");
 
-            if (!nomePrato) {
-                alert("Por favor, digite o nome do prato."); return;
-            }
-
-            if (cardapioEstruturado[nomePrato]) {
-                alert("Este prato já está cadastrado no cardápio."); return;
-            }
-
-            const estruturaInicial = {
-                disponivel: true,
-                precos: {
-                    "Marmita (P)": 0.00,
-                    "Marmita (M)": 0.00,
-                    "Marmita (G)": 0.00
-                }
-            };
-
+            const estruturaInicial = { disponivel: true, precos: { "Marmita (P)": 0.00, "Marmita (M)": 0.00, "Marmita (G)": 0.00 } };
             try {
                 await setDoc(doc(db, "status_cardapio", nomePrato), estruturaInicial);
-                alert(`🍽️ "${nomePrato}" cadastrado com sucesso! Defina os preços na lista abaixo.`);
                 inputNome.value = '';
-            } catch (e) {
-                alert("Erro ao salvar o prato na nuvem: " + e.message);
-            }
+            } catch (e) { alert(e.message); }
         };
 
         function renderizarGerenciamentoCardapio() {
             const container = document.getElementById('container-gestao-cardapio');
             container.innerHTML = '';
-            
             Object.keys(cardapioEstruturado).forEach(prato => {
                 const checked = statusCardapioDisponivel[prato] !== false ? 'checked' : '';
-                
                 let inputsPrecoHtml = '';
                 cardapioEstruturado[prato].forEach(tamanho => {
                     const precoAtual = tabelaPrecosDinamicos[prato]?.[tamanho] || 0;
                     const inputId = `input-price-${prato.replace(/\s+/g, '_')}-${tamanho.replace(/\s+|\(|\)/g, '_')}`;
-                    
                     inputsPrecoHtml += `
                         <div class="input-preco-manage">
-                            <label style="font-size: 11px;">${tamanho}:</label>
+                            <label>${tamanho}:</label>
                             <input type="number" id="${inputId}" step="0.01" value="${parseFloat(precoAtual).toFixed(2)}" 
                                 onblur="window.atualizarPrecoNuvem('${prato}', '${tamanho}', this.value)">
                         </div>`;
                 });
-
                 container.innerHTML += `
                     <div class="item-cardapio-manage">
                         <div class="manage-row-header">
@@ -1009,99 +976,53 @@
                                 <span class="slider"></span>
                             </label>
                         </div>
-                        <div class="manage-precos-grid">
-                            ${inputsPrecoHtml}
-                        </div>
+                        <div class="manage-precos-grid">${inputsPrecoHtml}</div>
                     </div>`;
             });
         }
 
         window.alternarStatusDisponibilidade = async function(prato, disponibilizar) {
-            try {
-                const cRef = doc(db, "status_cardapio", prato);
-                await setDoc(cRef, { disponivel: disponibilizar }, { merge: true });
-            } catch (e) {
-                statusCardapioDisponivel[prato] = disponibilizar;
-                window.renderizarBadgesPratos();
-            }
+            try { await setDoc(doc(db, "status_cardapio", prato), { disponivel: disponibilizar }, { merge: true }); } catch (e) {}
         };
 
         window.atualizarPrecoNuvem = async function(prato, tamanho, novoPreco) {
             const valorNumerico = parseFloat(novoPreco);
-            if (isNaN(valorNumerico) || valorNumerico < 0) {
-                alert("Insira um valor numérico válido."); return;
-            }
-
-            if(!tabelaPrecosDinamicos[prato]) tabelaPrecosDinamicos[prato] = {};
-            tabelaPrecosDinamicos[prato][tamanho] = valorNumerico;
-
-            try {
-                const cRef = doc(db, "status_cardapio", prato);
-                await setDoc(cRef, { 
-                    precos: {
-                        [tamanho]: valorNumerico
-                    } 
-                }, { merge: true });
-            } catch (e) {
-                console.error("Erro ao sincronizar preço na nuvem: ", e);
-            }
+            if (isNaN(valorNumerico) || valorNumerico < 0) return;
+            try { await setDoc(doc(db, "status_cardapio", prato), { precos: { [tamanho]: valorNumerico } }, { merge: true }); } catch (e) {}
         };
 
         window.calcularFechamentoDiario = function() {
             document.getElementById('dashboard-vendas-tela').style.display = 'grid';
-            
             const aprovados = totalizadorLocalPedidos.filter(p => p.status === "Aprovado");
-            
             let totalFaturado = 0;
-            let qtdPedidos = aprovados.length;
             let distribuicaoPratos = {};
 
             aprovados.forEach(p => {
                 totalFaturado += parseFloat(p.total || 0);
-                
-                if (p.itens && Array.isArray(p.itens)) {
+                if (p.itens) {
                     p.itens.forEach(item => {
-                        const nomePrato = item.prato || "Item Extra";
-                        const quantidade = parseInt(item.qtd || 1);
-                        distribuicaoPratos[nomePrato] = (distribuicaoPratos[nomePrato] || 0) + quantidade;
+                        distribuicaoPratos[item.prato] = (distribuicaoPratos[item.prato] || 0) + parseInt(item.qtd || 1);
                     });
                 }
             });
 
             document.getElementById('t-dash-faturamento').innerText = `R$ ${totalFaturado.toFixed(2)}`;
-            document.getElementById('t-dash-qtd-pedidos').innerText = qtdPedidos;
+            document.getElementById('t-dash-qtd-pedidos').innerText = aprovados.length;
 
             if (chartPizzaInstancia) chartPizzaInstancia.destroy();
-            
-            const labelsGrafico = Object.keys(distribuicaoPratos);
-            const dadosGrafico = Object.values(distribuicaoPratos);
-
-            const finalLabels = labelsGrafico.length > 0 ? labelsGrafico : ["Sem vendas aprovadas"];
-            const finalData = dadosGrafico.length > 0 ? dadosGrafico : [1];
-            const finalColors = labelsGrafico.length > 0 ? ['#cc1d1d', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#64748b'] : ['#cbd5e1'];
-
             const ctx = document.getElementById('graficoPizzaFechamento').getContext('2d');
             chartPizzaInstancia = new Chart(ctx, {
                 type: 'pie',
                 data: {
-                    labels: finalLabels,
-                    datasets: [{
-                        data: finalData,
-                        backgroundColor: finalColors
-                    }]
+                    labels: Object.keys(distribuicaoPratos).length > 0 ? Object.keys(distribuicaoPratos) : ["Sem vendas"],
+                    datasets: [{ data: Object.values(distribuicaoPratos).length > 0 ? Object.values(distribuicaoPratos) : [1], backgroundColor: ['#cc1d1d', '#3b82f6', '#10b981', '#f59e0b'] }]
                 },
-                options: { 
-                    responsive: true, 
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } } 
-                }
+                options: { responsive: true, maintainAspectRatio: false }
             });
         };
 
         window.exportarFechamentoPDF = function() {
-            const elemento = document.getElementById('dashboard-vendas-tela');
-            const opt = { margin: 10, filename: 'fechamento-turno.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
-            html2pdf().set(opt).from(elemento).save();
+            html2pdf().set({ margin: 10, filename: 'fechamento.pdf' }).from(document.getElementById('dashboard-vendas-tela')).save();
         };
 
         inicializarSistema();
