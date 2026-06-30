@@ -360,7 +360,6 @@
 
     <div id="conteudo-sistema">
         <div class="brand-header">
-            <!-- CORREÇÃO: Readicionado a id="sys-title" para o JS do modo cliente rodar sem quebras -->
             <h1 id="sys-title">Tempero de Família - Painel Operacional</h1>
         </div>
 
@@ -518,7 +517,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, setDoc, getDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
         const firebaseConfig = {
@@ -536,7 +535,7 @@
         const auth = getAuth(app);
         const googleProvider = new GoogleAuthProvider();
 
-        const cardapioEstruturado = {
+        let cardapioEstruturado = {
             "Parmegiana de Frango": ["Marmita (P)", "Marmita (M)", "Marmita (G)"],
             "Frango à Milanesa": ["Marmita (P)", "Marmita (M)", "Marmita (G)"],
             "Parmegiana de Berinjela": ["Marmita (P)", "Marmita (M)", "Marmita (G)"],
@@ -623,11 +622,13 @@
             document.getElementById('tela-login').style.display = 'none';
             document.getElementById('conteudo-sistema').style.display = 'block';
             document.getElementById('sys-title').innerText = "Tempero de Família - Cardápio & Checkout";
-            document.getElementById('container-valor-interno').style.display = 'block';
-            document.getElementById('valor').readOnly = true;
-            document.getElementById('container-status-financeiro').style.display = 'none'; 
-            document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
+            
+            // CORREÇÃO: Esconde de verdade a barra de menus e os seletores internos como antes
             document.getElementById('navegacao-abas-id').style.display = 'none';
+            document.getElementById('container-valor-interno').style.display = 'none';
+            document.getElementById('container-status-financeiro').style.display = 'none';
+            document.getElementById('btn-finalizar-checkout').innerText = "🚀 Enviar Pedido via WhatsApp";
+            
             window.alternarContextoPainel('pedido');
         }
 
@@ -704,7 +705,7 @@
 
         function atualizarInterfaceCarrinho() {
             const container = document.getElementById('lista-itens'); if(!container) return; container.innerHTML = '';
-            if(pedidoAtual.length === 0) { container.innerHTML = `<li style="color:var(--cor-texto-secundario); text-align:center; padding:20px;">Nenhum produto...</li>`; document.getElementById('total-valor').innerText = "0.00"; return; }
+            if(pedidoAtual.length === 0) { container.innerHTML = `<li style="color:var(--cor-texto-secundario); text-align:center; padding:20px;">Nenhum produto adicionado...</li>`; document.getElementById('total-valor').innerText = "0.00"; return; }
             let total = 0;
             pedidoAtual.forEach(item => { total += item.valor; container.innerHTML += `<li class="item-carrinho"><div><strong>${item.qtd}x - ${item.prato}</strong> (${item.tipo})<br><small>R$ ${item.valor.toFixed(2)}</small></div><button type="button" class="btn-del" onclick="window.removerItem(${item.id})">X</button></li>`; });
             document.getElementById('total-valor').innerText = total.toFixed(2);
@@ -963,6 +964,7 @@
 
         function sincronizarCardapioNuvem() {
             onSnapshot(collection(db, "status_cardapio"), (snapshot) => {
+                // Preserva a estrutura de chaves locais enquanto atualiza dinamicamente os valores da nuvem
                 snapshot.forEach((doc) => {
                     const dados = doc.data();
                     if (!cardapioEstruturado[doc.id]) cardapioEstruturado[doc.id] = ["Marmita (P)", "Marmita (M)", "Marmita (G)"];
@@ -978,6 +980,9 @@
             try { await setDoc(doc(db, "status_cardapio", nomePrato), { disponivel: true, precos: { "Marmita (P)": 0.00, "Marmita (M)": 0.00, "Marmita (G)": 0.00 } }); inputNome.value = ''; } catch (e) { alert(e.message); }
         };
 
+        // =======================================================
+        //  CORREÇÃO: TRANSFORMA O CAMPO DO NOME DO PRATO EM EDITÁVEL
+        // =======================================================
         function renderizarGerenciamentoCardapio() {
             const container = document.getElementById('container-gestao-cardapio'); if(!container) return; container.innerHTML = '';
             Object.keys(cardapioEstruturado).forEach(prato => {
@@ -986,12 +991,45 @@
                     const precoAtual = tabelaPrecosDinamicos[prato]?.[tamanho] || 0;
                     inputsPrecoHtml += `<div class="input-preco-manage"><label>${tamanho}:</label><input type="number" step="0.01" value="${parseFloat(precoAtual).toFixed(2)}" onblur="window.atualizarPrecoNuvem('${prato}', '${tamanho}', this.value)"></div>`;
                 });
-                container.innerHTML += `<div class="item-cardapio-manage"><div class="manage-row-header"><span><b>#️⃣ ${prato}</b></span><label class="switch"><input type="checkbox" ${checked} onchange="window.alternarStatusDisponibilidade('${prato}', this.checked)"><span class="slider"></span></label></div><div class="manage-precos-grid">${inputsPrecoHtml}</div></div>`;
+                container.innerHTML += `
+                    <div class="item-cardapio-manage">
+                        <div class="manage-row-header">
+                            <input type="text" value="${prato}" style="font-weight:700; border:1px solid transparent; padding:4px 8px; background:transparent;" onfocus="this.style.backgroundColor='#fff'; this.style.borderColor='#cbd5e1'" onblur="this.style.backgroundColor='transparent'; this.style.borderColor='transparent'; window.alterarNomeItemMenuNuvem('${prato}', this.value)">
+                            <label class="switch"><input type="checkbox" ${checked} onchange="window.alternarStatusDisponibilidade('${prato}', this.checked)"><span class="slider"></span></label>
+                        </div>
+                        <div class="manage-precos-grid">${inputsPrecoHtml}</div>
+                    </div>`;
             });
         }
 
+        // Nova função para realizar a troca de nome do prato diretamente no Firebase clonando o nó antigo
+        window.alterarNomeItemMenuNuvem = async function(nomeAntigo, nomeNovo) {
+            nomeNovo = nomeNovo.trim();
+            if(!nomeNovo || nomeAntigo === nomeNovo) return;
+            try {
+                const docAntigoRef = doc(db, "status_cardapio", nomeAntigo);
+                const docNovoRef = doc(db, "status_cardapio", nomeNovo);
+                const snapshot = await getDoc(docAntigoRef);
+                
+                if(snapshot.exists()) {
+                    const dados = snapshot.data();
+                    await setDoc(docNovoRef, dados);
+                    await deleteDoc(docAntigoRef);
+                    
+                    // Alinha localmente os arrays estruturados para evitar travamento na renderização
+                    cardapioEstruturado[nomeNovo] = cardapioEstruturado[nomeAntigo];
+                    delete cardapioEstruturado[nomeAntigo];
+                    statusCardapioDisponivel[nomeNovo] = statusCardapioDisponivel[nomeAntigo];
+                    delete statusCardapioDisponivel[nomeAntigo];
+                    tabelaPrecosDinamicos[nomeNovo] = tabelaPrecosDinamicos[nomeAntigo];
+                    delete tabelaPrecosDinamicos[nomeAntigo];
+                    
+                    renderizarGerenciamentoCardapio();
+                }
+            } catch (e) { alert("Erro ao renomear: " + e.message); }
+        };
+
         window.alternarStatusDisponibilidade = async function(prato, disponibilizar) { try { await setDoc(doc(db, "status_cardapio", prato), { disponivel: disponibilizar }, { merge: true }); } catch (e) {} };
-        window.updatesPrecoNuvem = async function(prato, tamanho, novoPreco) { try { await setDoc(doc(db, "status_cardapio", prato), { precos: { [tamanho]: parseFloat(novoPreco) } }, { merge: true }); } catch (e) {} };
         window.atualizarPrecoNuvem = async function(prato, tamanho, novoPreco) { try { await setDoc(doc(db, "status_cardapio", prato), { precos: { [tamanho]: parseFloat(novoPreco) } }, { merge: true }); } catch (e) {} };
 
         window.validarAcessoSecure = async function(event) {
