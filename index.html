@@ -397,7 +397,7 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>Endereço de Entrega Completo:</label>
+                        <label>Endereço de Delivery Completo:</label>
                         <input type="text" id="cliente-endereco" placeholder="Rua, número, bairro ou informe BALCÃO">
                     </div>
 
@@ -558,6 +558,33 @@
 
         let pratoSelecionadoGlobal = "";
         let tipoSelecionadoGlobal = "";
+
+        // ==========================================
+        //  CORREÇÃO: IMPLEMENTAÇÃO DO ALTERNAR ABA
+        // ==========================================
+        window.alternarAbaMobile = function(aba, botaoClicado) {
+            // 1. Alternar estado visual ativo dos botões do menu inferior
+            const botoes = document.querySelectorAll('.tab-btn');
+            botoes.forEach(btn => btn.classList.remove('active'));
+            
+            if (botaoClicado) {
+                botaoClicado.classList.add('active');
+            } else {
+                const btnCorrespondente = document.querySelector(`button[onclick*="'${aba}'"]`);
+                if (btnCorrespondente) btnCorrespondente.classList.add('active');
+            }
+
+            // 2. Ocultar todos os cards da Grid Principal
+            const cards = document.querySelectorAll('.main-grid > .card');
+            cards.forEach(card => card.classList.remove('active-tab-card'));
+
+            // 3. Exibir o card alvo correspondente
+            let idCardAlvo = `card-aba-${aba}`;
+            const cardAlvo = document.getElementById(idCardAlvo);
+            if (cardAlvo) {
+                cardAlvo.classList.add('active-tab-card');
+            }
+        };
 
         function executarDisparoWhatsDevice(urlDisparo, abaDestino) {
             const isMobileApp = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -769,7 +796,6 @@
                     executarDisparoWhatsDevice(urlWhats, 'whatsapp_restaurante');
                     alert("Seu pedido foi enviado! Aguarde a mensagem de confirmação do atendente.");
                 } else {
-                    imprimirDuplaVia(novoPedido);
                     alert("Pedido interno de Balcão registrado com sucesso!");
                 }
 
@@ -783,7 +809,6 @@
         };
 
         function escutarPedidosRealtime() {
-            // CORREÇÃO FIRESTORE: Removi a cláusula orderBy para ignorar a necessidade de Índices Compostos no console
             const q = collection(db, "pedidos");
             onSnapshot(q, (snapshot) => {
                 totalizadorLocalPedidos = [];
@@ -793,9 +818,7 @@
                     totalizadorLocalPedidos.push(dados);
                 });
                 
-                // Ordenação manual robusta feita localmente em memória Javascript
                 totalizadorLocalPedidos.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
-                
                 if (!isClienteView) sincronizarInterfaceAtendente();
             });
         }
@@ -838,10 +861,9 @@
                                         <option value="Pendente" ${p.financeiro === 'Pendente' ? 'selected' : ''}>⚠️ Pendente</option>
                                         <option value="Pago" ${p.financeiro === 'Pago' ? 'selected' : ''}>✅ Já Pago</option>
                                     </select>
-                                    <button class="btn-aprovar" style="height: 32px; padding: 0 10px;" onclick="window.aprovarPedidoWhats('${p.id}')">✅ Aprovar</button>
+                                    <button class="btn-aprovar" style="height: 32px; padding: 0 10px;" onclick="window.aprovarPedidoWhats('${p.id}')">✅ Approvar</button>
                                 </div>
                             ` : ''}
-                            <button class="btn-card-rep" onclick="window.reimprimirTicketPorId('${p.id}')">🖨️ Rep</button>
                             <button class="btn-card-del" onclick="window.excluirPedidoDefinitivo('${p.id}')">❌ Exc</button>
                         </div>
                     </div>`;
@@ -872,7 +894,6 @@
                 const pedido = totalizadorLocalPedidos.find(p => p.id === pedidoId);
                 if (pedido) {
                     pedido.financeiro = financeiroAtualizado; 
-                    imprimirDuplaVia(pedido);
                     
                     let msgRetorno = `Olá *${pedido.rawClienteNome}*, seu pedido de número *#${pedido.numero}* foi recebido e *ACEITO* pela cozinha! \n\n`;
                     if (financeiroAtualizado === "Pago") {
@@ -1019,11 +1040,9 @@
             }
         };
 
-        // LÓGICA REESTRUTURADA: Varre com segurança a memória local populada em realtime pelo banco
         window.calcularFechamentoDiario = function() {
             document.getElementById('dashboard-vendas-tela').style.display = 'grid';
             
-            // Filtra estritamente os registros aprovados
             const aprovados = totalizadorLocalPedidos.filter(p => p.status === "Aprovado");
             
             let totalFaturado = 0;
@@ -1037,7 +1056,7 @@
                     p.itens.forEach(item => {
                         const nomePrato = item.prato || "Item Extra";
                         const quantidade = parseInt(item.qtd || 1);
-                        distribuicaoPratos[nomePrato] = (distribuicaoPratos[nomePrato] || 0) + quantidade;
+                        distribuicaoPratos[nomePrato] = (distribuicaoPratos[nomePrato] || 0) + quantity;
                     });
                 }
             });
@@ -1079,7 +1098,6 @@
         };
 
         inicializarSistema();
-
     </script>
 </body>
 </html>
