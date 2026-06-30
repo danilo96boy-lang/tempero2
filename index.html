@@ -638,7 +638,7 @@
 
         async function carregarPedidoParaAjusteCliente(pedidoId) {
             try {
-                const pDoc = await getDoc(doc(db, "pedidos", pedidoId));
+                const pDoc = await getDoc(doc(db, "pedidos", presidential || pedidoId));
                 if (pDoc.exists()) {
                     const dados = pDoc.data();
                     document.getElementById('cliente-nome').value = dados.rawClienteNome || '';
@@ -662,6 +662,7 @@
 
         window.renderizarBadgesPratos = function() {
             const container = document.getElementById('badge-container-pratos');
+            if(!container) return;
             container.innerHTML = '';
             Object.keys(cardapioEstruturado).forEach(prato => {
                 if (isClienteView && prato === "Outros Pratos") return;
@@ -684,6 +685,7 @@
 
         window.renderizarBadgesTipos = function() {
             const container = document.getElementById('badge-container-tipos');
+            if(!container) return;
             container.innerHTML = '';
             
             if (!pratoSelecionadoGlobal || !cardapioEstruturado[pratoSelecionadoGlobal]) {
@@ -750,6 +752,7 @@
 
         function atualizarInterfaceCarrinho() {
             const container = document.getElementById('lista-itens');
+            if(!container) return;
             container.innerHTML = '';
             
             if(pedidoAtual.length === 0) {
@@ -883,13 +886,15 @@
 
             const containerPendentes = document.getElementById('container-pedidos-pendentes');
             const containerHistorico = document.getElementById('container-historico-cards');
+            if(!containerPendentes || !containerHistorico) return;
+            
             containerPendentes.innerHTML = '';
             containerHistorico.innerHTML = '';
 
             let countPendentes = 0;
 
             [...totalizadorLocalPedidos].reverse().forEach(p => {
-                const resumoItens = p.itens.map(i => `<b style="color:var(--cor-principal)">(${i.qtd}x)</b> ${i.prato} [${i.tipo}]`).join('<br>');
+                const resumoItens = p.itens ? p.itens.map(i => `<b style="color:var(--cor-principal)">(${i.qtd}x)</b> ${i.prato} [${i.tipo}]`).join('<br>') : '';
                 const finBadgeClass = p.financeiro === 'Pago' ? 'fin-pago' : 'fin-pendente';
                 const finBadgeLabel = p.financeiro === 'Pago' ? '✅ PAGO' : '⚠️ PENDENTE (COBRAR)';
                 
@@ -901,21 +906,21 @@
                         <div class="pedido-log-header">
                             <span style="font-size:14px; font-weight:800; color:var(--cor-principal);">PEDIDO #${String(p.numero || 0).padStart(2, '0')}</span>
                             <div>
-                                <span class="status-badge status-${p.status.toLowerCase()}">${p.status}</span>
+                                <span class="status-badge status-${p.status ? p.status.toLowerCase() : 'pendente'}">${p.status || 'Pendente'}</span>
                                 <span class="financeiro-badge ${finBadgeClass}">${finBadgeLabel}</span>
                             </div>
                         </div>
                         <div class="pedido-log-corpo">
                             <b>Data:</b> ${dataExibicaoFinal} às ${p.hora || ''}<br>
-                            <b>Cliente:</b> ${p.rawClienteNome} | Tel: ${p.rawClienteCelular}<br>
-                            <b>Endereço:</b> ${p.rawClienteEndereco}<br>
+                            <b>Cliente:</b> ${p.rawClienteNome || ''} | Tel: ${p.rawClienteCelular || ''}<br>
+                            <b>Endereço:</b> ${p.rawClienteEndereco || ''}<br>
                             <div style="background:#fff; padding:6px; border-radius:6px; border:1px solid var(--cor-borda); margin:6px 0;">${resumoItens}</div>
-                            <b>Forma de Pagamento:</b> ${p.pagamento}<br>
+                            <b>Forma de Pagamento:</b> ${p.pagamento || ''}<br>
                             <b>Total: <span style="color:var(--cor-principal)">R$ ${(p.total || 0).toFixed(2)}</span></b>
                             ${motivoHtml}
                         </div>
                         <div class="pedido-log-footer">
-                            ${p.status === 'Pendente' ? `
+                            ${p.status === 'Pendente' || !p.status ? `
                                 <div style="display:flex; flex-direction: column; gap:8px; width: 100%; border-top: 1px dashed var(--cor-borda); padding-top: 10px;">
                                     <input type="text" id="motivo-recusa-${p.id}" placeholder="Falta algo? Digite o que acabou aqui antes de recusar...">
                                     
@@ -930,11 +935,11 @@
                                     </div>
                                 </div>
                             ` : ''}
-                            ${p.status !== 'Pendente' ? `<button class="btn-card-del" onclick="window.excluirPedidoDefinitivo('${p.id}')">❌ Exc</button>` : ''}
+                            ${p.status !== 'Pendente' && p.status ? `<button class="btn-card-del" onclick="window.excluirPedidoDefinitivo('${p.id}')">❌ Exc</button>` : ''}
                         </div>
                     </div>`;
 
-                if (p.status === "Pendente") {
+                if (p.status === "Pendente" || !p.status) {
                     containerPendentes.innerHTML += htmlCard;
                     countPendentes++;
                 } else {
@@ -942,8 +947,11 @@
                 }
             });
 
-            document.getElementById('badge-pendentes-id').innerText = countPendentes;
-            document.getElementById('badge-pendentes-id').style.display = countPendentes > 0 ? 'block' : 'none';
+            const badgePend = document.getElementById('badge-pendentes-id');
+            if(badgePend) {
+                badgePend.innerText = countPendentes;
+                badgePend.style.display = countPendentes > 0 ? 'inline-block' : 'none';
+            }
         }
 
         window.aprovarPedidoWhats = async function(pedidoId) {
@@ -1008,6 +1016,7 @@
 
         function renderizarGerenciamentoCardapio() {
             const container = document.getElementById('container-gestao-cardapio');
+            if(!container) return;
             container.innerHTML = '';
             Object.keys(cardapioEstruturado).forEach(prato => {
                 const checked = statusCardapioDisponivel[prato] !== false ? 'checked' : '';
@@ -1017,7 +1026,7 @@
                     inputsPrecoHtml += `
                         <div class="input-preco-manage">
                             <label>${tamanho}:</label>
-                            <input type="number" step="0.01" value="${parseFloat(precoAtual).toFixed(2)}" onblur="window.updatesPrecoNuvem('${prato}', '${tamanho}', this.value)">
+                            <input type="number" step="0.01" value="${parseFloat(precoAtual).toFixed(2)}" onblur="window.atualizarPrecoNuvem('${prato}', '${tamanho}', this.value)">
                         </div>`;
                 });
                 container.innerHTML += `<div class="item-cardapio-manage"><div class="manage-row-header"><span><b>#️⃣ ${prato}</b></span><label class="switch"><input type="checkbox" ${checked} onchange="window.alternarStatusDisponibilidade('${prato}', this.checked)"><span class="slider"></span></label></div><div class="manage-precos-grid">${inputsPrecoHtml}</div></div>`;
@@ -1025,7 +1034,20 @@
         }
 
         window.alternarStatusDisponibilidade = async function(prato, disponibilizar) { try { await setDoc(doc(db, "status_cardapio", prato), { disponivel: disponibilizar }, { merge: true }); } catch (e) {} };
-        window.updatesPrecoNuvem = async function(prato, tamanho, novoPreco) { try { await setDoc(doc(db, "status_cardapio", prato), { precos: { [tamanho]: parseFloat(novoPreco) } }, { merge: true }); } catch (e) {} };
+        window.atualizarPrecoNuvem = async function(prato, tamanho, novoPreco) { try { await setDoc(doc(db, "status_cardapio", prato), { precos: { [tamanho]: parseFloat(novoPreco) } }, { merge: true }); } catch (e) {} };
+
+        window.validarAcessoSecure = function(event) {
+            event.preventDefault();
+            const usu = document.getElementById('login-usuario').value.trim().toLowerCase();
+            const sen = document.getElementById('login-senha').value.trim();
+            if (usu === "gabriele" && sen === "190620") {
+                document.getElementById('tela-login').style.display = 'none';
+                document.getElementById('conteudo-sistema').style.display = 'block';
+                sincronizarInterfaceAtendente();
+            } else {
+                alert("Acesso Recusado! Usuário ou senha incorretos.");
+            }
+        };
 
         window.calcularFechamentoDiario = function() {
             document.getElementById('dashboard-vendas-tela').style.display = 'grid';
@@ -1063,7 +1085,6 @@
                 totalFaturado += parseFloat(p.total || 0);
                 if (p.itens) {
                     p.itens.forEach(item => {
-                        // FIX: Alterado de 'quantity' para 'item.qtd' para resolver o erro fatal
                         distribuicaoPratos[item.prato] = (distribuicaoPratos[item.prato] || 0) + parseInt(item.qtd || 1);
                     });
                 }
