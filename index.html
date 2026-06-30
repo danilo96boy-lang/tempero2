@@ -323,6 +323,19 @@
 
         #ticket-print { display: none; }
         body.modo-impressao-ticket #conteudo-sistema, body.modo-impressao-ticket #tela-login { display: none !important; }
+
+        @media print {
+            @page { size: 58mm auto; margin: 0mm; }
+            body { background: #fff; padding: 0; margin: 0; display: block; width: 58mm; }
+            #ticket-print { display: block !important; font-family: 'Courier New', Courier, monospace; width: 48mm; max-width: 48mm; padding: 1mm 0.5mm; font-size: 11px; color: #000; line-height: 1.25; word-wrap: break-word; }
+            .ticket-header { text-align: center; }
+            .ticket-via-tag { font-size: 12px; font-weight: bold; border: 1px solid #000; display: inline-block; padding: 2px 4px; text-transform: uppercase; }
+            .ticket-header-num-destaque { font-size: 26px !important; font-weight: 950 !important; text-align: center; display: block; width: 100%; }
+            .ticket-divider { text-align: center; margin: 2px 0; font-weight: bold; }
+            .ticket-item { margin: 6px 0; border-bottom: 1px dotted #ccc; padding-bottom: 4px; }
+            .ticket-item-price { text-align: right; font-weight: bold; display: block; }
+            .ticket-wrapper-via { page-break-after: always !important; display: block; }
+        }
     </style>
 </head>
 <body>
@@ -348,7 +361,7 @@
 
         <nav class="admin-nav-header" id="navegacao-abas-id">
             <button class="admin-nav-btn active" onclick="window.alternarContextoPainel('pedido', this)">📝 Lançar Novo Pedido</button>
-            <button class="admin-nav-btn admin-only" onclick="window.alternarContextoPainel('painel', this)">🔔 Pendentes <span id="badge-pendentes-id" style="background:var(--cor-pendente); color:white; padding:1px 6px; border-radius:10px; font-size:11px; display:none;">0</span></button>
+            <button class="admin-nav-btn admin-only" onclick="window.alternarContextoPainel('painel', this)">🔔 Pedidos <span id="badge-pendentes-id" style="background:var(--cor-pendente); color:white; padding:1px 6px; border-radius:10px; font-size:11px; display:none;">0</span></button>
             <button class="admin-nav-btn admin-only" onclick="window.alternarContextoPainel('cardapio', this)">🍔 Configurar Menu</button>
             <button class="admin-nav-btn admin-only" onclick="window.alternarContextoPainel('fechamento', this)">🔒 Turno / Caixa</button>
         </nav>
@@ -599,7 +612,6 @@
                 document.getElementById('tela-login').style.display = 'flex';
             }
             sincronizarCardapioNuvem();
-            // REMOVIDO DAQUI: escutarPedidosRealtime() para não rodar antes da autenticação!
         }
 
         function configurarModoCliente() {
@@ -651,11 +663,11 @@
             if (!pratoSelecionadoGlobal || !cardapioEstruturado[pratoSelecionadoGlobal]) { container.innerHTML = '<div style="color:var(--cor-texto-secundario); font-size:13px; grid-column: span 2;">Selecione o prato acima primeiro...</div>'; return; }
             cardapioEstruturado[pratoSelecionadoGlobal].forEach(opcao => {
                 const preco = tabelaPrecosDinamicos[pratoSelecionadoGlobal]?.[opcao] || 0;
-                container.innerHTML += `<div class="badge-option ${opcao === tipoSelecionadoGlobal ? 'selected' : ''}" onclick="window.selecionarTipoBadge('${opcao}', ${preco})"><div style="font-weight:700;">${opcao}</div><span>R$ ${parseFloat(preco).toFixed(2)}</span></div>`;
+                container.innerHTML += `<div class="badge-option ${opcao === tipoSelecionadoGlobal ? 'selected' : ''}" onclick="window.signInWithPopupSelecionarTipoBadge('${opcao}', ${preco})"><div style="font-weight:700;">${opcao}</div><span>R$ ${parseFloat(preco).toFixed(2)}</span></div>`;
             });
         };
 
-        window.selecionarTipoBadge = function(opcao, preco) { tipoSelecionadoGlobal = opcao; document.getElementById('valor').value = parseFloat(preco).toFixed(2); window.renderizarBadgesTipos(); };
+        window.signInWithPopupSelecionarTipoBadge = function(opcao, preco) { tipoSelecionadoGlobal = opcao; document.getElementById('valor').value = parseFloat(preco).toFixed(2); window.renderizarBadgesTipos(); };
 
         window.buscarClientePorTelefone = function(telDigitado) {
             if (idPedidoSendoAjustado) return;
@@ -696,6 +708,9 @@
 
         window.removerItem = function(id) { pedidoAtual = pedidoAtual.filter(i => i.id !== id); atualizarInterfaceCarrinho(); };
 
+        // ==========================================
+        //  FIX: ATUALIZAÇÃO E AJUSTE DO TICKET 58MM
+        // ==========================================
         window.imprimirDuplaVia = function(pedido) {
             const containerPrint = document.getElementById('ticket-print');
             if (!containerPrint) return;
@@ -721,25 +736,25 @@
                         <span class="ticket-via-tag">${via}</span><br><br>
                         <b style="font-size:14px;">TEMPERO DE FAMÍLIA</b><br>
                         <span>Painel PDV Cloud</span><br>
-                        <span>Data: ${pedido.dataExibicao || pedido.data} - ${pedido.hora}</span><br>
+                        <span>Data: ${pedido.dataExibicao || pedido.data || ''} - ${pedido.hora || ''}</span><br>
                         <span class="ticket-divider">----------------------------------</span><br>
                         <span style="font-size:12px;">NÚMERO DO PEDIDO</span><br>
                         <span class="ticket-header-num-destaque">#${String(pedido.numero || 0).padStart(2, '0')}</span>
                     </div>
                     <span class="ticket-divider">----------------------------------</span>
                     <div class="ticket-body">
-                        <b>CLIENTE:</b> ${pedido.rawClienteNome}<br>
-                        <b>CONTATO:</b> ${pedido.rawClienteCelular}<br>
-                        <b>ENDEREÇO:</b> <span style="font-size:12px; font-weight:bold;">${pedido.rawClienteEndereco}</span><br>
+                        <b>CLIENTE:</b> ${pedido.rawClienteNome || ''}<br>
+                        <b>CONTATO:</b> ${pedido.rawClienteCelular || ''}<br>
+                        <b>ENDEREÇO:</b> <span style="font-size:12px; font-weight:bold;">${pedido.rawClienteEndereco || ''}</span><br>
                         <span class="ticket-divider">----------------------------------</span><br>
                         <center><b>ITENS DO PEDIDO</b></center>
                         ${stringItensTicket}
                     </div>
                     <span class="ticket-divider">----------------------------------</span>
                     <div class="ticket-footer" style="text-align:right;">
-                        <span>Forma Pagto: <b>${pedido.pagamento}</b></span><br>
+                        <span>Forma Pagto: <b>${pedido.pagamento || ''}</b></span><br>
                         <span>Status Fin: <b>${pedido.financeiro === 'Pago' ? 'PAGO' : 'A COBRAR'}</b></span><br>
-                        <span style="font-size:13px; font-weight:bold;">TOTAL GERAL: R$ ${pedido.total.toFixed(2)}</span>
+                        <span style="font-size:13px; font-weight:bold;">TOTAL GERAL: R$ ${(pedido.total || 0).toFixed(2)}</span>
                     </div>
                     <br><br>
                     <center><span>*** Obrigado pela Preferência ***</span></center>
@@ -813,7 +828,6 @@
                     window.history.replaceState({}, document.title, window.location.pathname + "?cliente=true");
                     idPedidoSendoAjustado = null;
                 } else {
-                    // Preenche o número do pedido com base no tamanho do histórico (apenas para fallback local se necessário)
                     dadosPedidoSincronizar.numero = totalizadorLocalPedidos.length + 1;
                     await addDoc(collection(db, "pedidos"), dadosPedidoSincronizar);
                     
@@ -974,9 +988,6 @@
         window.alternarStatusDisponibilidade = async function(prato, disponibilizar) { try { await setDoc(doc(db, "status_cardapio", prato), { disponivel: disponibilizar }, { merge: true }); } catch (e) {} };
         window.atualizarPrecoNuvem = async function(prato, tamanho, novoPreco) { try { await setDoc(doc(db, "status_cardapio", prato), { precos: { [tamanho]: parseFloat(novoPreco) } }, { merge: true }); } catch (e) {} };
 
-        // ==========================================
-        //  CORREÇÃO: ESCUTA DE PEDIDOS APÓS LOGIN
-        // ==========================================
         window.validarAcessoSecure = async function(event) {
             event.preventDefault();
             try {
@@ -986,8 +997,6 @@
                 if (emailUsuarioLogado === "temperodefamilia366@gmail.com" || emailUsuarioLogado === "danilo96boy@gmail.com") {
                     document.getElementById('tela-login').style.display = 'none';
                     document.getElementById('conteudo-sistema').style.display = 'block';
-                    
-                    // ATIVAÇÃO CORRETA: Só escuta a lista de pedidos após estar devidamente autenticado!
                     escutarPedidosRealtime();
                 } else {
                     alert("Acesso Negado! O e-mail " + emailUsuarioLogado + " não possui credenciais.");
