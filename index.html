@@ -321,6 +321,11 @@
         .total-tela { font-size: 22px; font-weight: 800; text-align: right; margin-top: 12px; padding-top: 12px; border-top: 2px dashed #cbd5e0; }
         .total-tela span { color: var(--cor-principal); }
 
+        /* CSS DO MENU EM GRIDS (QUADRADINHOS) */
+        .grid-cardapio-gestao { display: grid; grid-template-columns: 1fr; gap: 14px; margin-top: 10px; }
+        @media(min-width: 600px) { .grid-cardapio-gestao { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); } }
+        @media(min-width: 1000px) { .grid-cardapio-gestao { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); } }
+
         #ticket-print { display: none; }
         body.modo-impressao-ticket #conteudo-sistema, body.modo-impressao-ticket #tela-login { display: none !important; }
 
@@ -445,6 +450,8 @@
                             <button type="button" class="btn" style="background:var(--cor-principal); color:white; padding:0 20px; width:auto; font-size:13px;" onclick="window.adicionarNovoPratoNuvem()">Cadastrar</button>
                         </div>
                     </div>
+                    
+                    <!-- CORREÇÃO 1: Adicionado a classe correta na grid do container de gestão -->
                     <div class="grid-cardapio-gestao" id="container-gestao-cardapio"></div>
                 </div>
 
@@ -708,9 +715,6 @@
 
         window.removerItem = function(id) { pedidoAtual = pedidoAtual.filter(i => i.id !== id); atualizarInterfaceCarrinho(); };
 
-        // ==========================================
-        //  FIX: ATUALIZAÇÃO E AJUSTE DO TICKET 58MM
-        // ==========================================
         window.imprimirDuplaVia = function(pedido) {
             const containerPrint = document.getElementById('ticket-print');
             if (!containerPrint) return;
@@ -874,7 +878,12 @@
             let countPendentes = 0;
 
             [...totalizadorLocalPedidos].reverse().forEach(p => {
-                const resumoItens = p.itens ? p.itens.map(i => `<b style="color:var(--cor-principal)">(${i.qtd}x)</b> ${i.prato} [${i.tipo}]`).join('<br>') : '';
+                // CORREÇÃO 2: Ajustado a montagem do texto para renderizar as observações/descrições (Obs: ...) no painel de aprovação
+                const resumoItens = p.itens ? p.itens.map(i => {
+                    let obsTexto = i.descricao && i.descricao !== 'Sem obs' ? ` <span style="font-size:11px; color:var(--cor-texto-secundario); display:block; padding-left:14px;">↳ Obs: ${i.descricao}</span>` : '';
+                    return `<div style="margin-bottom:4px;"><b style="color:var(--cor-principal)">(${i.qtd}x)</b> ${i.prato} [${i.tipo}]${obsTexto}</div>`;
+                }).join('') : '';
+
                 const finBadgeClass = p.financeiro === 'Pago' ? 'fin-pago' : 'fin-pendente';
                 const finBadgeLabel = p.financeiro === 'Pago' ? '✅ PAGO' : '⚠️ PENDENTE';
                 const htmlCard = `
@@ -886,7 +895,7 @@
                         <div class="pedido-log-corpo">
                             <b>Data:</b> ${p.dataExibicao || p.data || ''} às ${p.hora || ''}<br>
                             <b>Cliente:</b> ${p.rawClienteNome || ''}<br><b>Endereço:</b> ${p.rawClienteEndereco || ''}<br>
-                            <div style="background:#fff; padding:6px; border-radius:6px; border:1px solid var(--cor-borda); margin:6px 0;">${resumoItens}</div>
+                            <div style="background:#fff; padding:8px; border-radius:6px; border:1px solid var(--cor-borda); margin:6px 0;">${resumoItens}</div>
                             <b>Total: <span style="color:var(--cor-principal)">R$ ${(p.total || 0).toFixed(2)}</span></b>
                         </div>
                         <div class="pedido-log-footer">
@@ -986,6 +995,7 @@
         }
 
         window.alternarStatusDisponibilidade = async function(prato, disponibilizar) { try { await setDoc(doc(db, "status_cardapio", prato), { disponivel: disponibilizar }, { merge: true }); } catch (e) {} };
+        window.updatesPrecoNuvem = async function(prato, tamanho, novoPreco) { try { await setDoc(doc(db, "status_cardapio", prato), { precos: { [tamanho]: parseFloat(novoPreco) } }, { merge: true }); } catch (e) {} };
         window.atualizarPrecoNuvem = async function(prato, tamanho, novoPreco) { try { await setDoc(doc(db, "status_cardapio", prato), { precos: { [tamanho]: parseFloat(novoPreco) } }, { merge: true }); } catch (e) {} };
 
         window.validarAcessoSecure = async function(event) {
