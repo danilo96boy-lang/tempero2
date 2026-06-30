@@ -337,14 +337,6 @@
         input:checked + .slider { background-color: #16a34a; }
         input:checked + .slider:before { transform: translateX(22px); }
 
-        .dash-container-tela { display: none; grid-template-columns: 1fr; gap: 16px; margin-top: 15px; padding: 12px; background: #f8fafc; border: 1px solid var(--cor-borda); border-radius: var(--border-radius-lg); width: 100%; }
-        @media(min-width: 650px) { .dash-container-tela { grid-template-columns: 1fr 1fr; } .dash-full { grid-column: span 2; } }
-        .bloco-metricas-caixa { display: flex; flex-direction: column; gap: 10px; }
-        .card-metrica { background: #fff; border: 1px solid var(--cor-borda); padding: 14px; border-radius: var(--border-radius-md); }
-        .card-metrica p { margin: 4px 0 0 0; font-size: 20px; font-weight: bold; }
-        .bloco-grafico-caixa { background: #fff; border: 1px solid var(--cor-borda); padding: 14px; border-radius: var(--border-radius-md); display: flex; justify-content: center; align-items: center; min-height: 250px; }
-
-        /* Estilos de Impressão Térmica de Linha */
         #ticket-print { display: none; }
         body.modo-impressao-ticket #conteudo-sistema, body.modo-impressao-ticket #tela-login { display: none !important; }
 
@@ -537,7 +529,6 @@
         </div>
     </div>
 
-    <!-- Div oculta usada estritamente para renderizar a folha de impressão de 58mm -->
     <div id="ticket-print"></div>
 
     <script type="module">
@@ -564,7 +555,7 @@
             "Feijoada": ["Marmita (P)", "Marmita (M)", "Marmita (G)"],
             "Marmitex": ["Marmita (P)", "Marmita (M)", "Marmita (G)"],
             "Prato Feito": ["Tradicional", "Especial"],
-            "Bebidas": ["Refrigerante Lata", "Suco Natural", "Água Mineral"],
+            "Bebidas": ["Refrigerante Lata", "Suco Natural", "鍵水 Mineral"],
             "Outros Pratos": ["Especial do Dia"]
         };
 
@@ -716,9 +707,6 @@
 
         window.removerItem = function(id) { pedidoAtual = pedidoAtual.filter(i => i.id !== id); atualizarInterfaceCarrinho(); };
 
-        // ==========================================
-        //  LÓGICA DO LAYOUT E EMISSÃO DO TICKET 58MM
-        // ==========================================
         window.imprimirDuplaVia = function(pedido) {
             const containerPrint = document.getElementById('ticket-print');
             if (!containerPrint) return;
@@ -734,7 +722,6 @@
                 </div>`;
             });
 
-            // Estrutura a montagem padrão de dupla via (1ª Via Cozinha / 2ª Via Entrega)
             let htmlTicketCompleto = "";
             const vias = ["1ª VIA - COZINHA", "2ª VIA - ENTREGADOR"];
 
@@ -771,7 +758,6 @@
                 </div>`;
             });
 
-            // Injeta o HTML estruturado, altera a classe do body para ocultar o sistema e chama a janela de impressão nativa
             containerPrint.innerHTML = htmlTicketCompleto;
             document.body.classList.add('modo-impressao-ticket');
             
@@ -782,14 +768,9 @@
             }, 300);
         };
 
-        // Permite reemitir o ticket a qualquer momento pelo histórico de cartões aprovados
         window.reimprimirTicketPorId = function(pedidoId) {
             const pedido = totalizadorLocalPedidos.find(p => p.id === pedidoId);
-            if (pedido) {
-                window.imprimirDuplaVia(pedido);
-            } else {
-                alert("Pedido não localizado para impressão.");
-            }
+            if (pedido) { window.imprimirDuplaVia(pedido); } else { alert("Pedido não localizado."); }
         };
 
         window.finalizarPedidoFluxo = async function() {
@@ -816,7 +797,26 @@
             try {
                 if (isClienteView && idPedidoSendoAjustado) {
                     await updateDoc(doc(db, "pedidos", idPedidoSendoAjustado), dadosPedidoSincronizar);
-                    alert("Pedido modificado enviado!");
+                    
+                    // ===================================================
+                    // CORREÇÃO: COMPOSIÇÃO COMPLETA DA CONTRA-PROPOSTA VIA WHATSAPP
+                    // ===================================================
+                    let textoWhats = `*Pedido Ajustado pelo Cliente - Tempero de Família*\n\n`;
+                    textoWhats += `👤 *Cliente:* ${nome}\n`;
+                    textoWhats += `📞 *Contato:* ${celular}\n`;
+                    textoWhats += `📍 *Endereço:* ${endereco}\n\n`;
+                    textoWhats += `🛒 *Itens do Pedido:*\n`;
+                    pedidoAtual.forEach(i => {
+                        textoWhats += `- (${i.qtd}x) ${i.prato} [${i.tipo}] _(Obs: ${i.descricao})_\n`;
+                    });
+                    textoWhats += `\n💵 *Forma de Pagamento:* ${dadosPedidoSincronizar.pagamento}\n`;
+                    textoWhats += `💰 *Novo Total:* R$ ${total.toFixed(2)}\n\n`;
+                    textoWhats += `_Aguardando re-avaliação da cozinha..._`;
+
+                    const urlWhats = `https://web.whatsapp.com/send?phone=5511999973141&text=${encodeURIComponent(textoWhats)}`;
+                    executarDisparoWhatsDevice(urlWhats, 'whatsapp_restaurante');
+                    alert("Seu pedido modificado foi reenviado com sucesso!");
+                    
                     window.history.replaceState({}, document.title, window.location.pathname + "?cliente=true");
                     idPedidoSendoAjustado = null;
                 } else {
@@ -824,10 +824,24 @@
                     await addDoc(collection(db, "pedidos"), dadosPedidoSincronizar);
                     
                     if (isClienteView) {
-                        let msg = `*Novo Pedido (nº ${dadosPedidoSincronizar.numero})*...`;
-                        executarDisparoWhatsDevice(`https://web.whatsapp.com/send?phone=5511999973141&text=${encodeURIComponent(msg)}`, 'whatsapp_restaurante');
+                        // ===================================================
+                        // CORREÇÃO: COMPOSIÇÃO COMPLETA DO NOVO PEDIDO VIA WHATSAPP
+                        // ===================================================
+                        let textoWhats = `*🔥 Novo Pedido - Tempero de Família (nº ${dadosPedidoSincronizar.numero})*\n\n`;
+                        textoWhats += `👤 *Cliente:* ${nome}\n`;
+                        textoWhats += `📞 *Contato:* ${celular}\n`;
+                        textoWhats += `📍 *Endereço:* ${endereco}\n\n`;
+                        textoWhats += `🛒 *Itens Selecionados:*\n`;
+                        pedidoAtual.forEach(i => {
+                            textoWhats += `- (${i.qtd}x) ${i.prato} [${i.tipo}] _(Obs: ${i.descricao})_\n`;
+                        });
+                        textoWhats += `\n💵 *Forma de Pagamento:* ${dadosPedidoSincronizar.pagamento}\n`;
+                        textoWhats += `💰 *Total Geral:* R$ ${total.toFixed(2)}\n\n`;
+                        textoWhats += `_Aguardando aprovação e início do preparo pela cozinha..._`;
+
+                        const urlWhats = `https://web.whatsapp.com/send?phone=5511999973141&text=${encodeURIComponent(textoWhats)}`;
+                        executarDisparoWhatsDevice(urlWhats, 'whatsapp_restaurante');
                     } else {
-                        // AUTO-PRINT BALCÃO: Pedidos diretos de balcão imprimem na hora do fechamento
                         window.imprimirDuplaVia(dadosPedidoSincronizar);
                     }
                 }
@@ -901,7 +915,6 @@
                 
                 await updateDoc(pRef, { status: "Aprovado", financeiro: financeiroAtualizado });
                 
-                // AUTO-PRINT INTERFACE: Dispara a via térmica assim que você clica em aprovar na lista
                 const pedido = totalizadorLocalPedidos.find(p => p.id === pedidoId);
                 if (pedido) {
                     pedido.financeiro = financeiroAtualizado;
