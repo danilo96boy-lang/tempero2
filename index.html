@@ -95,7 +95,6 @@
             letter-spacing: -0.5px;
         }
 
-        /* Menu Superior para Administração */
         .admin-nav-header {
             display: flex;
             gap: 8px;
@@ -129,7 +128,6 @@
             border-color: var(--cor-principal);
         }
 
-        /* LAYOUT UNIFICADO EM DUAS COLUNAS */
         .layout-pdv-unificado {
             display: grid;
             grid-template-columns: 1fr;
@@ -140,7 +138,7 @@
 
         @media(min-width: 900px) {
             .layout-pdv-unificado {
-                grid-template-columns: 1fr 380px; /* Formulário à esquerda, Checkout à direita */
+                grid-template-columns: 1fr 380px;
             }
         }
 
@@ -281,7 +279,8 @@
         .btn-add { background-color: var(--cor-principal); color: white; margin-top: 15px; box-shadow: 0 4px 10px rgba(204, 29, 29, 0.2); }
         .btn-add:hover { background-color: var(--cor-principal-hover); }
         .btn-print { background-color: #16a34a; color: white; font-size: 16px; box-shadow: 0 4px 10px rgba(22, 163, 74, 0.2); }
-        .btn-aprovar { background-color: #16a34a; color: white; padding: 8px 14px; font-size: 13px; border-radius: 6px; }
+        .btn-aprovar { background-color: #16a34a; color: white; padding: 8px 14px; font-size: 13px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold;}
+        .btn-reprovar { background-color: #dc2626; color: white; padding: 8px 14px; font-size: 13px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold;}
 
         .container-logs-cards { display: grid; grid-template-columns: 1fr; gap: 14px; margin-top: 10px; }
         @media(min-width: 700px) { .container-logs-cards { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); } }
@@ -294,6 +293,7 @@
         .status-badge { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; color: white; }
         .status-pendente { background-color: var(--cor-pendente); }
         .status-aprovado { background-color: var(--cor-aprovado); }
+        .status-reprovado { background-color: #64748b; }
 
         .financeiro-badge { padding: 2px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; display: inline-block; margin-top: 4px; }
         .fin-pago { background-color: #d1fae5; color: #065f46; }
@@ -301,7 +301,6 @@
 
         .btn-card-del { background-color: #dc2626; color: white; border: none; padding: 6px 12px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 12px; }
 
-        /* Estilo do Caixa Lateral Fixo */
         .carrinho-lateral-pdv {
             position: sticky;
             top: 12px;
@@ -347,7 +346,6 @@
 </head>
 <body>
 
-    <!-- Tela de Login Inicial -->
     <div id="tela-login">
         <div class="card-login">
             <h2 style="color: var(--cor-principal); margin: 0 0 6px 0; text-transform: uppercase; font-size: 18px; font-weight: 800;">Acesso Restrito</h2>
@@ -366,13 +364,11 @@
         </div>
     </div>
 
-    <!-- Conteúdo Principal do Sistema -->
     <div id="conteudo-sistema">
         <div class="brand-header">
             <h1 id="sys-title">Tempero de Família - Painel Operacional</h1>
         </div>
 
-        <!-- Menu Superior (Aparece apenas para Admin logado mudar de contexto) -->
         <nav class="admin-nav-header" id="navegacao-abas-id">
             <button class="admin-nav-btn active" onclick="window.alternarContextoPainel('pedido', this)">📝 Lançar Novo Pedido</button>
             <button class="admin-nav-btn admin-only" onclick="window.alternarContextoPainel('painel', this)">🔔 Pendentes <span id="badge-pendentes-id" style="background:var(--cor-pendente); color:white; padding:1px 6px; border-radius:10px; font-size:11px; display:none;">0</span></button>
@@ -380,13 +376,10 @@
             <button class="admin-nav-btn admin-only" onclick="window.alternarContextoPainel('fechamento', this)">🔒 Turno / Caixa</button>
         </nav>
 
-        <!-- LAYOUT FIXO: Conteúdo Principal e Caixa à Direita -->
         <div class="layout-pdv-unificado">
             
-            <!-- Coluna da Esquerda: Abas Dinâmicas de Trabalho -->
             <div class="main-grid">
                 
-                <!-- ABA PRINCIPAL: Form de Lançamento sempre visível -->
                 <div class="card active-tab-card" id="card-aba-venda">
                     <h3>📝 Registrar Lançamento</h3>
                     <form id="form-item" onsubmit="window.adicionarItem(event)">
@@ -448,13 +441,11 @@
                     </form>
                 </div>
 
-                <!-- ABA ADMIN: Pedidos Pendentes -->
                 <div class="card" id="card-aba-painel">
                     <h3>🔔 Pedidos Pendentes de Aprovação</h3>
                     <div class="container-logs-cards" id="container-pedidos-pendentes"></div>
                 </div>
 
-                <!-- ABA ADMIN: Gestão do Cardápio -->
                 <div class="card" id="card-aba-cardapio">
                     <h3>🍔 Gerenciamento de Pratos e Tabela de Preços</h3>
                     <div style="background: #f8fafc; border: 1px solid var(--cor-borda); padding: 14px; border-radius: var(--border-radius-md); margin-bottom: 16px;">
@@ -467,7 +458,6 @@
                     <div class="grid-cardapio-gestao" id="container-gestao-cardapio"></div>
                 </div>
 
-                <!-- ABA ADMIN: Turno / Caixa Geral -->
                 <div class="card" id="card-aba-fechamento">
                     <h3>🔒 Fechamento Consolidado de Caixa</h3>
                     <div style="display:flex; gap:10px; flex-wrap: wrap; margin-bottom: 20px;">
@@ -492,7 +482,6 @@
                     </div>
                 </div>
 
-                <!-- ABA ADMIN: Histórico de Logs -->
                 <div class="card" id="card-aba-logs">
                     <h3>📋 Histórico Analítico de Transações (Turno Ativo)</h3>
                     <div class="container-logs-cards" id="container-historico-cards"></div>
@@ -500,7 +489,6 @@
 
             </div>
 
-            <!-- Coluna da Direita: Carrinho / Checkout Fixo e Unificado -->
             <div class="carrinho-lateral-pdv" id="caixa-checkout-fixo">
                 <h3 style="border-bottom: 2px solid var(--cor-texto); padding-bottom: 4px; margin-bottom: 12px;">🛒 Caixa / Itens</h3>
                 <ul id="lista-itens" class="lista-itens">
@@ -569,7 +557,6 @@
         let pratoSelecionadoGlobal = "";
         let tipoSelecionadoGlobal = "";
 
-        // CONTROLE DE NAVEGAÇÃO INTERNA DA COLUNA ESQUERDA
         window.alternarContextoPainel = function(contexto, botaoClicado) {
             const botoes = document.querySelectorAll('.admin-nav-btn');
             botoes.forEach(btn => btn.classList.remove('active'));
@@ -719,7 +706,6 @@
 
             atualizarInterfaceCarrinho();
             
-            // Limpa os campos do prato na esquerda, e o item surge instantaneamente na direita
             pratoSelecionadoGlobal = "";
             tipoSelecionadoGlobal = "";
             document.getElementById('descricao').value = '';
@@ -846,6 +832,9 @@
                 const resumoItens = p.itens.map(i => `<b style="color:var(--cor-principal)">(${i.qtd}x)</b> ${i.prato} [${i.tipo}]`).join('<br>');
                 const finBadgeClass = p.financeiro === 'Pago' ? 'fin-pago' : 'fin-pendente';
                 const finBadgeLabel = p.financeiro === 'Pago' ? '✅ PAGO' : '⚠️ PENDENTE (COBRAR)';
+                
+                // Exibe o motivo caso o pedido tenha sido reprovado anteriormente
+                const motivoHtml = p.status === 'Reprovado' && p.motivoCancelamento ? `<br><b style="color:#dc2626">Motivo da Recusa:</b> ${p.motivoCancelamento}` : '';
 
                 const htmlCard = `
                     <div class="pedido-log-card">
@@ -862,18 +851,24 @@
                             <div style="background:#fff; padding:6px; border-radius:6px; border:1px solid var(--cor-borda); margin:6px 0;">${resumoItens}</div>
                             <b>Forma de Pagamento:</b> ${p.pagamento}<br>
                             <b>Total: <span style="color:var(--cor-principal)">R$ ${p.total.toFixed(2)}</span></b>
+                            ${motivoHtml}
                         </div>
                         <div class="pedido-log-footer">
                             ${p.status === 'Pendente' ? `
-                                <div style="display:flex; gap:6px; align-items:center; flex-wrap: wrap;">
-                                    <select id="fin-mod-${p.id}" style="padding:6px; font-size:12px; width:auto; margin:0; height: 32px;">
-                                        <option value="Pendente" ${p.financeiro === 'Pendente' ? 'selected' : ''}>⚠️ Pendente</option>
-                                        <option value="Pago" ${p.financeiro === 'Pago' ? 'selected' : ''}>✅ Já Pago</option>
-                                    </select>
-                                    <button class="btn-aprovar" style="height: 32px; padding: 0 10px;" onclick="window.aprovarPedidoWhats('${p.id}')">✅ Aprovar</button>
+                                <div style="display:flex; flex-direction: column; gap:8px; width: 100%; border-top: 1px dashed var(--cor-borda); padding-top: 10px;">
+                                    <input type="text" id="motivo-recusa-${p.id}" placeholder="Caso vá reprovar, digite o motivo aqui..." style="padding: 6px 10px; font-size: 12px; margin: 0;">
+                                    
+                                    <div style="display:flex; gap:6px; justify-content: flex-end; align-items:center;">
+                                        <select id="fin-mod-${p.id}" style="padding:6px; font-size:12px; width:auto; margin:0; height: 32px;">
+                                            <option value="Pendente" ${p.financeiro === 'Pendente' ? 'selected' : ''}>⚠️ Pendente</option>
+                                            <option value="Pago" ${p.financeiro === 'Pago' ? 'selected' : ''}>✅ Já Pago</option>
+                                        </select>
+                                        <button class="btn-aprovar" style="height: 32px; padding: 0 10px;" onclick="window.aprovarPedidoWhats('${p.id}')">✅ Aprovar</button>
+                                        <button class="btn-reprovar" style="height: 32px; padding: 0 10px;" onclick="window.reprovarPedidoWhats('${p.id}')">❌ Recusar</button>
+                                    </div>
                                 </div>
                             ` : ''}
-                            <button class="btn-card-del" onclick="window.excluirPedidoDefinitivo('${p.id}')">❌ Exc</button>
+                            ${p.status !== 'Pendente' ? `<button class="btn-card-del" onclick="window.excluirPedidoDefinitivo('${p.id}')">❌ Exc</button>` : ''}
                         </div>
                     </div>`;
 
@@ -913,6 +908,44 @@
                 }
             } catch (e) {
                 alert("Erro ao aprovar: " + e.message);
+            }
+        };
+
+        // LÓGICA DE REPROVAÇÃO COM MOTIVO PREENCHIDO
+        window.reprovarPedidoWhats = async function(pedidoId) {
+            const inputMotivo = document.getElementById(`motivo-recusa-${pedidoId}`);
+            const motivoText = inputMotivo ? inputMotivo.value.trim() : "";
+
+            if (!motivoText) {
+                alert("Por favor, preencha o motivo da recusa no campo de texto antes de rejeitar o pedido.");
+                if(inputMotivo) inputMotivo.focus();
+                return;
+            }
+
+            if (!confirm("Tem certeza que deseja REPROVAR e cancelar este pedido?")) return;
+
+            try {
+                const pRef = doc(db, "pedidos", pedidoId);
+                // Atualiza na nuvem salvando o histórico da recusa
+                await updateDoc(pRef, { 
+                    status: "Reprovado",
+                    motivoCancelamento: motivoText 
+                });
+
+                const pedido = totalizadorLocalPedidos.find(p => p.id === pedidoId);
+                if (pedido) {
+                    let msgCancelamento = `Olá *${pedido.rawClienteNome}*, lamentamos informar, mas o seu pedido *#${pedido.numero}* não pôde ser aceito pela nossa cozinha.\n\n`;
+                    msgCancelamento += `*Motivo do Cancelamento:* ${motivoText}\n\n`;
+                    msgCancelamento += `Caso tenha alguma dúvida ou queira refazer o pedido com alterações, por favor entre em contato conosco por este canal.`;
+
+                    const celularLimpo = pedido.rawClienteCelular.replace(/\D/g, "");
+                    const urlRetorno = `https://web.whatsapp.com/send?phone=55${celularLimpo}&text=${encodeURIComponent(msgCancelamento)}`;
+                    
+                    // Dispara a justificativa direto no WhatsApp do cliente
+                    executarDisparoWhatsDevice(urlRetorno, 'whatsapp_atendimento');
+                }
+            } catch (e) {
+                alert("Erro ao reprovar pedido: " + e.message);
             }
         };
 
