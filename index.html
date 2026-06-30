@@ -462,15 +462,33 @@
 
                 <div class="card" id="card-aba-fechamento">
                     <h3>🔒 Fechamento Consolidado de Caixa</h3>
+                    
+                    <!-- NOVO: SELEÇÃO DE DATA OU PERÍODO -->
+                    <div style="background: #f8fafc; border: 1px solid var(--cor-borda); padding: 16px; border-radius: var(--border-radius-md); margin-bottom: 20px;">
+                        <label style="color:var(--cor-texto); font-weight:700; font-size:12px; text-transform:uppercase; display:block; margin-bottom:8px;">📅 Filtrar por Data ou Período</label>
+                        <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+                            <div style="flex: 1; min-width: 140px;">
+                                <label style="font-size:11px; color:var(--cor-texto-secundario);">De (Início):</label>
+                                <input type="date" id="filchamento-inicio" style="padding:8px; font-size:14px; margin:0;">
+                            </div>
+                            <div style="flex: 1; min-width: 140px;">
+                                <label style="font-size:11px; color:var(--cor-texto-secundario);">Até (Fim / Data Única):</label>
+                                <input type="date" id="filchamento-fim" style="padding:8px; font-size:14px; margin:0;">
+                            </div>
+                        </div>
+                        <p style="font-size:11px; color:var(--cor-texto-secundario); margin:6px 0 0 0;">Dica: Para um único dia (Ex: 29/06), preencha apenas o campo "Até". Para períodos, preencha os dois.</p>
+                    </div>
+
                     <div style="display:flex; gap:10px; flex-wrap: wrap; margin-bottom: 20px;">
                         <button type="button" class="btn" style="background:#1e293b; color:white; width: auto;" onclick="window.alternarContextoPainel('logs')">📋 Ver Histórico Geral</button>
                         <button type="button" class="btn" style="background:var(--cor-principal); color:white; width: auto;" onclick="window.calcularFechamentoDiario()">🔒 Processar Turno</button>
                         <button type="button" id="btn-pdf-id" class="btn" style="background:#475569; color:white; width: auto;" onclick="window.exportarFechamentoPDF()">📥 Gerar PDF</button>
                     </div>
+
                     <div id="dashboard-vendas-tela" class="dash-container-tela">
                         <div class="bloco-metricas-caixa">
                             <div class="card-metrica">
-                                <h4>Faturamento Bruto Acumulado</h4>
+                                <h4 id="titulo-faturamento-periodo">Faturamento no Período</h4>
                                 <p id="t-dash-faturamento">R$ 0.00</p>
                             </div>
                             <div class="card-metrica">
@@ -554,7 +572,7 @@
         let pedidoAtual = [];
         let totalizadorLocalPedidos = []; 
         let isClienteView = false;
-        let idPedidoSendoAjustado = null; // Guarda o ID caso o cliente esteja editando um pedido recusado
+        let idPedidoSendoAjustado = null; 
         let chartPizzaInstancia = null;
 
         let pratoSelecionadoGlobal = "";
@@ -592,7 +610,6 @@
                 isClienteView = true;
                 configurarModoCliente();
                 
-                // INTELEGÊNCIA DE FLUXO: Se houver um ID na URL, carrega o pedido recusado para o cliente ajustar
                 const pId = urlParams.get('pedidoId');
                 if (pId) {
                     idPedidoSendoAjustado = pId;
@@ -620,19 +637,15 @@
             window.alternarContextoPainel('pedido');
         }
 
-        // Recupera o pedido do Firebase e popula a lista do cliente
         async function carregarPedidoParaAjusteCliente(pedidoId) {
             try {
                 const pDoc = await getDoc(doc(db, "pedidos", pedidoId));
                 if (pDoc.exists()) {
                     const dados = pDoc.data();
-                    
-                    // Popula as informações de cadastro do cliente
                     document.getElementById('cliente-nome').value = dados.rawClienteNome || '';
                     document.getElementById('cliente-celular').value = dados.rawClienteCelular || '';
                     document.getElementById('cliente-endereco').value = dados.rawClienteEndereco || '';
                     
-                    // Altera os títulos visuais para o cliente se orientar
                     document.getElementById('titulo-contexto-venda').innerText = "✏️ Ajustar Seu Pedido Recusado";
                     document.getElementById('btn-finalizar-checkout').innerText = "🔄 Reenviar Pedido Atualizado";
                     
@@ -640,7 +653,6 @@
                         alert(`⚠️ ATENÇÃO: Seu pedido precisa de ajustes.\nMotivo do Restaurante: "${dados.motivoCancelamento}"\n\nPor favor, remova o item indisponível no carrinho à direita e escolha outro se desejar.`);
                     }
 
-                    // Joga os itens de volta no array temporário
                     pedidoAtual = dados.itens || [];
                     atualizarInterfaceCarrinho();
                 }
@@ -648,19 +660,6 @@
                 console.error("Erro ao puxar pedido para ajuste: ", e);
             }
         }
-
-        window.validarAcessoSecure = function(event) {
-            event.preventDefault();
-            const usu = document.getElementById('login-usuario').value.trim().toLowerCase();
-            const sen = document.getElementById('login-senha').value.trim();
-            if (usu === "gabriele" && sen === "190620") {
-                document.getElementById('tela-login').style.display = 'none';
-                document.getElementById('conteudo-sistema').style.display = 'block';
-                sincronizarInterfaceAtendente();
-            } else {
-                alert("Acesso Recusado! Usuário ou senha incorretos.");
-            }
-        };
 
         window.renderizarBadgesPratos = function() {
             const container = document.getElementById('badge-container-pratos');
@@ -711,7 +710,7 @@
         };
 
         window.buscarClientePorTelefone = function(telDigitado) {
-            if (idPedidoSendoAjustado) return; // Não auto-completa se o cliente já está em tela de ajuste guiado
+            if (idPedidoSendoAjustado) return;
             const telLimpo = telDigitado.replace(/\D/g, "");
             if (telLimpo.length < 8) return;
             const historico = totalizadorLocalPedidos.find(p => p.rawClienteCelular.replace(/\D/g, "") === telLimpo);
@@ -723,13 +722,8 @@
 
         window.adicionarItem = function(event) {
             event.preventDefault();
-            
-            if (!pratoSelecionadoGlobal) {
-                alert("Por favor, selecione um prato."); return;
-            }
-            if (!tipoSelecionadoGlobal) {
-                alert("Por favor, selecione o tamanho."); return;
-            }
+            if (!pratoSelecionadoGlobal) return alert("Por favor, selecione um prato.");
+            if (!tipoSelecionadoGlobal) return alert("Por favor, selecione o tamanho.");
 
             const precoUnitario = parseFloat(document.getElementById('valor').value);
             const qtd = parseInt(document.getElementById('quantidade').value);
@@ -799,26 +793,30 @@
             const total = pedidoAtual.reduce((acc, current) => acc + current.valor, 0);
             const statusFin = isClienteView ? "Pendente" : document.getElementById('status-pagamento').value;
 
-            // Se for um pedido novo, pega o próximo número da fila. Se for ajuste, mantém o número antigo.
-            let numeroPedido = totalizadorLocalPedidos.length + 1;
+            // INTELEGÊNCIA DATA: Salva a propriedade .data no formato universal YYYY-MM-DD para facilitar filtros robustos
+            const dataObjeto = new Date();
+            const ano = dataObjeto.getFullYear();
+            const mes = String(dataObjeto.getMonth() + 1).padStart(2, '0');
+            const dia = String(dataObjeto.getDate()).padStart(2, '0');
+            const dataFormatadaUniversal = `${ano}-${mes}-${dia}`;
 
             const dadosPedidoSincronizar = {
-                data: new Date().toLocaleString('pt-BR'),
-                hora: new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}),
+                data: dataFormatadaUniversal, // Armazenado como YYYY-MM-DD para busca e indexação limpa
+                dataExibicao: dataObjeto.toLocaleDateString('pt-BR'), // Guarda 29/06/2026 para os cards visuais
+                hora: dataObjeto.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}),
                 rawClienteNome: nome,
                 rawClienteCelular: celular,
                 rawClienteEndereco: endereco,
                 itens: [...pedidoAtual],
                 total: total,
                 pagamento: document.getElementById('forma-pagamento').value,
-                status: isClienteView ? "Pendente" : "Aprovado", // Volta a ser pendente na cozinha
+                status: isClienteView ? "Pendente" : "Aprovado", 
                 financeiro: statusFin, 
                 timestamp: Date.now()
             };
 
             try {
                 if (isClienteView && idPedidoSendoAjustado) {
-                    // FLUXO DE AJUSTE: Salva por cima do registro existente no Firestore
                     const pRef = doc(db, "pedidos", idPedidoSendoAjustado);
                     await updateDoc(pRef, dadosPedidoSincronizar);
                     
@@ -828,22 +826,20 @@
                     pedidoAtual.forEach(i => {
                         textoWhats += `- ${i.qtd}x ${i.prato} [${i.tipo}]\n`;
                     });
-                    textoWhats += `\n*Novo Total:* R$ ${total.toFixed(2)}\n\n_Aguardando re-avaliação da cozinha..._`;
+                    textoWhats += `\n*Novo Total:* R$ ${total.toFixed(2)}`;
 
                     const urlWhats = `https://web.whatsapp.com/send?phone=5511999973141&text=${encodeURIComponent(textoWhats)}`;
                     executarDisparoWhatsDevice(urlWhats, 'whatsapp_restaurante');
-                    alert("Seu pedido modificado foi reenviado com sucesso! Aguarde a nova confirmação.");
+                    alert("Seu pedido modificado foi reenviado com sucesso!");
                     
-                    // Limpa a URL limpando o ID do fluxo
                     window.history.replaceState({}, document.title, window.location.pathname + "?cliente=true");
                     idPedidoSendoAjustado = null;
                 } else {
-                    // FLUXO TRADICIONAL: Cadastra um documento totalmente novo
-                    dadosPedidoSincronizar.numero = numeroPedido;
+                    dadosPedidoSincronizar.numero = totalizadorLocalPedidos.length + 1;
                     await addDoc(collection(db, "pedidos"), dadosPedidoSincronizar);
 
                     if (isClienteView) {
-                        let textoWhats = `*Novo Pedido - Tempero de Família (nº ${numeroPedido})*\n\n`;
+                        let textoWhats = `*Novo Pedido - Tempero de Família (nº ${dadosPedidoSincronizar.numero})*\n\n`;
                         textoWhats += `*Cliente:* ${nome}\n*Contato:* ${celular}\n*Endereço:* ${endereco}\n\n`;
                         textoWhats += `*Itens do Pedido:*\n`;
                         pedidoAtual.forEach(i => {
@@ -899,23 +895,25 @@
                 const finBadgeClass = p.financeiro === 'Pago' ? 'fin-pago' : 'fin-pendente';
                 const finBadgeLabel = p.financeiro === 'Pago' ? '✅ PAGO' : '⚠️ PENDENTE (COBRAR)';
                 
+                const dataExibicaoFinal = p.dataExibicao || p.data || "";
                 const motivoHtml = (p.status === 'Reprovado' || p.status === 'Ajuste') && p.motivoCancelamento ? `<br><b style="color:#e65c00">Nota/Falta de Estoque:</b> ${p.motivoCancelamento}` : '';
 
                 const htmlCard = `
                     <div class="pedido-log-card">
                         <div class="pedido-log-header">
-                            <span style="font-size:15px; font-weight:800; color:var(--cor-principal);">PEDIDO #${String(p.numero).padStart(2, '0')}</span>
+                            <span style="font-size:14px; font-weight:800; color:var(--cor-principal);">PEDIDO #${String(p.numero || 0).padStart(2, '0')}</span>
                             <div>
                                 <span class="status-badge status-${p.status.toLowerCase()}">${p.status}</span>
                                 <span class="financeiro-badge ${finBadgeClass}">${finBadgeLabel}</span>
                             </div>
                         </div>
                         <div class="pedido-log-corpo">
+                            <b>Data:</b> ${dataExibicaoFinal} às ${p.hora || ''}<br>
                             <b>Cliente:</b> ${p.rawClienteNome} | Tel: ${p.rawClienteCelular}<br>
                             <b>Endereço:</b> ${p.rawClienteEndereco}<br>
                             <div style="background:#fff; padding:6px; border-radius:6px; border:1px solid var(--cor-borda); margin:6px 0;">${resumoItens}</div>
                             <b>Forma de Pagamento:</b> ${p.pagamento}<br>
-                            <b>Total: <span style="color:var(--cor-principal)">R$ ${p.total.toFixed(2)}</span></b>
+                            <b>Total: <span style="color:var(--cor-principal)">R$ ${(p.total || 0).toFixed(2)}</span></b>
                             ${motivoHtml}
                         </div>
                         <div class="pedido-log-footer">
@@ -954,99 +952,39 @@
             try {
                 const selectFin = document.getElementById(`fin-mod-${pedidoId}`);
                 const financeiroAtualizado = selectFin ? selectFin.value : "Pendente";
-
                 const pRef = doc(db, "pedidos", pedidoId);
                 await updateDoc(pRef, { status: "Aprovado", financeiro: financeiroAtualizado });
-                
-                const pedido = totalizadorLocalPedidos.find(p => p.id === pedidoId);
-                if (pedido) {
-                    let msgRetorno = `Olá *${pedido.rawClienteNome}*, seu pedido de número *#${pedido.numero}* foi recebido e *ACEITO* pela cozinha! \n\n`;
-                    if (financeiroAtualizado === "Pago") {
-                        msgRetorno += `Status do Pagamento: *CONFIRMADO (PAGO)* ✅\n\n`;
-                    } else {
-                        msgRetorno += `Status do Pagamento: *PENDENTE* ⚠️ (Preparar o valor de *R$ ${pedido.total.toFixed(2)}* no método *${pedido.pagamento}* para o entregador).\n\n`;
-                    }
-                    msgRetorno += `Em breve sairá para entrega. Obrigado pela preferência!`;
-                    
-                    const celularLimpo = pedido.rawClienteCelular.replace(/\D/g, "");
-                    const urlRetorno = `https://web.whatsapp.com/send?phone=55${celularLimpo}&text=${encodeURIComponent(msgRetorno)}`;
-                    executarDisparoWhatsDevice(urlRetorno, 'whatsapp_atendimento');
-                }
-            } catch (e) {
-                alert("Erro ao aprovar: " + e.message);
-            }
+            } catch (e) { alert(e.message); }
         };
 
-        // FLUXO DE DEVOLUÇÃO PARA O CLIENTE ADICIONAR/MUDAR ITENS
         window.reprovarPedidoParaAjuste = async function(pedidoId) {
             const inputMotivo = document.getElementById(`motivo-recusa-${pedidoId}`);
             const motivoText = inputMotivo ? inputMotivo.value.trim() : "";
-
-            if (!motivoText) {
-                alert("Por favor, preencha o campo de texto indicando o que acabou (ex: 'Costelinha acabou') antes de mandar para ajuste.");
-                if(inputMotivo) inputMotivo.focus();
-                return;
-            }
+            if (!motivoText) return alert("Indique o que acabou antes de mandar para ajuste.");
 
             try {
-                const pRef = doc(db, "pedidos", pedidoId);
-                await updateDoc(pRef, { 
-                    status: "Ajuste",
-                    motivoCancelamento: motivoText 
-                });
-
+                await updateDoc(doc(db, "pedidos", pedidoId), { status: "Ajuste", motivoCancelamento: motivoText });
                 const pedido = totalizadorLocalPedidos.find(p => p.id === pedidoId);
                 if (pedido) {
-                    // Descobre dinamicamente a URL base atual do seu sistema rodando na nuvem
-                    const urlBaseSistema = window.location.origin + window.location.pathname;
-                    const linkAjusteCliente = `${urlBaseSistema}?cliente=true&pedidoId=${pedidoId}`;
-
-                    let msgAjuste = `Olá *${pedido.rawClienteNome}*, a cozinha recebeu seu pedido, mas infelizmente tivemos um imprevisto de estoque:\n\n`;
-                    msgAjuste += `❌ *Falta de item:* _${motivoText}_\n\n`;
-                    msgAjuste += `Para não cancelarmos sua ficha, você pode alterar seu pedido por aqui? Acesse o link abaixo para remover o item que acabou e escolher outra opção deliciosa:\n\n`;
-                    msgAjuste += `🔗 *Clique para Ajustar Seu Carrinho:* ${linkAjusteCliente}\n\n`;
-                    msgAjuste += `Aguardamos sua resposta para iniciar o preparo!`;
-
-                    const celularLimpo = pedido.rawClienteCelular.replace(/\D/g, "");
-                    const urlRetorno = `https://web.whatsapp.com/send?phone=55${celularLimpo}&text=${encodeURIComponent(msgAjuste)}`;
-                    
-                    executarDisparoWhatsDevice(urlRetorno, 'whatsapp_atendimento');
+                    const linkAjusteCliente = `${window.location.origin}${window.location.pathname}?cliente=true&pedidoId=${pedidoId}`;
+                    let msg = `Olá *${pedido.rawClienteNome}*, infelizmente acabou o item: *${motivoText}*.\nAcesse o link abaixo para retirá-lo ou trocá-lo por outra opção:\n${linkAjusteCliente}`;
+                    executarDisparoWhatsDevice(`https://web.whatsapp.com/send?phone=55${pedido.rawClienteCelular.replace(/\D/g, "")}&text=${encodeURIComponent(msg)}`, 'whatsapp_atendimento');
                 }
-            } catch (e) {
-                alert("Erro ao processar fluxo de devolução: " + e.message);
-            }
+            } catch (e) { alert(e.message); }
         };
 
-        // CANCELAMENTO COMPLETO E DEFINITIVO (Sem link de retorno)
         window.cancelarPedidoDefinitivo = async function(pedidoId) {
             const inputMotivo = document.getElementById(`motivo-recusa-${pedidoId}`);
-            const motivoText = inputMotivo ? inputMotivo.value.trim() : "Cancelado por indisponibilidade.";
-            
-            if (!confirm("Deseja cancelar permanentemente este pedido enviado pelo cliente?")) return;
-
+            const motivoText = inputMotivo ? inputMotivo.value.trim() : "Cancelado.";
+            if (!confirm("Deseja cancelar permanentemente?")) return;
             try {
-                const pRef = doc(db, "pedidos", pedidoId);
-                await updateDoc(pRef, { status: "Reprovado", motivoCancelamento: motivoText });
-
-                const pedido = totalizadorLocalPedidos.find(p => p.id === pedidoId);
-                if (pedido) {
-                    let msgCancelamento = `Olá *${pedido.rawClienteNome}*, infelizmente seu pedido foi cancelado.\nMotivo: *${motivoText}*`;
-                    const celularLimpo = pedido.rawClienteCelular.replace(/\D/g, "");
-                    const urlRetorno = `https://web.whatsapp.com/send?phone=55${celularLimpo}&text=${encodeURIComponent(msgCancelamento)}`;
-                    executarDisparoWhatsDevice(urlRetorno, 'whatsapp_atendimento');
-                }
-            } catch (e) {
-                alert(e.message);
-            }
+                await updateDoc(doc(db, "pedidos", pedidoId), { status: "Reprovado", motivoCancelamento: motivoText });
+            } catch (e) { alert(e.message); }
         };
 
         window.excluirPedidoDefinitivo = async function(id) {
-            if (!confirm("Remover permanentemente este registro da nuvem?")) return;
-            try {
-                await deleteDoc(doc(db, "pedidos", id));
-            } catch (e) {
-                alert("Erro ao deletar: " + e.message);
-            }
+            if (!confirm("Remover permanentemente do banco?")) return;
+            try { await deleteDoc(doc(db, "pedidos", id)); } catch (e) { alert(e.message); }
         };
 
         function sincronizarCardapioNuvem() {
@@ -1067,12 +1005,7 @@
             const inputNome = document.getElementById('novo-prato-nome');
             const nomePrato = inputNome.value.trim();
             if (!nomePrato) return alert("Digite o nome.");
-
-            const estruturaInicial = { disponivel: true, precos: { "Marmita (P)": 0.00, "Marmita (M)": 0.00, "Marmita (G)": 0.00 } };
-            try {
-                await setDoc(doc(db, "status_cardapio", nomePrato), estruturaInicial);
-                inputNome.value = '';
-            } catch (e) { alert(e.message); }
+            try { await setDoc(doc(db, "status_cardapio", nomePrato), { disponivel: true, precos: { "Marmita (P)": 0.00, "Marmita (M)": 0.00, "Marmita (G)": 0.00 } }); inputNome.value = ''; } catch (e) { alert(e.message); }
         };
 
         function renderizarGerenciamentoCardapio() {
@@ -1083,45 +1016,66 @@
                 let inputsPrecoHtml = '';
                 cardapioEstruturado[prato].forEach(tamanho => {
                     const precoAtual = tabelaPrecosDinamicos[prato]?.[tamanho] || 0;
-                    const inputId = `input-price-${prato.replace(/\s+/g, '_')}-${tamanho.replace(/\s+|\(|\)/g, '_')}`;
                     inputsPrecoHtml += `
                         <div class="input-preco-manage">
                             <label>${tamanho}:</label>
-                            <input type="number" id="${inputId}" step="0.01" value="${parseFloat(precoAtual).toFixed(2)}" 
-                                onblur="window.atualizarPrecoNuvem('${prato}', '${tamanho}', this.value)">
+                            <input type="number" step="0.01" value="${parseFloat(precoAtual).toFixed(2)}" onblur="window.atualizarPrecoNuvem('${prato}', '${tamanho}', this.value)">
                         </div>`;
                 });
-                container.innerHTML += `
-                    <div class="item-cardapio-manage">
-                        <div class="manage-row-header">
-                            <span><b>#️⃣ ${prato}</b></span>
-                            <label class="switch">
-                                <input type="checkbox" ${checked} onchange="window.alternarStatusDisponibilidade('${prato}', this.checked)">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                        <div class="manage-precos-grid">${inputsPrecoHtml}</div>
-                    </div>`;
+                container.innerHTML += `<div class="item-cardapio-manage"><div class="manage-row-header"><span><b>#️⃣ ${prato}</b></span><label class="switch"><input type="checkbox" ${checked} onchange="window.alternarStatusDisponibilidade('${prato}', this.checked)"><span class="slider"></span></label></div><div class="manage-precos-grid">${inputsPrecoHtml}</div></div>`;
             });
         }
 
-        window.alternarStatusDisponibilidade = async function(prato, disponibilizar) {
-            try { await setDoc(doc(db, "status_cardapio", prato), { disponivel: disponibilizar }, { merge: true }); } catch (e) {}
-        };
+        window.alternarStatusDisponibilidade = async function(prato, disponibilizar) { try { await setDoc(doc(db, "status_cardapio", prato), { disponivel: disponibilizar }, { merge: true }); } catch (e) {} };
+        window.atualizarPrecoNuvem = async function(prato, tamanho, novoPreco) { try { await setDoc(doc(db, "status_cardapio", prato), { precos: { [tamanho]: parseFloat(novoPreco) } }, { merge: true }); } catch (e) {} };
 
-        window.atualizarPrecoNuvem = async function(prato, tamanho, novoPreco) {
-            const valorNumerico = parseFloat(novoPreco);
-            if (isNaN(valorNumerico) || valorNumerico < 0) return;
-            try { await setDoc(doc(db, "status_cardapio", prato), { precos: { [tamanho]: valorNumerico } }, { merge: true }); } catch (e) {}
-        };
-
+        // ==========================================
+        //  LÓGICA DO FECHAMENTO COM FILTRO DE DATA
+        // ==========================================
         window.calcularFechamentoDiario = function() {
             document.getElementById('dashboard-vendas-tela').style.display = 'grid';
-            const aprovados = totalizadorLocalPedidos.filter(p => p.status === "Aprovado");
+            
+            // 1. Captura os valores digitados nos campos de data
+            const dataInicioStr = document.getElementById('filchamento-inicio').value; // Retorna YYYY-MM-DD ou vazio
+            const dataFimStr = document.getElementById('filchamento-fim').value;       // Retorna YYYY-MM-DD ou vazio
+
+            // 2. Filtra estritamente os pedidos com status "Aprovado"
+            let pedidosFiltrados = totalizadorLocalPedidos.filter(p => p.status === "Aprovado");
+
+            // 3. Aplica a inteligência de escopo de datas (Único dia ou Período)
+            if (dataInicioStr || dataFimStr) {
+                pedidosFiltrados = pedidosFiltrados.filter(p => {
+                    if (!p.data) return false;
+                    
+                    // Tratamento caso a string de data legada tenha barras ou formatos alternativos
+                    const dataPedidoFormatoPadrao = p.data.includes('/') ? p.data.split('/').reverse().join('-') : p.data;
+
+                    // Cenário A: Período Completo (De X até Y)
+                    if (dataInicioStr && dataFimStr) {
+                        return dataPedidoFormatoPadrao >= dataInicioStr && dataPedidoFormatoPadrao <= dataFimStr;
+                    }
+                    // Cenário B: Apenas Data Única Fixa (Preencheu apenas o campo "Até")
+                    if (dataFimStr && !dataInicioStr) {
+                        return dataPedidoFormatoPadrao === dataFimStr;
+                    }
+                    // Cenário C: De uma data específica até o infinito/hoje
+                    if (dataInicioStr && !dataFimStr) {
+                        return dataPedidoFormatoPadrao >= dataInicioStr;
+                    }
+                    return true;
+                });
+                
+                // Altera dinamicamente o cabeçalho das métricas para indicar o filtro ativo
+                document.getElementById('titulo-faturamento-periodo').innerText = `Faturamento Filtrado 📅`;
+            } else {
+                document.getElementById('titulo-faturamento-periodo').innerText = `Faturamento Bruto Acumulado (Geral)`;
+            }
+
+            // 4. Consolida métricas financeiras e volumétricas em memória dos itens filtrados
             let totalFaturado = 0;
             let distribuicaoPratos = {};
 
-            aprovados.forEach(p => {
+            pedidosFiltrados.forEach(p => {
                 totalFaturado += parseFloat(p.total || 0);
                 if (p.itens) {
                     p.itens.forEach(item => {
@@ -1130,23 +1084,28 @@
                 }
             });
 
+            // 5. Renderiza na interface
             document.getElementById('t-dash-faturamento').innerText = `R$ ${totalFaturado.toFixed(2)}`;
-            document.getElementById('t-dash-qtd-pedidos').innerText = aprovados.length;
+            document.getElementById('t-dash-qtd-pedidos').innerText = pedidosFiltrados.length;
 
+            // 6. Atualiza o Gráfico de Pizza
             if (chartPizzaInstancia) chartPizzaInstancia.destroy();
             const ctx = document.getElementById('graficoPizzaFechamento').getContext('2d');
             chartPizzaInstancia = new Chart(ctx, {
                 type: 'pie',
                 data: {
-                    labels: Object.keys(distribuicaoPratos).length > 0 ? Object.keys(distribuicaoPratos) : ["Sem vendas"],
-                    datasets: [{ data: Object.values(distribuicaoPratos).length > 0 ? Object.values(distribuicaoPratos) : [1], backgroundColor: ['#cc1d1d', '#3b82f6', '#10b981', '#f59e0b'] }]
+                    labels: Object.keys(distribuicaoPratos).length > 0 ? Object.keys(distribuicaoPratos) : ["Sem vendas no período"],
+                    datasets: [{ 
+                        data: Object.values(distribuicaoPratos).length > 0 ? Object.values(distribuicaoPratos) : [1], 
+                        backgroundColor: ['#cc1d1d', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#64748b'] 
+                    }]
                 },
                 options: { responsive: true, maintainAspectRatio: false }
             });
         };
 
         window.exportarFechamentoPDF = function() {
-            html2pdf().set({ margin: 10, filename: 'fechamento.pdf' }).from(document.getElementById('dashboard-vendas-tela')).save();
+            html2pdf().set({ margin: 10, filename: 'fechamento-caixa.pdf' }).from(document.getElementById('dashboard-vendas-tela')).save();
         };
 
         inicializarSistema();
