@@ -280,7 +280,8 @@
         .btn-add:hover { background-color: var(--cor-principal-hover); }
         .btn-print { background-color: #16a34a; color: white; font-size: 16px; box-shadow: 0 4px 10px rgba(22, 163, 74, 0.2); }
         .btn-aprovar { background-color: #16a34a; color: white; padding: 8px 14px; font-size: 13px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold;}
-        .btn-reprovar { background-color: #dc2626; color: white; padding: 8px 14px; font-size: 13px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold;}
+        .btn-reprovar { background-color: #f59e0b; color: white; padding: 8px 14px; font-size: 13px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold;}
+        .btn-cancelar-def { background-color: #dc2626; color: white; padding: 8px 14px; font-size: 13px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold;}
 
         .container-logs-cards { display: grid; grid-template-columns: 1fr; gap: 14px; margin-top: 10px; }
         @media(min-width: 700px) { .container-logs-cards { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); } }
@@ -293,7 +294,8 @@
         .status-badge { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; color: white; }
         .status-pendente { background-color: var(--cor-pendente); }
         .status-aprovado { background-color: var(--cor-aprovado); }
-        .status-reprovado { background-color: #64748b; }
+        .status-ajuste { background-color: #475569; }
+        .status-reprovado { background-color: #dc2626; }
 
         .financeiro-badge { padding: 2px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; display: inline-block; margin-top: 4px; }
         .fin-pago { background-color: #d1fae5; color: #065f46; }
@@ -381,7 +383,7 @@
             <div class="main-grid">
                 
                 <div class="card active-tab-card" id="card-aba-venda">
-                    <h3>📝 Registrar Lançamento</h3>
+                    <h3 id="titulo-contexto-venda">📝 Registrar Lançamento</h3>
                     <form id="form-item" onsubmit="window.adicionarItem(event)">
                         <div class="secao-titulo">1. Dados do Cliente / Identificação</div>
                         <div class="form-row dois-campos">
@@ -507,7 +509,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAp-heSrhEA1WOW30gbUJ8DVJQNYH8hVCY",
@@ -552,6 +554,7 @@
         let pedidoAtual = [];
         let totalizadorLocalPedidos = []; 
         let isClienteView = false;
+        let idPedidoSendoAjustado = null; // Guarda o ID caso o cliente esteja editando um pedido recusado
         let chartPizzaInstancia = null;
 
         let pratoSelecionadoGlobal = "";
@@ -583,11 +586,18 @@
             }
         }
 
-        function inicializarSistema() {
+        async function inicializarSistema() {
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('cliente') === 'true') {
                 isClienteView = true;
                 configurarModoCliente();
+                
+                // INTELEGÊNCIA DE FLUXO: Se houver um ID na URL, carrega o pedido recusado para o cliente ajustar
+                const pId = urlParams.get('pedidoId');
+                if (pId) {
+                    idPedidoSendoAjustado = pId;
+                    await carregarPedidoParaAjusteCliente(pId);
+                }
             } else {
                 document.getElementById('tela-login').style.display = 'flex';
             }
@@ -608,6 +618,35 @@
             document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
             document.getElementById('navegacao-abas-id').style.display = 'none';
             window.alternarContextoPainel('pedido');
+        }
+
+        // Recupera o pedido do Firebase e popula a lista do cliente
+        async function carregarPedidoParaAjusteCliente(pedidoId) {
+            try {
+                const pDoc = await getDoc(doc(db, "pedidos", pedidoId));
+                if (pDoc.exists()) {
+                    const dados = pDoc.data();
+                    
+                    // Popula as informações de cadastro do cliente
+                    document.getElementById('cliente-nome').value = dados.rawClienteNome || '';
+                    document.getElementById('cliente-celular').value = dados.rawClienteCelular || '';
+                    document.getElementById('cliente-endereco').value = dados.rawClienteEndereco || '';
+                    
+                    // Altera os títulos visuais para o cliente se orientar
+                    document.getElementById('titulo-contexto-venda').innerText = "✏️ Ajustar Seu Pedido Recusado";
+                    document.getElementById('btn-finalizar-checkout').innerText = "🔄 Reenviar Pedido Atualizado";
+                    
+                    if (dados.motivoCancelamento) {
+                        alert(`⚠️ ATENÇÃO: Seu pedido precisa de ajustes.\nMotivo do Restaurante: "${dados.motivoCancelamento}"\n\nPor favor, remova o item indisponível no carrinho à direita e escolha outro se desejar.`);
+                    }
+
+                    // Joga os itens de volta no array temporário
+                    pedidoAtual = dados.itens || [];
+                    atualizarInterfaceCarrinho();
+                }
+            } catch(e) {
+                console.error("Erro ao puxar pedido para ajuste: ", e);
+            }
         }
 
         window.validarAcessoSecure = function(event) {
@@ -672,6 +711,7 @@
         };
 
         window.buscarClientePorTelefone = function(telDigitado) {
+            if (idPedidoSendoAjustado) return; // Não auto-completa se o cliente já está em tela de ajuste guiado
             const telLimpo = telDigitado.replace(/\D/g, "");
             if (telLimpo.length < 8) return;
             const historico = totalizadorLocalPedidos.find(p => p.rawClienteCelular.replace(/\D/g, "") === telLimpo);
@@ -757,11 +797,12 @@
             }
 
             const total = pedidoAtual.reduce((acc, current) => acc + current.valor, 0);
-            const numeroPedido = totalizadorLocalPedidos.length + 1;
             const statusFin = isClienteView ? "Pendente" : document.getElementById('status-pagamento').value;
 
-            const novoPedido = {
-                numero: numeroPedido,
+            // Se for um pedido novo, pega o próximo número da fila. Se for ajuste, mantém o número antigo.
+            let numeroPedido = totalizadorLocalPedidos.length + 1;
+
+            const dadosPedidoSincronizar = {
                 data: new Date().toLocaleString('pt-BR'),
                 hora: new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}),
                 rawClienteNome: nome,
@@ -770,34 +811,59 @@
                 itens: [...pedidoAtual],
                 total: total,
                 pagamento: document.getElementById('forma-pagamento').value,
-                status: isClienteView ? "Pendente" : "Aprovado",
+                status: isClienteView ? "Pendente" : "Aprovado", // Volta a ser pendente na cozinha
                 financeiro: statusFin, 
                 timestamp: Date.now()
             };
 
             try {
-                await addDoc(collection(db, "pedidos"), novoPedido);
-
-                if (isClienteView) {
-                    let textoWhats = `*Novo Pedido - Tempero de Família (nº ${numeroPedido})*\n\n`;
-                    textoWhats += `*Cliente:* ${nome}\n*Contato:* ${celular}\n*Endereço:* ${endereco}\n\n`;
-                    textoWhats += `*Itens do Pedido:*\n`;
+                if (isClienteView && idPedidoSendoAjustado) {
+                    // FLUXO DE AJUSTE: Salva por cima do registro existente no Firestore
+                    const pRef = doc(db, "pedidos", idPedidoSendoAjustado);
+                    await updateDoc(pRef, dadosPedidoSincronizar);
+                    
+                    let textoWhats = `*Pedido Ajustado pelo Cliente - Tempero de Família*\n\n`;
+                    textoWhats += `*Cliente:* ${nome}\n*Ficha:* Atualizada com as modificações.\n\n`;
+                    textoWhats += `*Novos Itens do Carrinho:*\n`;
                     pedidoAtual.forEach(i => {
-                        textoWhats += `- ${i.qtd}x ${i.prato} [${i.tipo}] (Obs: ${i.descricao})\n`;
+                        textoWhats += `- ${i.qtd}x ${i.prato} [${i.tipo}]\n`;
                     });
-                    textoWhats += `\n*Forma de Pagamento:* ${novoPedido.pagamento}`;
-                    textoWhats += `\n*Total Geral:* R$ ${total.toFixed(2)}`;
+                    textoWhats += `\n*Novo Total:* R$ ${total.toFixed(2)}\n\n_Aguardando re-avaliação da cozinha..._`;
 
                     const urlWhats = `https://web.whatsapp.com/send?phone=5511999973141&text=${encodeURIComponent(textoWhats)}`;
                     executarDisparoWhatsDevice(urlWhats, 'whatsapp_restaurante');
-                    alert("Seu pedido acumulado foi enviado via WhatsApp!");
+                    alert("Seu pedido modificado foi reenviado com sucesso! Aguarde a nova confirmação.");
+                    
+                    // Limpa a URL limpando o ID do fluxo
+                    window.history.replaceState({}, document.title, window.location.pathname + "?cliente=true");
+                    idPedidoSendoAjustado = null;
                 } else {
-                    alert("Pedido lançado e finalizado no caixa interno!");
+                    // FLUXO TRADICIONAL: Cadastra um documento totalmente novo
+                    dadosPedidoSincronizar.numero = numeroPedido;
+                    await addDoc(collection(db, "pedidos"), dadosPedidoSincronizar);
+
+                    if (isClienteView) {
+                        let textoWhats = `*Novo Pedido - Tempero de Família (nº ${numeroPedido})*\n\n`;
+                        textoWhats += `*Cliente:* ${nome}\n*Contato:* ${celular}\n*Endereço:* ${endereco}\n\n`;
+                        textoWhats += `*Itens do Pedido:*\n`;
+                        pedidoAtual.forEach(i => {
+                            textoWhats += `- ${i.qtd}x ${i.prato} [${i.tipo}] (Obs: ${i.descricao})\n`;
+                        });
+                        textoWhats += `\n*Forma de Pagamento:* ${dadosPedidoSincronizar.pagamento}`;
+                        textoWhats += `\n*Total Geral:* R$ ${total.toFixed(2)}`;
+
+                        const urlWhats = `https://web.whatsapp.com/send?phone=5511999973141&text=${encodeURIComponent(textoWhats)}`;
+                        executarDisparoWhatsDevice(urlWhats, 'whatsapp_restaurante');
+                        alert("Seu pedido acumulado foi enviado via WhatsApp!");
+                    } else {
+                        alert("Pedido lançado e finalizado no caixa interno!");
+                    }
                 }
 
                 pedidoAtual = [];
                 atualizarInterfaceCarrinho();
                 document.getElementById('form-item').reset();
+                if (isClienteView) configurarModoCliente();
                 window.alternarContextoPainel('pedido');
             } catch (error) {
                 alert("Erro ao gravar dados no Firebase: " + error.message);
@@ -833,8 +899,7 @@
                 const finBadgeClass = p.financeiro === 'Pago' ? 'fin-pago' : 'fin-pendente';
                 const finBadgeLabel = p.financeiro === 'Pago' ? '✅ PAGO' : '⚠️ PENDENTE (COBRAR)';
                 
-                // Exibe o motivo caso o pedido tenha sido reprovado anteriormente
-                const motivoHtml = p.status === 'Reprovado' && p.motivoCancelamento ? `<br><b style="color:#dc2626">Motivo da Recusa:</b> ${p.motivoCancelamento}` : '';
+                const motivoHtml = (p.status === 'Reprovado' || p.status === 'Ajuste') && p.motivoCancelamento ? `<br><b style="color:#e65c00">Nota/Falta de Estoque:</b> ${p.motivoCancelamento}` : '';
 
                 const htmlCard = `
                     <div class="pedido-log-card">
@@ -856,7 +921,7 @@
                         <div class="pedido-log-footer">
                             ${p.status === 'Pendente' ? `
                                 <div style="display:flex; flex-direction: column; gap:8px; width: 100%; border-top: 1px dashed var(--cor-borda); padding-top: 10px;">
-                                    <input type="text" id="motivo-recusa-${p.id}" placeholder="Caso vá reprovar, digite o motivo aqui..." style="padding: 6px 10px; font-size: 12px; margin: 0;">
+                                    <input type="text" id="motivo-recusa-${p.id}" placeholder="Falta algo? Digite o que acabou aqui antes de recusar...">
                                     
                                     <div style="display:flex; gap:6px; justify-content: flex-end; align-items:center;">
                                         <select id="fin-mod-${p.id}" style="padding:6px; font-size:12px; width:auto; margin:0; height: 32px;">
@@ -864,7 +929,8 @@
                                             <option value="Pago" ${p.financeiro === 'Pago' ? 'selected' : ''}>✅ Já Pago</option>
                                         </select>
                                         <button class="btn-aprovar" style="height: 32px; padding: 0 10px;" onclick="window.aprovarPedidoWhats('${p.id}')">✅ Aprovar</button>
-                                        <button class="btn-reprovar" style="height: 32px; padding: 0 10px;" onclick="window.reprovarPedidoWhats('${p.id}')">❌ Recusar</button>
+                                        <button class="btn-reprovar" style="height: 32px; padding: 0 10px;" onclick="window.reprovarPedidoParaAjuste('${p.id}')">🔄 Pedir Ajuste</button>
+                                        <button class="btn-cancelar-def" style="height: 32px; padding: 0 10px;" onclick="window.cancelarPedidoDefinitivo('${p.id}')">❌ Cancelar Tudo</button>
                                     </div>
                                 </div>
                             ` : ''}
@@ -911,41 +977,66 @@
             }
         };
 
-        // LÓGICA DE REPROVAÇÃO COM MOTIVO PREENCHIDO
-        window.reprovarPedidoWhats = async function(pedidoId) {
+        // FLUXO DE DEVOLUÇÃO PARA O CLIENTE ADICIONAR/MUDAR ITENS
+        window.reprovarPedidoParaAjuste = async function(pedidoId) {
             const inputMotivo = document.getElementById(`motivo-recusa-${pedidoId}`);
             const motivoText = inputMotivo ? inputMotivo.value.trim() : "";
 
             if (!motivoText) {
-                alert("Por favor, preencha o motivo da recusa no campo de texto antes de rejeitar o pedido.");
+                alert("Por favor, preencha o campo de texto indicando o que acabou (ex: 'Costelinha acabou') antes de mandar para ajuste.");
                 if(inputMotivo) inputMotivo.focus();
                 return;
             }
 
-            if (!confirm("Tem certeza que deseja REPROVAR e cancelar este pedido?")) return;
-
             try {
                 const pRef = doc(db, "pedidos", pedidoId);
-                // Atualiza na nuvem salvando o histórico da recusa
                 await updateDoc(pRef, { 
-                    status: "Reprovado",
+                    status: "Ajuste",
                     motivoCancelamento: motivoText 
                 });
 
                 const pedido = totalizadorLocalPedidos.find(p => p.id === pedidoId);
                 if (pedido) {
-                    let msgCancelamento = `Olá *${pedido.rawClienteNome}*, lamentamos informar, mas o seu pedido *#${pedido.numero}* não pôde ser aceito pela nossa cozinha.\n\n`;
-                    msgCancelamento += `*Motivo do Cancelamento:* ${motivoText}\n\n`;
-                    msgCancelamento += `Caso tenha alguma dúvida ou queira refazer o pedido com alterações, por favor entre em contato conosco por este canal.`;
+                    // Descobre dinamicamente a URL base atual do seu sistema rodando na nuvem
+                    const urlBaseSistema = window.location.origin + window.location.pathname;
+                    const linkAjusteCliente = `${urlBaseSistema}?cliente=true&pedidoId=${pedidoId}`;
+
+                    let msgAjuste = `Olá *${pedido.rawClienteNome}*, a cozinha recebeu seu pedido, mas infelizmente tivemos um imprevisto de estoque:\n\n`;
+                    msgAjuste += `❌ *Falta de item:* _${motivoText}_\n\n`;
+                    msgAjuste += `Para não cancelarmos sua ficha, você pode alterar seu pedido por aqui? Acesse o link abaixo para remover o item que acabou e escolher outra opção deliciosa:\n\n`;
+                    msgAjuste += `🔗 *Clique para Ajustar Seu Carrinho:* ${linkAjusteCliente}\n\n`;
+                    msgAjuste += `Aguardamos sua resposta para iniciar o preparo!`;
 
                     const celularLimpo = pedido.rawClienteCelular.replace(/\D/g, "");
-                    const urlRetorno = `https://web.whatsapp.com/send?phone=55${celularLimpo}&text=${encodeURIComponent(msgCancelamento)}`;
+                    const urlRetorno = `https://web.whatsapp.com/send?phone=55${celularLimpo}&text=${encodeURIComponent(msgAjuste)}`;
                     
-                    // Dispara a justificativa direto no WhatsApp do cliente
                     executarDisparoWhatsDevice(urlRetorno, 'whatsapp_atendimento');
                 }
             } catch (e) {
-                alert("Erro ao reprovar pedido: " + e.message);
+                alert("Erro ao processar fluxo de devolução: " + e.message);
+            }
+        };
+
+        // CANCELAMENTO COMPLETO E DEFINITIVO (Sem link de retorno)
+        window.cancelarPedidoDefinitivo = async function(pedidoId) {
+            const inputMotivo = document.getElementById(`motivo-recusa-${pedidoId}`);
+            const motivoText = inputMotivo ? inputMotivo.value.trim() : "Cancelado por indisponibilidade.";
+            
+            if (!confirm("Deseja cancelar permanentemente este pedido enviado pelo cliente?")) return;
+
+            try {
+                const pRef = doc(db, "pedidos", pedidoId);
+                await updateDoc(pRef, { status: "Reprovado", motivoCancelamento: motivoText });
+
+                const pedido = totalizadorLocalPedidos.find(p => p.id === pedidoId);
+                if (pedido) {
+                    let msgCancelamento = `Olá *${pedido.rawClienteNome}*, infelizmente seu pedido foi cancelado.\nMotivo: *${motivoText}*`;
+                    const celularLimpo = pedido.rawClienteCelular.replace(/\D/g, "");
+                    const urlRetorno = `https://web.whatsapp.com/send?phone=55${celularLimpo}&text=${encodeURIComponent(msgCancelamento)}`;
+                    executarDisparoWhatsDevice(urlRetorno, 'whatsapp_atendimento');
+                }
+            } catch (e) {
+                alert(e.message);
             }
         };
 
