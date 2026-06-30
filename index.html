@@ -406,7 +406,7 @@
                         </div>
                         <div class="form-group">
                             <label>Endereço de Delivery Completo:</label>
-                            <input type="text" id="cliente-endereco" placeholder="Rua, número, bairro ou informe BALCÃO">
+                            <input type="text" id="cliente-endereco" placeholder="Rua, número, bairro ou informe BALCÃO" required>
                         </div>
 
                         <div class="secao-titulo">2. Escolha o Prato</div>
@@ -555,7 +555,7 @@
             "Feijoada": ["Marmita (P)", "Marmita (M)", "Marmita (G)"],
             "Marmitex": ["Marmita (P)", "Marmita (M)", "Marmita (G)"],
             "Prato Feito": ["Tradicional", "Especial"],
-            "Bebidas": ["Refrigerante Lata", "Suco Natural", "鍵水 Mineral"],
+            "Bebidas": ["Refrigerante Lata", "Suco Natural", "Água Mineral"],
             "Outros Pratos": ["Especial do Dia"]
         };
 
@@ -678,11 +678,24 @@
 
         window.selecionarTipoBadge = function(opcao, preco) { tipoSelecionadoGlobal = opcao; document.getElementById('valor').value = parseFloat(preco).toFixed(2); window.renderizarBadgesTipos(); };
 
+        // ==========================================
+        //  CORREÇÃO: REGRA DE AUTOCOMPLETAR ENDEREÇO
+        // ==========================================
         window.buscarClientePorTelefone = function(telDigitado) {
             if (idPedidoSendoAjustado) return;
             const telLimpo = telDigitado.replace(/\D/g, ""); if (telLimpo.length < 8) return;
             const historico = totalizadorLocalPedidos.find(p => p.rawClienteCelular.replace(/\D/g, "") === telLimpo);
-            if (historico) { document.getElementById('cliente-nome').value = historico.rawClienteNome || ''; document.getElementById('cliente-endereco').value = historico.rawClienteEndereco || ''; }
+            if (historico) { 
+                document.getElementById('cliente-nome').value = historico.rawClienteNome || ''; 
+                
+                // REGRA ATUALIZADA: Só preenche o endereço se NÃO for a visão do cliente (ou seja, se for o operador)
+                if (!isClienteView) {
+                    document.getElementById('cliente-endereco').value = historico.rawClienteEndereco || ''; 
+                } else {
+                    // No modo cliente, limpa o campo ou deixa em branco para obrigar a digitação
+                    document.getElementById('cliente-endereco').value = '';
+                }
+            }
         };
 
         window.adicionarItem = function(event) {
@@ -798,9 +811,6 @@
                 if (isClienteView && idPedidoSendoAjustado) {
                     await updateDoc(doc(db, "pedidos", idPedidoSendoAjustado), dadosPedidoSincronizar);
                     
-                    // ===================================================
-                    // CORREÇÃO: COMPOSIÇÃO COMPLETA DA CONTRA-PROPOSTA VIA WHATSAPP
-                    // ===================================================
                     let textoWhats = `*Pedido Ajustado pelo Cliente - Tempero de Família*\n\n`;
                     textoWhats += `👤 *Cliente:* ${nome}\n`;
                     textoWhats += `📞 *Contato:* ${celular}\n`;
@@ -824,9 +834,6 @@
                     await addDoc(collection(db, "pedidos"), dadosPedidoSincronizar);
                     
                     if (isClienteView) {
-                        // ===================================================
-                        // CORREÇÃO: COMPOSIÇÃO COMPLETA DO NOVO PEDIDO VIA WHATSAPP
-                        // ===================================================
                         let textoWhats = `*🔥 Novo Pedido - Tempero de Família (nº ${dadosPedidoSincronizar.numero})*\n\n`;
                         textoWhats += `👤 *Cliente:* ${nome}\n`;
                         textoWhats += `📞 *Contato:* ${celular}\n`;
@@ -921,7 +928,7 @@
                     window.imprimirDuplaVia(pedido);
                     
                     let msg = `Olá *${pedido.rawClienteNome}*, seu pedido *#${pedido.numero}* foi *ACEITO* e já está na cozinha!`;
-                    executarDisparoWhatsDevice(`https://web.whatsapp.com/send?phone=55${pedido.rawClienteCelular.replace(/\D/g, "")}&text=${encodeURIComponent(msg)}`, 'whatsapp_atendimento');
+                    executarDisparoWhatsDevice("https://web.whatsapp.com/send?phone=55" + pedido.rawClienteCelular.replace(/\D/g, "") + "&text=" + encodeURIComponent(msg), 'whatsapp_atendimento');
                 }
             } catch (e) { alert(e.message); }
         };
@@ -936,7 +943,7 @@
                 if (pedido) {
                     const link = `${window.location.origin}${window.location.pathname}?cliente=true&pedidoId=${pedidoId}`;
                     let msg = `Olá *${pedido.rawClienteNome}*, acabou o item: *${motivoText}*.\nTroque por outra opção no link:\n${link}`;
-                    executarDisparoWhatsDevice(`https://web.whatsapp.com/send?phone=55${pedido.rawClienteCelular.replace(/\D/g, "")}&text=${encodeURIComponent(msg)}`, 'whatsapp_atendimento');
+                    executarDisparoWhatsDevice("https://web.whatsapp.com/send?phone=55" + pedido.rawClienteCelular.replace(/\D/g, "") + "&text=" + encodeURIComponent(msg), 'whatsapp_atendimento');
                 }
             } catch (e) { alert(e.message); }
         };
