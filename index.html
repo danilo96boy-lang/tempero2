@@ -302,6 +302,7 @@
         .fin-pendente { background-color: #fee2e2; color: #991b1b; }
 
         .btn-card-del { background-color: #dc2626; color: white; border: none; padding: 6px 12px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        .btn-card-rep { background-color: #2563eb; color: white; border: none; padding: 6px 12px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 12px; }
 
         .carrinho-lateral-pdv {
             position: sticky;
@@ -343,7 +344,22 @@
         .card-metrica p { margin: 4px 0 0 0; font-size: 20px; font-weight: bold; }
         .bloco-grafico-caixa { background: #fff; border: 1px solid var(--cor-borda); padding: 14px; border-radius: var(--border-radius-md); display: flex; justify-content: center; align-items: center; min-height: 250px; }
 
+        /* Estilos de Impressão Térmica de Linha */
         #ticket-print { display: none; }
+        body.modo-impressao-ticket #conteudo-sistema, body.modo-impressao-ticket #tela-login { display: none !important; }
+
+        @media print {
+            @page { size: 58mm auto; margin: 0mm; }
+            body { background: #fff; padding: 0; margin: 0; display: block; width: 58mm; }
+            #ticket-print { display: block !important; font-family: 'Courier New', Courier, monospace; width: 48mm; max-width: 48mm; padding: 1mm 0.5mm; font-size: 11px; color: #000; line-height: 1.25; word-wrap: break-word; }
+            .ticket-header { text-align: center; }
+            .ticket-via-tag { font-size: 12px; font-weight: bold; border: 1px solid #000; display: inline-block; padding: 2px 4px; text-transform: uppercase; }
+            .ticket-header-num-destaque { font-size: 26px !important; font-weight: 950 !important; text-align: center; display: block; width: 100%; }
+            .ticket-divider { text-align: center; margin: 2px 0; font-weight: bold; }
+            .ticket-item { margin: 6px 0; border-bottom: 1px dotted #ccc; padding-bottom: 4px; }
+            .ticket-item-price { text-align: right; font-weight: bold; display: block; }
+            .ticket-wrapper-via { page-break-after: always !important; display: block; }
+        }
     </style>
 </head>
 <body>
@@ -475,7 +491,6 @@
                                 <input type="date" id="filchamento-fim" style="padding:8px; font-size:14px; margin:0;">
                             </div>
                         </div>
-                        <p style="font-size:11px; color:var(--cor-texto-secundario); margin:6px 0 0 0;">Dica: Para um único dia (Ex: 29/06), preencha apenas o campo "Até". Para períodos, preencha os dois.</p>
                     </div>
 
                     <div style="display:flex; gap:10px; flex-wrap: wrap; margin-bottom: 20px;">
@@ -522,6 +537,7 @@
         </div>
     </div>
 
+    <!-- Div oculta usada estritamente para renderizar a folha de impressão de 58mm -->
     <div id="ticket-print"></div>
 
     <script type="module">
@@ -580,10 +596,7 @@
         window.alternarContextoPainel = function(contexto, botaoClicado) {
             const botoes = document.querySelectorAll('.admin-nav-btn');
             botoes.forEach(btn => btn.classList.remove('active'));
-            
-            if (botaoClicado) {
-                botaoClicado.classList.add('active');
-            }
+            if (botaoClicado) botaoClicado.classList.add('active');
 
             const cards = document.querySelectorAll('.main-grid > .card');
             cards.forEach(card => card.classList.remove('active-tab-card'));
@@ -596,8 +609,7 @@
         function executarDisparoWhatsDevice(urlDisparo, abaDestino) {
             const isMobileApp = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             if (isMobileApp) {
-                const urlMobile = urlDisparo.replace("web.whatsapp.com", "api.whatsapp.com");
-                window.open(urlMobile, '_blank');
+                window.open(urlDisparo.replace("web.whatsapp.com", "api.whatsapp.com"), '_blank');
             } else {
                 window.open(urlDisparo, abaDestino);
             }
@@ -608,7 +620,6 @@
             if (urlParams.get('cliente') === 'true') {
                 isClienteView = true;
                 configurarModoCliente();
-                
                 const pId = urlParams.get('pedidoId');
                 if (pId) {
                     idPedidoSendoAjustado = pId;
@@ -625,12 +636,10 @@
             document.getElementById('tela-login').style.display = 'none';
             document.getElementById('conteudo-sistema').style.display = 'block';
             document.getElementById('sys-title').innerText = "Tempero de Família - Cardápio & Checkout";
-            
             document.getElementById('container-valor-interno').style.display = 'block';
             document.getElementById('valor').readOnly = true;
             document.getElementById('container-status-financeiro').style.display = 'none'; 
             document.getElementById('btn-finalizar-checkout').innerText = "🚀 Enviar Pedido via WhatsApp";
-            
             document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
             document.getElementById('navegacao-abas-id').style.display = 'none';
             window.alternarContextoPainel('pedido');
@@ -638,244 +647,199 @@
 
         async function carregarPedidoParaAjusteCliente(pedidoId) {
             try {
-                const pDoc = await getDoc(doc(db, "pedidos", presidential || pedidoId));
+                const pDoc = await getDoc(doc(db, "pedidos", pedidoId));
                 if (pDoc.exists()) {
                     const dados = pDoc.data();
                     document.getElementById('cliente-nome').value = dados.rawClienteNome || '';
                     document.getElementById('cliente-celular').value = dados.rawClienteCelular || '';
                     document.getElementById('cliente-endereco').value = dados.rawClienteEndereco || '';
-                    
                     document.getElementById('titulo-contexto-venda').innerText = "✏️ Ajustar Seu Pedido Recusado";
                     document.getElementById('btn-finalizar-checkout').innerText = "🔄 Reenviar Pedido Atualizado";
-                    
-                    if (dados.motivoCancelamento) {
-                        alert(`⚠️ ATENÇÃO: Seu pedido precisa de ajustes.\nMotivo do Restaurante: "${dados.motivoCancelamento}"\n\nPor favor, remova o item indisponível no carrinho à direita e escolha outro se desejar.`);
-                    }
-
+                    if (dados.motivoCancelamento) alert(`⚠️ ATENÇÃO: motivo da recusa: "${dados.motivoCancelamento}"`);
                     pedidoAtual = dados.itens || [];
                     atualizarInterfaceCarrinho();
                 }
-            } catch(e) {
-                console.error("Erro ao puxar pedido para ajuste: ", e);
-            }
+            } catch(e) { console.error(e); }
         }
 
         window.renderizarBadgesPratos = function() {
             const container = document.getElementById('badge-container-pratos');
-            if(!container) return;
-            container.innerHTML = '';
+            if(!container) return; container.innerHTML = '';
             Object.keys(cardapioEstruturado).forEach(prato => {
                 if (isClienteView && prato === "Outros Pratos") return;
                 if (!isClienteView || statusCardapioDisponivel[prato]) {
-                    const isSelected = prato === pratoSelecionadoGlobal ? 'selected' : '';
-                    container.innerHTML += `
-                        <div class="badge-option ${isSelected}" onclick="window.selecionarPratoBadge('${prato}')">
-                            <div class="prato-info-title">${prato}</div>
-                        </div>`;
+                    container.innerHTML += `<div class="badge-option ${prato === pratoSelecionadoGlobal ? 'selected' : ''}" onclick="window.selecionarPratoBadge('${prato}')"><div class="prato-info-title">${prato}</div></div>`;
                 }
             });
         };
 
-        window.selecionarPratoBadge = function(prato) {
-            pratoSelecionadoGlobal = prato;
-            tipoSelecionadoGlobal = ""; 
-            window.renderizarBadgesPratos();
-            window.renderizarBadgesTipos();
-        };
+        window.selecionarPratoBadge = function(prato) { pratoSelecionadoGlobal = prato; tipoSelecionadoGlobal = ""; window.renderizarBadgesPratos(); window.renderizarBadgesTipos(); };
 
         window.renderizarBadgesTipos = function() {
             const container = document.getElementById('badge-container-tipos');
-            if(!container) return;
-            container.innerHTML = '';
-            
-            if (!pratoSelecionadoGlobal || !cardapioEstruturado[pratoSelecionadoGlobal]) {
-                container.innerHTML = '<div style="color:var(--cor-texto-secundario); font-size:13px; grid-column: span 2;">Selecione o prato acima primeiro...</div>';
-                return;
-            }
-
+            if(!container) return; container.innerHTML = '';
+            if (!pratoSelecionadoGlobal || !cardapioEstruturado[pratoSelecionadoGlobal]) { container.innerHTML = '<div style="color:var(--cor-texto-secundario); font-size:13px; grid-column: span 2;">Selecione o prato acima primeiro...</div>'; return; }
             cardapioEstruturado[pratoSelecionadoGlobal].forEach(opcao => {
                 const preco = tabelaPrecosDinamicos[pratoSelecionadoGlobal]?.[opcao] || 0;
-                const isSelected = opcao === tipoSelecionadoGlobal ? 'selected' : '';
-                container.innerHTML += `
-                    <div class="badge-option ${isSelected}" onclick="window.selecionarTipoBadge('${opcao}', ${preco})">
-                        <div style="font-weight:700;">${opcao}</div>
-                        <span>R$ ${parseFloat(preco).toFixed(2)}</span>
-                    </div>`;
+                container.innerHTML += `<div class="badge-option ${opcao === tipoSelecionadoGlobal ? 'selected' : ''}" onclick="window.selecionarTipoBadge('${opcao}', ${preco})"><div style="font-weight:700;">${opcao}</div><span>R$ ${parseFloat(preco).toFixed(2)}</span></div>`;
             });
         };
 
-        window.selecionarTipoBadge = function(opcao, preco) {
-            tipoSelecionadoGlobal = opcao;
-            document.getElementById('valor').value = parseFloat(preco).toFixed(2);
-            window.renderizarBadgesTipos();
-        };
+        window.selecionarTipoBadge = function(opcao, preco) { tipoSelecionadoGlobal = opcao; document.getElementById('valor').value = parseFloat(preco).toFixed(2); window.renderizarBadgesTipos(); };
 
         window.buscarClientePorTelefone = function(telDigitado) {
             if (idPedidoSendoAjustado) return;
-            const telLimpo = telDigitado.replace(/\D/g, "");
-            if (telLimpo.length < 8) return;
+            const telLimpo = telDigitado.replace(/\D/g, ""); if (telLimpo.length < 8) return;
             const historico = totalizadorLocalPedidos.find(p => p.rawClienteCelular.replace(/\D/g, "") === telLimpo);
-            if (historico) {
-                document.getElementById('cliente-nome').value = historico.rawClienteNome || '';
-                document.getElementById('cliente-endereco').value = historico.rawClienteEndereco || '';
-            }
+            if (historico) { document.getElementById('cliente-nome').value = historico.rawClienteNome || ''; document.getElementById('cliente-endereco').value = historico.rawClienteEndereco || ''; }
         };
 
         window.adicionarItem = function(event) {
             event.preventDefault();
-            if (!pratoSelecionadoGlobal) return alert("Por favor, selecione um prato.");
-            if (!tipoSelecionadoGlobal) return alert("Por favor, selecione o tamanho.");
-
+            if (!pratoSelecionadoGlobal || !tipoSelecionadoGlobal) return alert("Selecione prato e tamanho.");
             const precoUnitario = parseFloat(document.getElementById('valor').value);
             const qtd = parseInt(document.getElementById('quantidade').value);
-
-            pedidoAtual.push({
-                id: Date.now(),
-                prato: pratoSelecionadoGlobal,
-                tipo: tipoSelecionadoGlobal,
-                descricao: document.getElementById('descricao').value.trim() || "Sem obs",
-                precoUnitario: precoUnitario,
-                qtd: qtd,
-                valor: precoUnitario * qtd
-            });
-
+            pedidoAtual.push({ id: Date.now(), prato: pratoSelecionadoGlobal, tipo: tipoSelecionadoGlobal, descricao: document.getElementById('descricao').value.trim() || "Sem obs", precoUnitario: precoUnitario, qtd: qtd, valor: precoUnitario * qtd });
             atualizarInterfaceCarrinho();
-            
-            pratoSelecionadoGlobal = "";
-            tipoSelecionadoGlobal = "";
-            document.getElementById('descricao').value = '';
-            document.getElementById('valor').value = '';
-            document.getElementById('quantidade').value = '1';
-            window.renderizarBadgesPratos();
-            window.renderizarBadgesTipos();
+            pratoSelecionadoGlobal = ""; tipoSelecionadoGlobal = "";
+            document.getElementById('descricao').value = ''; document.getElementById('valor').value = ''; document.getElementById('quantidade').value = '1';
+            window.renderizarBadgesPratos(); window.renderizarBadgesTipos();
         };
 
         function atualizarInterfaceCarrinho() {
-            const container = document.getElementById('lista-itens');
-            if(!container) return;
-            container.innerHTML = '';
-            
-            if(pedidoAtual.length === 0) {
-                container.innerHTML = `<li style="color: var(--cor-texto-secundario); font-size: 13px; text-align: center; padding: 20px;">Nenhum produto adicionado...</li>`;
-                document.getElementById('total-valor').innerText = "0.00";
-                return;
-            }
-
+            const container = document.getElementById('lista-itens'); if(!container) return; container.innerHTML = '';
+            if(pedidoAtual.length === 0) { container.innerHTML = `<li style="color:var(--cor-texto-secundario); text-align:center; padding:20px;">Nenhum produto...</li>`; document.getElementById('total-valor').innerText = "0.00"; return; }
             let total = 0;
-            pedidoAtual.forEach(item => {
-                total += item.valor;
-                container.innerHTML += `
-                    <li class="item-carrinho">
-                        <div><strong>${item.qtd}x - ${item.prato}</strong> (${item.tipo})<br><small>R$ ${item.valor.toFixed(2)}</small></div>
-                        <button type="button" class="btn-del" onclick="window.removerItem(${item.id})">X</button>
-                    </li>`;
-            });
+            pedidoAtual.forEach(item => { total += item.valor; container.innerHTML += `<li class="item-carrinho"><div><strong>${item.qtd}x - ${item.prato}</strong> (${item.tipo})<br><small>R$ ${item.valor.toFixed(2)}</small></div><button type="button" class="btn-del" onclick="window.removerItem(${item.id})">X</button></li>`; });
             document.getElementById('total-valor').innerText = total.toFixed(2);
         }
 
-        window.removerItem = function(id) {
-            pedidoAtual = pedidoAtual.filter(i => i.id !== id);
-            atualizarInterfaceCarrinho();
+        window.removerItem = function(id) { pedidoAtual = pedidoAtual.filter(i => i.id !== id); atualizarInterfaceCarrinho(); };
+
+        // ==========================================
+        //  LÓGICA DO LAYOUT E EMISSÃO DO TICKET 58MM
+        // ==========================================
+        window.imprimirDuplaVia = function(pedido) {
+            const containerPrint = document.getElementById('ticket-print');
+            if (!containerPrint) return;
+
+            let stringItensTicket = "";
+            pedido.itens.forEach(i => {
+                stringItensTicket += `
+                <div class="ticket-item">
+                    <b>${i.qtd}x ${i.prato}</b><br>
+                    <span>Tamanho: ${i.tipo}</span><br>
+                    <span style="font-size:10px;">Obs: ${i.descricao}</span>
+                    <span class="ticket-item-price">R$ ${i.valor.toFixed(2)}</span>
+                </div>`;
+            });
+
+            // Estrutura a montagem padrão de dupla via (1ª Via Cozinha / 2ª Via Entrega)
+            let htmlTicketCompleto = "";
+            const vias = ["1ª VIA - COZINHA", "2ª VIA - ENTREGADOR"];
+
+            vias.forEach(via => {
+                htmlTicketCompleto += `
+                <div class="ticket-wrapper-via">
+                    <div class="ticket-header">
+                        <span class="ticket-via-tag">${via}</span><br><br>
+                        <b style="font-size:14px;">TEMPERO DE FAMÍLIA</b><br>
+                        <span>Painel PDV Cloud</span><br>
+                        <span>Data: ${pedido.dataExibicao || pedido.data} - ${pedido.hora}</span><br>
+                        <span class="ticket-divider">----------------------------------</span><br>
+                        <span style="font-size:12px;">NÚMERO DO PEDIDO</span><br>
+                        <span class="ticket-header-num-destaque">#${String(pedido.numero || 0).padStart(2, '0')}</span>
+                    </div>
+                    <span class="ticket-divider">----------------------------------</span>
+                    <div class="ticket-body">
+                        <b>CLIENTE:</b> ${pedido.rawClienteNome}<br>
+                        <b>CONTATO:</b> ${pedido.rawClienteCelular}<br>
+                        <b>ENDEREÇO:</b> <span style="font-size:12px; font-weight:bold;">${pedido.rawClienteEndereco}</span><br>
+                        <span class="ticket-divider">----------------------------------</span><br>
+                        <center><b>ITENS DO PEDIDO</b></center>
+                        ${stringItensTicket}
+                    </div>
+                    <span class="ticket-divider">----------------------------------</span>
+                    <div class="ticket-footer" style="text-align:right;">
+                        <span>Forma Pagto: <b>${pedido.pagamento}</b></span><br>
+                        <span>Status Fin: <b>${pedido.financeiro === 'Pago' ? 'PAGO' : 'A COBRAR'}</b></span><br>
+                        <span style="font-size:13px; font-weight:bold;">TOTAL GERAL: R$ ${pedido.total.toFixed(2)}</span>
+                    </div>
+                    <br><br>
+                    <center><span>*** Obrigado pela Preferência ***</span></center>
+                    <br><br><br>
+                </div>`;
+            });
+
+            // Injeta o HTML estruturado, altera a classe do body para ocultar o sistema e chama a janela de impressão nativa
+            containerPrint.innerHTML = htmlTicketCompleto;
+            document.body.classList.add('modo-impressao-ticket');
+            
+            setTimeout(() => {
+                window.print();
+                document.body.classList.remove('modo-impressao-ticket');
+                containerPrint.innerHTML = "";
+            }, 300);
+        };
+
+        // Permite reemitir o ticket a qualquer momento pelo histórico de cartões aprovados
+        window.reimprimirTicketPorId = function(pedidoId) {
+            const pedido = totalizadorLocalPedidos.find(p => p.id === pedidoId);
+            if (pedido) {
+                window.imprimirDuplaVia(pedido);
+            } else {
+                alert("Pedido não localizado para impressão.");
+            }
         };
 
         window.finalizarPedidoFluxo = async function() {
-            if (pedidoAtual.length === 0) return alert("Adicione pelo menos um item à direita antes de fechar!");
-            
+            if (pedidoAtual.length === 0) return alert("Caixa vazio!");
             const nome = document.getElementById('cliente-nome').value.trim();
             const celular = document.getElementById('cliente-celular').value.trim();
-            let addressInput = document.getElementById('cliente-endereco').value.trim();
-            let endereco = addressInput ? addressInput : "BALCÃO";
-
-            if (!nome || !celular) {
-                alert("Por favor, preencha o Nome e o Celular/WhatsApp na ficha à esquerda antes de concluir!");
-                window.alternarContextoPainel('pedido');
-                return;
-            }
+            let endereco = document.getElementById('cliente-endereco').value.trim() || "BALCÃO";
+            if (!nome || !celular) return alert("Preencha Nome e Celular.");
 
             const total = pedidoAtual.reduce((acc, current) => acc + current.valor, 0);
             const statusFin = isClienteView ? "Pendente" : document.getElementById('status-pagamento').value;
-
             const dataObjeto = new Date();
-            const ano = dataObjeto.getFullYear();
-            const mes = String(dataObjeto.getMonth() + 1).padStart(2, '0');
-            const dia = String(dataObjeto.getDate()).padStart(2, '0');
-            const dataFormatadaUniversal = `${ano}-${mes}-${dia}`;
+            const dataFormatadaUniversal = `${dataObjeto.getFullYear()}-${String(dataObjeto.getMonth() + 1).padStart(2, '0')}-${String(dataObjeto.getDate()).padStart(2, '0')}`;
 
             const dadosPedidoSincronizar = {
                 data: dataFormatadaUniversal, 
                 dataExibicao: dataObjeto.toLocaleDateString('pt-BR'), 
                 hora: dataObjeto.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}),
-                rawClienteNome: nome,
-                rawClienteCelular: celular,
-                rawClienteEndereco: endereco,
-                itens: [...pedidoAtual],
-                total: total,
-                pagamento: document.getElementById('forma-pagamento').value,
-                status: isClienteView ? "Pendente" : "Aprovado", 
-                financeiro: statusFin, 
-                timestamp: Date.now()
+                rawClienteNome: nome, rawClienteCelular: celular, rawClienteEndereco: endereco,
+                itens: [...pedidoAtual], total: total, pagamento: document.getElementById('forma-pagamento').value,
+                status: isClienteView ? "Pendente" : "Aprovado", financeiro: statusFin, timestamp: Date.now()
             };
 
             try {
                 if (isClienteView && idPedidoSendoAjustado) {
-                    const pRef = doc(db, "pedidos", idPedidoSendoAjustado);
-                    await updateDoc(pRef, dadosPedidoSincronizar);
-                    
-                    let textoWhats = `*Pedido Ajustado pelo Cliente - Tempero de Família*\n\n`;
-                    textoWhats += `*Cliente:* ${nome}\n*Ficha:* Atualizada com as modificações.\n\n`;
-                    textoWhats += `*Novos Itens do Carrinho:*\n`;
-                    pedidoAtual.forEach(i => {
-                        textoWhats += `- ${i.qtd}x ${i.prato} [${i.tipo}]\n`;
-                    });
-                    textoWhats += `\n*Novo Total:* R$ ${total.toFixed(2)}`;
-
-                    const urlWhats = `https://web.whatsapp.com/send?phone=5511999973141&text=${encodeURIComponent(textoWhats)}`;
-                    executarDisparoWhatsDevice(urlWhats, 'whatsapp_restaurante');
-                    alert("Seu pedido modificado foi reenviado com sucesso!");
-                    
+                    await updateDoc(doc(db, "pedidos", idPedidoSendoAjustado), dadosPedidoSincronizar);
+                    alert("Pedido modificado enviado!");
                     window.history.replaceState({}, document.title, window.location.pathname + "?cliente=true");
                     idPedidoSendoAjustado = null;
                 } else {
                     dadosPedidoSincronizar.numero = totalizadorLocalPedidos.length + 1;
                     await addDoc(collection(db, "pedidos"), dadosPedidoSincronizar);
-
+                    
                     if (isClienteView) {
-                        let textoWhats = `*Novo Pedido - Tempero de Família (nº ${dadosPedidoSincronizar.numero})*\n\n`;
-                        textoWhats += `*Cliente:* ${nome}\n*Contato:* ${celular}\n*Endereço:* ${endereco}\n\n`;
-                        textoWhats += `*Itens do Pedido:*\n`;
-                        pedidoAtual.forEach(i => {
-                            textoWhats += `- ${i.qtd}x ${i.prato} [${i.tipo}] (Obs: ${i.descricao})\n`;
-                        });
-                        textoWhats += `\n*Forma de Pagamento:* ${dadosPedidoSincronizar.pagamento}`;
-                        textoWhats += `\n*Total Geral:* R$ ${total.toFixed(2)}`;
-
-                        const urlWhats = `https://web.whatsapp.com/send?phone=5511999973141&text=${encodeURIComponent(textoWhats)}`;
-                        executarDisparoWhatsDevice(urlWhats, 'whatsapp_restaurante');
-                        alert("Seu pedido acumulado foi enviado via WhatsApp!");
+                        let msg = `*Novo Pedido (nº ${dadosPedidoSincronizar.numero})*...`;
+                        executarDisparoWhatsDevice(`https://web.whatsapp.com/send?phone=5511999973141&text=${encodeURIComponent(msg)}`, 'whatsapp_restaurante');
                     } else {
-                        alert("Pedido lançado e finalizado no caixa interno!");
+                        // AUTO-PRINT BALCÃO: Pedidos diretos de balcão imprimem na hora do fechamento
+                        window.imprimirDuplaVia(dadosPedidoSincronizar);
                     }
                 }
-
-                pedidoAtual = [];
-                atualizarInterfaceCarrinho();
-                document.getElementById('form-item').reset();
-                if (isClienteView) configurarModoCliente();
-                window.alternarContextoPainel('pedido');
-            } catch (error) {
-                alert("Erro ao gravar dados no Firebase: " + error.message);
-            }
+                pedidoAtual = []; atualizarInterfaceCarrinho(); document.getElementById('form-item').reset();
+                if (isClienteView) configurarModoCliente(); window.alternarContextoPainel('pedido');
+            } catch (error) { alert(error.message); }
         };
 
         function escutarPedidosRealtime() {
-            const q = collection(db, "pedidos");
-            onSnapshot(q, (snapshot) => {
+            onSnapshot(collection(db, "pedidos"), (snapshot) => {
                 totalizadorLocalPedidos = [];
-                snapshot.forEach((doc) => {
-                    let dados = doc.data();
-                    dados.id = doc.id; 
-                    totalizadorLocalPedidos.push(dados);
-                });
+                snapshot.forEach((doc) => { let dados = doc.data(); dados.id = doc.id; totalizadorLocalPedidos.push(dados); });
                 totalizadorLocalPedidos.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
                 if (!isClienteView) sincronizarInterfaceAtendente();
             });
@@ -883,75 +847,50 @@
 
         function sincronizarInterfaceAtendente() {
             if (isClienteView) return;
-
             const containerPendentes = document.getElementById('container-pedidos-pendentes');
             const containerHistorico = document.getElementById('container-historico-cards');
             if(!containerPendentes || !containerHistorico) return;
-            
-            containerPendentes.innerHTML = '';
-            containerHistorico.innerHTML = '';
-
+            containerPendentes.innerHTML = ''; containerHistorico.innerHTML = '';
             let countPendentes = 0;
 
             [...totalizadorLocalPedidos].reverse().forEach(p => {
                 const resumoItens = p.itens ? p.itens.map(i => `<b style="color:var(--cor-principal)">(${i.qtd}x)</b> ${i.prato} [${i.tipo}]`).join('<br>') : '';
                 const finBadgeClass = p.financeiro === 'Pago' ? 'fin-pago' : 'fin-pendente';
-                const finBadgeLabel = p.financeiro === 'Pago' ? '✅ PAGO' : '⚠️ PENDENTE (COBRAR)';
-                
-                const dataExibicaoFinal = p.dataExibicao || p.data || "";
-                const motivoHtml = (p.status === 'Reprovado' || p.status === 'Ajuste') && p.motivoCancelamento ? `<br><b style="color:#e65c00">Nota/Falta de Estoque:</b> ${p.motivoCancelamento}` : '';
-
+                const finBadgeLabel = p.financeiro === 'Pago' ? '✅ PAGO' : '⚠️ PENDENTE';
                 const htmlCard = `
                     <div class="pedido-log-card">
                         <div class="pedido-log-header">
                             <span style="font-size:14px; font-weight:800; color:var(--cor-principal);">PEDIDO #${String(p.numero || 0).padStart(2, '0')}</span>
-                            <div>
-                                <span class="status-badge status-${p.status ? p.status.toLowerCase() : 'pendente'}">${p.status || 'Pendente'}</span>
-                                <span class="financeiro-badge ${finBadgeClass}">${finBadgeLabel}</span>
-                            </div>
+                            <div><span class="status-badge status-${p.status ? p.status.toLowerCase() : 'pendente'}">${p.status || 'Pendente'}</span><span class="financeiro-badge ${finBadgeClass}">${finBadgeLabel}</span></div>
                         </div>
                         <div class="pedido-log-corpo">
-                            <b>Data:</b> ${dataExibicaoFinal} às ${p.hora || ''}<br>
-                            <b>Cliente:</b> ${p.rawClienteNome || ''} | Tel: ${p.rawClienteCelular || ''}<br>
-                            <b>Endereço:</b> ${p.rawClienteEndereco || ''}<br>
+                            <b>Cliente:</b> ${p.rawClienteNome || ''}<br><b>Endereço:</b> ${p.rawClienteEndereco || ''}<br>
                             <div style="background:#fff; padding:6px; border-radius:6px; border:1px solid var(--cor-borda); margin:6px 0;">${resumoItens}</div>
-                            <b>Forma de Pagamento:</b> ${p.pagamento || ''}<br>
                             <b>Total: <span style="color:var(--cor-principal)">R$ ${(p.total || 0).toFixed(2)}</span></b>
-                            ${motivoHtml}
                         </div>
                         <div class="pedido-log-footer">
                             ${p.status === 'Pendente' || !p.status ? `
                                 <div style="display:flex; flex-direction: column; gap:8px; width: 100%; border-top: 1px dashed var(--cor-borda); padding-top: 10px;">
-                                    <input type="text" id="motivo-recusa-${p.id}" placeholder="Falta algo? Digite o que acabou aqui antes de recusar...">
-                                    
-                                    <div style="display:flex; gap:6px; justify-content: flex-end; align-items:center;">
-                                        <select id="fin-mod-${p.id}" style="padding:6px; font-size:12px; width:auto; margin:0; height: 32px;">
+                                    <input type="text" id="motivo-recusa-${p.id}" placeholder="Caso vá recusar, digite o motivo...">
+                                    <div style="display:flex; gap:6px; justify-content: flex-end;">
+                                        <select id="fin-mod-${p.id}" style="padding:6px; font-size:12px; width:auto; margin:0; height:32px;">
                                             <option value="Pendente" ${p.financeiro === 'Pendente' ? 'selected' : ''}>⚠️ Pendente</option>
                                             <option value="Pago" ${p.financeiro === 'Pago' ? 'selected' : ''}>✅ Já Pago</option>
                                         </select>
-                                        <button class="btn-aprovar" style="height: 32px; padding: 0 10px;" onclick="window.aprovarPedidoWhats('${p.id}')">✅ Aprovar</button>
-                                        <button class="btn-reprovar" style="height: 32px; padding: 0 10px;" onclick="window.reprovarPedidoParaAjuste('${p.id}')">🔄 Pedir Ajuste</button>
-                                        <button class="btn-cancelar-def" style="height: 32px; padding: 0 10px;" onclick="window.cancelarPedidoDefinitivo('${p.id}')">❌ Cancelar Tudo</button>
+                                        <button class="btn-aprovar" style="height:32px;" onclick="window.aprovarPedidoWhats('${p.id}')">✅ Aprovar</button>
+                                        <button class="btn-reprovar" style="height:32px;" onclick="window.reprovarPedidoParaAjuste('${p.id}')">🔄 Ajuste</button>
+                                        <button class="btn-cancelar-def" style="height:32px;" onclick="window.cancelarPedidoDefinitivo('${p.id}')">❌ Cancelar</button>
                                     </div>
                                 </div>
-                            ` : ''}
-                            ${p.status !== 'Pendente' && p.status ? `<button class="btn-card-del" onclick="window.excluirPedidoDefinitivo('${p.id}')">❌ Exc</button>` : ''}
+                            ` : `
+                                <button class="btn-card-rep" onclick="window.reimprimirTicketPorId('${p.id}')">🖨️ Imprimir Ticket</button>
+                                <button class="btn-card-del" onclick="window.excluirPedidoDefinitivo('${p.id}')">❌ Exc</button>
+                            `}
                         </div>
                     </div>`;
-
-                if (p.status === "Pendente" || !p.status) {
-                    containerPendentes.innerHTML += htmlCard;
-                    countPendentes++;
-                } else {
-                    containerHistorico.innerHTML += htmlCard;
-                }
+                if (p.status === "Pendente" || !p.status) { containerPendentes.innerHTML += htmlCard; countPendentes++; } else { containerHistorico.innerHTML += htmlCard; }
             });
-
-            const badgePend = document.getElementById('badge-pendentes-id');
-            if(badgePend) {
-                badgePend.innerText = countPendentes;
-                badgePend.style.display = countPendentes > 0 ? 'inline-block' : 'none';
-            }
+            if(document.getElementById('badge-pendentes-id')) { document.getElementById('badge-pendentes-id').innerText = countPendentes; document.getElementById('badge-pendentes-id').style.display = countPendentes > 0 ? 'inline-block' : 'none'; }
         }
 
         window.aprovarPedidoWhats = async function(pedidoId) {
@@ -959,21 +898,31 @@
                 const selectFin = document.getElementById(`fin-mod-${pedidoId}`);
                 const financeiroAtualizado = selectFin ? selectFin.value : "Pendente";
                 const pRef = doc(db, "pedidos", pedidoId);
+                
                 await updateDoc(pRef, { status: "Aprovado", financeiro: financeiroAtualizado });
+                
+                // AUTO-PRINT INTERFACE: Dispara a via térmica assim que você clica em aprovar na lista
+                const pedido = totalizadorLocalPedidos.find(p => p.id === pedidoId);
+                if (pedido) {
+                    pedido.financeiro = financeiroAtualizado;
+                    window.imprimirDuplaVia(pedido);
+                    
+                    let msg = `Olá *${pedido.rawClienteNome}*, seu pedido *#${pedido.numero}* foi *ACEITO* e já está na cozinha!`;
+                    executarDisparoWhatsDevice(`https://web.whatsapp.com/send?phone=55${pedido.rawClienteCelular.replace(/\D/g, "")}&text=${encodeURIComponent(msg)}`, 'whatsapp_atendimento');
+                }
             } catch (e) { alert(e.message); }
         };
 
         window.reprovarPedidoParaAjuste = async function(pedidoId) {
             const inputMotivo = document.getElementById(`motivo-recusa-${pedidoId}`);
             const motivoText = inputMotivo ? inputMotivo.value.trim() : "";
-            if (!motivoText) return alert("Indique o que acabou antes de mandar para ajuste.");
-
+            if (!motivoText) return alert("Indique o motivo.");
             try {
                 await updateDoc(doc(db, "pedidos", pedidoId), { status: "Ajuste", motivoCancelamento: motivoText });
                 const pedido = totalizadorLocalPedidos.find(p => p.id === pedidoId);
                 if (pedido) {
-                    const linkAjusteCliente = `${window.location.origin}${window.location.pathname}?cliente=true&pedidoId=${pedidoId}`;
-                    let msg = `Olá *${pedido.rawClienteNome}*, infelizmente acabou o item: *${motivoText}*.\nAcesse o link abaixo para retirá-lo ou trocá-lo por outra opção:\n${linkAjusteCliente}`;
+                    const link = `${window.location.origin}${window.location.pathname}?cliente=true&pedidoId=${pedidoId}`;
+                    let msg = `Olá *${pedido.rawClienteNome}*, acabou o item: *${motivoText}*.\nTroque por outra opção no link:\n${link}`;
                     executarDisparoWhatsDevice(`https://web.whatsapp.com/send?phone=55${pedido.rawClienteCelular.replace(/\D/g, "")}&text=${encodeURIComponent(msg)}`, 'whatsapp_atendimento');
                 }
             } catch (e) { alert(e.message); }
@@ -982,16 +931,11 @@
         window.cancelarPedidoDefinitivo = async function(pedidoId) {
             const inputMotivo = document.getElementById(`motivo-recusa-${pedidoId}`);
             const motivoText = inputMotivo ? inputMotivo.value.trim() : "Cancelado.";
-            if (!confirm("Deseja cancelar permanentemente?")) return;
-            try {
-                await updateDoc(doc(db, "pedidos", pedidoId), { status: "Reprovado", motivoCancelamento: motivoText });
-            } catch (e) { alert(e.message); }
+            if (!confirm("Deseja cancelar?")) return;
+            try { await updateDoc(doc(db, "pedidos", pedidoId), { status: "Reprovado", motivoCancelamento: motivoText }); } catch (e) { alert(e.message); }
         };
 
-        window.excluirPedidoDefinitivo = async function(id) {
-            if (!confirm("Remover permanentemente do banco?")) return;
-            try { await deleteDoc(doc(db, "pedidos", id)); } catch (e) { alert(e.message); }
-        };
+        window.excluirPedidoDefinitivo = async function(id) { if (!confirm("Remover definitivamente?")) return; try { await deleteDoc(doc(db, "pedidos", id)); } catch (e) { alert(e.message); } };
 
         function sincronizarCardapioNuvem() {
             onSnapshot(collection(db, "status_cardapio"), (snapshot) => {
@@ -1001,33 +945,22 @@
                     if(dados.hasOwnProperty('disponivel')) statusCardapioDisponivel[doc.id] = dados.disponivel;
                     if(dados.hasOwnProperty('precos')) tabelaPrecosDinamicos[doc.id] = dados.precos;
                 });
-                renderizarGerenciamentoCardapio();
-                window.renderizarBadgesPratos();
-                window.renderizarBadgesTipos();
+                renderizarGerenciamentoCardapio(); window.renderizarBadgesPratos(); window.renderizarBadgesTipos();
             });
         }
 
         window.adicionarNovoPratoNuvem = async function() {
-            const inputNome = document.getElementById('novo-prato-nome');
-            const nomePrato = inputNome.value.trim();
-            if (!nomePrato) return alert("Digite o nome.");
+            const inputNome = document.getElementById('novo-prato-nome'); const nomePrato = inputNome.value.trim(); if (!nomePrato) return alert("Digite o nome.");
             try { await setDoc(doc(db, "status_cardapio", nomePrato), { disponivel: true, precos: { "Marmita (P)": 0.00, "Marmita (M)": 0.00, "Marmita (G)": 0.00 } }); inputNome.value = ''; } catch (e) { alert(e.message); }
         };
 
         function renderizarGerenciamentoCardapio() {
-            const container = document.getElementById('container-gestao-cardapio');
-            if(!container) return;
-            container.innerHTML = '';
+            const container = document.getElementById('container-gestao-cardapio'); if(!container) return; container.innerHTML = '';
             Object.keys(cardapioEstruturado).forEach(prato => {
-                const checked = statusCardapioDisponivel[prato] !== false ? 'checked' : '';
-                let inputsPrecoHtml = '';
+                const checked = statusCardapioDisponivel[prato] !== false ? 'checked' : ''; let inputsPrecoHtml = '';
                 cardapioEstruturado[prato].forEach(tamanho => {
                     const precoAtual = tabelaPrecosDinamicos[prato]?.[tamanho] || 0;
-                    inputsPrecoHtml += `
-                        <div class="input-preco-manage">
-                            <label>${tamanho}:</label>
-                            <input type="number" step="0.01" value="${parseFloat(precoAtual).toFixed(2)}" onblur="window.atualizarPrecoNuvem('${prato}', '${tamanho}', this.value)">
-                        </div>`;
+                    inputsPrecoHtml += `<div class="input-preco-manage"><label>${tamanho}:</label><input type="number" step="0.01" value="${parseFloat(precoAtual).toFixed(2)}" onblur="window.atualizarPrecoNuvem('${prato}', '${tamanho}', this.value)"></div>`;
                 });
                 container.innerHTML += `<div class="item-cardapio-manage"><div class="manage-row-header"><span><b>#️⃣ ${prato}</b></span><label class="switch"><input type="checkbox" ${checked} onchange="window.alternarStatusDisponibilidade('${prato}', this.checked)"><span class="slider"></span></label></div><div class="manage-precos-grid">${inputsPrecoHtml}</div></div>`;
             });
@@ -1044,73 +977,32 @@
                 document.getElementById('tela-login').style.display = 'none';
                 document.getElementById('conteudo-sistema').style.display = 'block';
                 sincronizarInterfaceAtendente();
-            } else {
-                alert("Acesso Recusado! Usuário ou senha incorretos.");
-            }
+            } else { alert("Acesso Recusado!"); }
         };
 
         window.calcularFechamentoDiario = function() {
             document.getElementById('dashboard-vendas-tela').style.display = 'grid';
-            
-            const dataInicioStr = document.getElementById('filchamento-inicio').value; 
-            const dataFimStr = document.getElementById('filchamento-fim').value;       
-
+            const dataInicioStr = document.getElementById('filchamento-inicio').value; const dataFimStr = document.getElementById('filchamento-fim').value;       
             let pedidosFiltrados = totalizadorLocalPedidos.filter(p => p.status === "Aprovado");
-
             if (dataInicioStr || dataFimStr) {
                 pedidosFiltrados = pedidosFiltrados.filter(p => {
-                    if (!p.data) return false;
-                    const dataPedidoFormatoPadrao = p.data.includes('/') ? p.data.split('/').reverse().join('-') : p.data;
-
-                    if (dataInicioStr && dataFimStr) {
-                        return dataPedidoFormatoPadrao >= dataInicioStr && dataPedidoFormatoPadrao <= dataFimStr;
-                    }
-                    if (dataFimStr && !dataInicioStr) {
-                        return dataPedidoFormatoPadrao === dataFimStr;
-                    }
-                    if (dataInicioStr && !dataFimStr) {
-                        return dataPedidoFormatoPadrao >= dataInicioStr;
-                    }
+                    if (!p.data) return false; const padrao = p.data.includes('/') ? p.data.split('/').reverse().join('-') : p.data;
+                    if (dataInicioStr && dataFimStr) return padrao >= dataInicioStr && padrao <= dataFimStr;
+                    if (dataFimStr && !dataInicioStr) return padrao === dataFimStr;
+                    if (dataInicioStr && !dataFimStr) return padrao >= dataInicioStr;
                     return true;
                 });
-                document.getElementById('titulo-faturamento-periodo').innerText = `Faturamento Filtrado 📅`;
-            } else {
-                document.getElementById('titulo-faturamento-periodo').innerText = `Faturamento Bruto Acumulado (Geral)`;
             }
-
-            let totalFaturado = 0;
-            let distribuicaoPratos = {};
-
-            pedidosFiltrados.forEach(p => {
-                totalFaturado += parseFloat(p.total || 0);
-                if (p.itens) {
-                    p.itens.forEach(item => {
-                        distribuicaoPratos[item.prato] = (distribuicaoPratos[item.prato] || 0) + parseInt(item.qtd || 1);
-                    });
-                }
-            });
-
+            let totalFaturado = 0; let distribuicaoPratos = {};
+            pedidosFiltrados.forEach(p => { totalFaturado += parseFloat(p.total || 0); if (p.itens) { p.itens.forEach(item => { distribuicaoPratos[item.prato] = (distribuicaoPratos[item.prato] || 0) + parseInt(item.qtd || 1); }); } });
             document.getElementById('t-dash-faturamento').innerText = `R$ ${totalFaturado.toFixed(2)}`;
             document.getElementById('t-dash-qtd-pedidos').innerText = pedidosFiltrados.length;
-
             if (chartPizzaInstancia) chartPizzaInstancia.destroy();
             const ctx = document.getElementById('graficoPizzaFechamento').getContext('2d');
-            chartPizzaInstancia = new Chart(ctx, {
-                type: 'pie',
-                data: {
-                    labels: Object.keys(distribuicaoPratos).length > 0 ? Object.keys(distribuicaoPratos) : ["Sem vendas no período"],
-                    datasets: [{ 
-                        data: Object.values(distribuicaoPratos).length > 0 ? Object.values(distribuicaoPratos) : [1], 
-                        backgroundColor: ['#cc1d1d', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#64748b'] 
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false }
-            });
+            chartPizzaInstancia = new Chart(ctx, { type: 'pie', data: { labels: Object.keys(distribuicaoPratos).length > 0 ? Object.keys(distribuicaoPratos) : ["Sem vendas"], datasets: [{ data: Object.values(distribuicaoPratos).length > 0 ? Object.values(distribuicaoPratos) : [1], backgroundColor: ['#cc1d1d', '#3b82f6', '#10b981', '#f59e0b'] }] }, options: { responsive: true, maintainAspectRatio: false } });
         };
 
-        window.exportarFechamentoPDF = function() {
-            html2pdf().set({ margin: 10, filename: 'fechamento-caixa.pdf' }).from(document.getElementById('dashboard-vendas-tela')).save();
-        };
+        window.exportarFechamentoPDF = function() { html2pdf().set({ margin: 10, filename: 'fechamento-caixa.pdf' }).from(document.getElementById('dashboard-vendas-tela')).save(); };
 
         inicializarSistema();
     </script>
