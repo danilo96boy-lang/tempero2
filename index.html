@@ -323,19 +323,6 @@
 
         #ticket-print { display: none; }
         body.modo-impressao-ticket #conteudo-sistema, body.modo-impressao-ticket #tela-login { display: none !important; }
-
-        @media print {
-            @page { size: 58mm auto; margin: 0mm; }
-            body { background: #fff; padding: 0; margin: 0; display: block; width: 58mm; }
-            #ticket-print { display: block !important; font-family: 'Courier New', Courier, monospace; width: 48mm; max-width: 48mm; padding: 1mm 0.5mm; font-size: 11px; color: #000; line-height: 1.25; word-wrap: break-word; }
-            .ticket-header { text-align: center; }
-            .ticket-via-tag { font-size: 12px; font-weight: bold; border: 1px solid #000; display: inline-block; padding: 2px 4px; text-transform: uppercase; }
-            .ticket-header-num-destaque { font-size: 26px !important; font-weight: 950 !important; text-align: center; display: block; width: 100%; }
-            .ticket-divider { text-align: center; margin: 2px 0; font-weight: bold; }
-            .ticket-item { margin: 6px 0; border-bottom: 1px dotted #ccc; padding-bottom: 4px; }
-            .ticket-item-price { text-align: right; font-weight: bold; display: block; }
-            .ticket-wrapper-via { page-break-after: always !important; display: block; }
-        }
     </style>
 </head>
 <body>
@@ -345,7 +332,11 @@
             <h2 style="color: var(--cor-principal); margin: 0 0 6px 0; text-transform: uppercase; font-size: 18px; font-weight: 800;">Acesso Restrito</h2>
             <p style="font-size: 13px; color: var(--cor-texto-secundario); margin: 0 0 24px 0;">Painel PDV Comercial Cloud</p>
             <form id="form-login-id" onsubmit="window.validarAcessoSecure(event)">
-                <button type="submit" class="btn btn-add" style="background-color: #4285F4;">🔓 Entrar com a Conta Google</button>
+                <div class="form-group" style="text-align: left;">
+                    <label>Seu E-mail Administrativo:</label>
+                    <div style="font-size:12px; color:var(--cor-texto-secundario); margin-bottom:12px;">Conecte usando o e-mail cadastrado no sistema.</div>
+                </div>
+                <button type="submit" class="btn btn-add">🔓 Entrar com a Conta Google</button>
             </form>
         </div>
     </div>
@@ -357,7 +348,7 @@
 
         <nav class="admin-nav-header" id="navegacao-abas-id">
             <button class="admin-nav-btn active" onclick="window.alternarContextoPainel('pedido', this)">📝 Lançar Novo Pedido</button>
-            <button class="admin-nav-btn admin-only" onclick="window.alternarContextoPainel('painel', this)">🔔 Pedidos <span id="badge-pendentes-id" style="background:var(--cor-pendente); color:white; padding:1px 6px; border-radius:10px; font-size:11px; display:none;">0</span></button>
+            <button class="admin-nav-btn admin-only" onclick="window.alternarContextoPainel('painel', this)">🔔 Pendentes <span id="badge-pendentes-id" style="background:var(--cor-pendente); color:white; padding:1px 6px; border-radius:10px; font-size:11px; display:none;">0</span></button>
             <button class="admin-nav-btn admin-only" onclick="window.alternarContextoPainel('cardapio', this)">🍔 Configurar Menu</button>
             <button class="admin-nav-btn admin-only" onclick="window.alternarContextoPainel('fechamento', this)">🔒 Turno / Caixa</button>
         </nav>
@@ -608,7 +599,7 @@
                 document.getElementById('tela-login').style.display = 'flex';
             }
             sincronizarCardapioNuvem();
-            escutarPedidosRealtime();
+            // REMOVIDO DAQUI: escutarPedidosRealtime() para não rodar antes da autenticação!
         }
 
         function configurarModoCliente() {
@@ -660,11 +651,11 @@
             if (!pratoSelecionadoGlobal || !cardapioEstruturado[pratoSelecionadoGlobal]) { container.innerHTML = '<div style="color:var(--cor-texto-secundario); font-size:13px; grid-column: span 2;">Selecione o prato acima primeiro...</div>'; return; }
             cardapioEstruturado[pratoSelecionadoGlobal].forEach(opcao => {
                 const preco = tabelaPrecosDinamicos[pratoSelecionadoGlobal]?.[opcao] || 0;
-                container.innerHTML += `<div class="badge-option ${opcao === tipoSelecionadoGlobal ? 'selected' : ''}" onclick="window.signInWithPopupSelecionarTipoBadge('${opcao}', ${preco})"><div style="font-weight:700;">${opcao}</div><span>R$ ${parseFloat(preco).toFixed(2)}</span></div>`;
+                container.innerHTML += `<div class="badge-option ${opcao === tipoSelecionadoGlobal ? 'selected' : ''}" onclick="window.selecionarTipoBadge('${opcao}', ${preco})"><div style="font-weight:700;">${opcao}</div><span>R$ ${parseFloat(preco).toFixed(2)}</span></div>`;
             });
         };
 
-        window.signInWithPopupSelecionarTipoBadge = function(opcao, preco) { tipoSelecionadoGlobal = opcao; document.getElementById('valor').value = parseFloat(preco).toFixed(2); window.renderizarBadgesTipos(); };
+        window.selecionarTipoBadge = function(opcao, preco) { tipoSelecionadoGlobal = opcao; document.getElementById('valor').value = parseFloat(preco).toFixed(2); window.renderizarBadgesTipos(); };
 
         window.buscarClientePorTelefone = function(telDigitado) {
             if (idPedidoSendoAjustado) return;
@@ -822,6 +813,7 @@
                     window.history.replaceState({}, document.title, window.location.pathname + "?cliente=true");
                     idPedidoSendoAjustado = null;
                 } else {
+                    // Preenche o número do pedido com base no tamanho do histórico (apenas para fallback local se necessário)
                     dadosPedidoSincronizar.numero = totalizadorLocalPedidos.length + 1;
                     await addDoc(collection(db, "pedidos"), dadosPedidoSincronizar);
                     
@@ -850,7 +842,8 @@
         };
 
         function escutarPedidosRealtime() {
-            onSnapshot(collection(db, "pedidos"), (snapshot) => {
+            const q = collection(db, "pedidos");
+            onSnapshot(q, (snapshot) => {
                 totalizadorLocalPedidos = [];
                 snapshot.forEach((doc) => { let dados = doc.data(); dados.id = doc.id; totalizadorLocalPedidos.push(dados); });
                 totalizadorLocalPedidos.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
@@ -877,6 +870,7 @@
                             <div><span class="status-badge status-${p.status ? p.status.toLowerCase() : 'pendente'}">${p.status || 'Pendente'}</span><span class="financeiro-badge ${finBadgeClass}">${finBadgeLabel}</span></div>
                         </div>
                         <div class="pedido-log-corpo">
+                            <b>Data:</b> ${p.dataExibicao || p.data || ''} às ${p.hora || ''}<br>
                             <b>Cliente:</b> ${p.rawClienteNome || ''}<br><b>Endereço:</b> ${p.rawClienteEndereco || ''}<br>
                             <div style="background:#fff; padding:6px; border-radius:6px; border:1px solid var(--cor-borda); margin:6px 0;">${resumoItens}</div>
                             <b>Total: <span style="color:var(--cor-principal)">R$ ${(p.total || 0).toFixed(2)}</span></b>
@@ -911,6 +905,7 @@
                 const selectFin = document.getElementById(`fin-mod-${pedidoId}`);
                 const financeiroAtualizado = selectFin ? selectFin.value : "Pendente";
                 const pRef = doc(db, "pedidos", pedidoId);
+                
                 await updateDoc(pRef, { status: "Aprovado", financeiro: financeiroAtualizado });
                 
                 const pedido = totalizadorLocalPedidos.find(p => p.id === pedidoId);
@@ -980,7 +975,7 @@
         window.atualizarPrecoNuvem = async function(prato, tamanho, novoPreco) { try { await setDoc(doc(db, "status_cardapio", prato), { precos: { [tamanho]: parseFloat(novoPreco) } }, { merge: true }); } catch (e) {} };
 
         // ==========================================
-        //  CORREÇÃO: AGORA ACEITA OS DOIS EMAILS (||)
+        //  CORREÇÃO: ESCUTA DE PEDIDOS APÓS LOGIN
         // ==========================================
         window.validarAcessoSecure = async function(event) {
             event.preventDefault();
@@ -991,7 +986,9 @@
                 if (emailUsuarioLogado === "temperodefamilia366@gmail.com" || emailUsuarioLogado === "danilo96boy@gmail.com") {
                     document.getElementById('tela-login').style.display = 'none';
                     document.getElementById('conteudo-sistema').style.display = 'block';
-                    sincronizarInterfaceAtendente();
+                    
+                    // ATIVAÇÃO CORRETA: Só escuta a lista de pedidos após estar devidamente autenticado!
+                    escutarPedidosRealtime();
                 } else {
                     alert("Acesso Negado! O e-mail " + emailUsuarioLogado + " não possui credenciais.");
                     await auth.signOut();
