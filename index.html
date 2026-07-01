@@ -507,7 +507,7 @@
             <div class="carrinho-lateral-pdv" id="caixa-checkout-fixo">
                 <h3>🛒 Caixa / Itens</h3>
                 <ul id="lista-itens" class="lista-itens">
-                    <li style="color: var(--cor-texto-secundario); font-size: 13px; text-align: center; padding: 20px;">Nenhum prato adicionado...</li>
+                    <li style="color: var(--cor-texto-secundario); font-size: 13px; text-align: center; padding: 20px;">Nenhum produto adicionado...</li>
                 </ul>
                 <div>
                     <div class="total-tela">Total: <span>R$ <span id="total-valor">0.00</span></span></div>
@@ -953,23 +953,29 @@
             if(document.getElementById('badge-pendentes-id')) { document.getElementById('badge-pendentes-id').innerText = countPendentes; document.getElementById('badge-pendentes-id').style.display = countPendentes > 0 ? 'inline-block' : 'none'; }
         }
 
-        // ========================================================
-        //  CORREÇÃO CRÍTICA: APROVAÇÃO SILENCIOSA SEM ABRIR ABAS
-        // ========================================================
-        window.aprovarPedidoFluxoSilencioso = async function(pedidoId) {
+        // =========================================================
+        //  FIX SINTONIZADO: ENVIA APENAS A CONFIRMAÇÃO PRO CLIENTE
+        // =========================================================
+        window.approvarPedidoFluxoSilencioso = async function(pedidoId) {
             try {
                 const selectFin = document.getElementById(`fin-mod-${pedidoId}`);
                 const financeiroAtualizado = selectFin ? selectFin.value : "Pendente";
                 const pRef = doc(db, "pedidos", pedidoId);
                 
-                // 1. Atualiza no servidor
                 await updateDoc(pRef, { status: "Aprovado", financeiro: financeiroAtualizado });
                 
-                // 2. Imprime as vias locais imediatamente na via térmica sem sair da tela
                 const pedido = totalizadorLocalPedidos.find(p => p.id === pedidoId);
                 if (pedido) {
                     pedido.financeiro = financeiroAtualizado;
                     window.imprimirDuplaVia(pedido);
+
+                    // DISPARO SEGURO E RÁPIDO DO SINAL DE CONCLUÍDO PARA O WHATSAPP DO CLIENTE
+                    let celLimpo = pedido.rawClienteCelular.replace(/\D/g, "");
+                    if(celLimpo.length >= 8) {
+                        let msgCliente = `Olá *${pedido.rawClienteNome}*, seu pedido *#${pedido.numero}* foi *ACEITO* e já entrou em preparo na cozinha! 👨‍🍳🔥`;
+                        let urlNotificacao = `https://api.whatsapp.com/send?phone=55${celLimpo}&text=${encodeURIComponent(msgCliente)}`;
+                        executarDisparoWhatsDevice(urlNotificacao, 'whatsapp_atendimento');
+                    }
                 }
             } catch (e) { alert("Erro ao aprovar: " + e.message); }
         };
@@ -1011,7 +1017,7 @@
         }
 
         window.adicionarNovoPratoNuvem = async function() {
-            const inputNome = document.getElementById('novo-prato-nome'); const nomePrato = inputNome.value.trim(); if (!nomePrato) return alert("Digite o nome.");
+            const inputNome = document.getElementById('novo-prato-nome'); const nomePrato = inputNome.value.trim(); if (!novoPrato) return alert("Digite o nome.");
             try { await setDoc(doc(db, "status_cardapio", nomePrato), { disponivel: true, precos: { "Marmita (P)": 0.00, "Marmita (M)": 0.00, "Marmita (G)": 0.00 } }); inputNome.value = ''; } catch (e) { alert(e.message); }
         };
 
