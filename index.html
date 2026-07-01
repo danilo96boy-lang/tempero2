@@ -281,7 +281,7 @@
         .btn-print { background-color: #16a34a; color: white; font-size: 16px; box-shadow: 0 4px 10px rgba(22, 163, 74, 0.2); }
         .btn-aprovar { background-color: #16a34a; color: white; padding: 8px 14px; font-size: 13px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold;}
         .btn-reprovar { background-color: #f59e0b; color: white; padding: 8px 14px; font-size: 13px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold;}
-        .btn-cancelar-def { background-color: #cyan; color: white; padding: 8px 14px; font-size: 13px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold;}
+        .btn-cancelar-def { background-color: #dc2626; color: white; padding: 8px 14px; font-size: 13px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold;}
 
         .container-logs-cards { display: grid; grid-template-columns: 1fr; gap: 14px; margin-top: 10px; }
         @media(min-width: 700px) { .container-logs-cards { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); } }
@@ -351,7 +351,7 @@
             <form id="form-login-id" onsubmit="window.validarAcessoSecure(event)">
                 <div class="form-group" style="text-align: left;">
                     <label>Seu E-mail Administrativo:</label>
-                    <div style="font-size:12px; color:var(--cor-texto-secundario); margin-bottom:12px;">Conecte usando o e-mail cadastrado no systema.</div>
+                    <div style="font-size:12px; color:var(--cor-texto-secundario); margin-bottom:12px;">Conecte usando o e-mail cadastrado no sistema.</div>
                 </div>
                 <button type="submit" class="btn btn-add">🔓 Entrar com a Conta Google</button>
             </form>
@@ -513,6 +513,8 @@
         </div>
     </div>
 
+    <div id="ticket-print"></div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
@@ -533,7 +535,6 @@
         const auth = getAuth(app);
         const googleProvider = new GoogleAuthProvider();
 
-        // VALOR DO TELEFONE COMERCIAL FIXADO GLOBALMENTE NO CÓDIGO
         const TELEFONE_RESTAURANTE_FIXO = "5511999973141";
 
         let cardapioEstruturado = {
@@ -586,15 +587,15 @@
         };
 
         // =======================================================
-        //  FIX: REDIRECIONAMENTO LIMPO NO WHATSAPP (MESMA ABA)
+        //  FIX UNIVERSAL: API DO WHATSAPP DIRETO NO DISPOSITIVO
         // =======================================================
         function executarDisparoWhatsDevice(urlDisparo, abaDestino) {
             const isMobileApp = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             if (isMobileApp) {
-                window.open(urlDisparo.replace("web.whatsapp.com", "api.whatsapp.com"), '_blank');
+                window.open(urlDisparo, '_blank');
             } else {
-                // PC: Força a abertura na guia principal do navegador para não gerar abas extras
-                window.location.href = urlDisparo;
+                // No PC, reaproveita a mesma aba para não encher o navegador
+                window.open(urlDisparo, 'whatsapp_janela_unica_pdv');
             }
         }
 
@@ -827,8 +828,8 @@
                     textoWhats += `💰 *Novo Total:* R$ ${total.toFixed(2)}\n\n`;
                     textoWhats += `_Aguardando re-avaliação da cozinha..._`;
 
-                    // FIX: E-mail e link direto para o e-mail cadastrado
-                    const urlWhats = "https://web.whatsapp.com/send?phone=55" + "11999973141" + "&text=" + encodeURIComponent(textoWhats);
+                    // FIX: Migrado para api.whatsapp.com para integrar nativamente em celular/PC
+                    const urlWhats = `https://api.whatsapp.com/send?phone=${TELEFONE_RESTAURANTE_FIXO}&text=${encodeURIComponent(textoWhats)}`;
                     executarDisparoWhatsDevice(urlWhats, 'whatsapp_restaurante');
                     alert("Seu pedido modificado foi reenviado com sucesso!");
                     
@@ -851,7 +852,8 @@
                         textoWhats += `💰 *Total Geral:* R$ ${total.toFixed(2)}\n\n`;
                         textoWhats += `_Aguardando aprovação e início do preparo pela cozinha..._`;
 
-                        const urlWhats = "https://web.whatsapp.com/send?phone=5511999973141&text=" + encodeURIComponent(textoWhats);
+                        // FIX: Migrado para api.whatsapp.com para integrar nativamente em celular/PC
+                        const urlWhats = `https://api.whatsapp.com/send?phone=${TELEFONE_RESTAURANTE_FIXO}&text=${encodeURIComponent(textoWhats)}`;
                         executarDisparoWhatsDevice(urlWhats, 'whatsapp_restaurante');
                     } else {
                         window.imprimirDuplaVia(dadosPedidoSincronizar);
@@ -938,7 +940,8 @@
                     pedido.financeiro = financeiroAtualizado;
                     window.imprimirDuplaVia(pedido);
                     let msg = `Olá *${pedido.rawClienteNome}*, seu pedido *#${pedido.numero}* foi *ACEITO*!`;
-                    executarDisparoWhatsDevice("https://web.whatsapp.com/send?phone=55" + pedido.rawClienteCelular.replace(/\D/g, "") + "&text=" + encodeURIComponent(msg), 'whatsapp_atendimento');
+                    // FIX: Ajustado o link interno de disparo para a API universal
+                    executarDisparoWhatsDevice("https://api.whatsapp.com/send?phone=55" + pedido.rawClienteCelular.replace(/\D/g, "") + "&text=" + encodeURIComponent(msg), 'whatsapp_atendimento');
                 }
             } catch (e) { alert(e.message); }
         };
@@ -953,7 +956,8 @@
                 if (pedido) {
                     const link = window.location.origin + window.location.pathname + "?cliente=true&pedidoId=" + pedidoId;
                     let msg = `Olá *${pedido.rawClienteNome}*, acabou o item: *${motivoText}*.\nTroque por outra opção no link:\n${link}`;
-                    executarDisparoWhatsDevice("https://web.whatsapp.com/send?phone=55" + pedido.rawClienteCelular.replace(/\D/g, "") + "&text=" + encodeURIComponent(msg), 'whatsapp_atendimento');
+                    // FIX: Ajustado o link interno de disparo para a API universal
+                    executarDisparoWhatsDevice("https://api.whatsapp.com/send?phone=55" + pedido.rawClienteCelular.replace(/\D/g, "") + "&text=" + encodeURIComponent(msg), 'whatsapp_atendimento');
                 }
             } catch (e) { alert(e.message); }
         };
@@ -980,7 +984,7 @@
         }
 
         window.adicionarNovoPratoNuvem = async function() {
-            const inputNome = document.getElementById('novo-prato-nome'); const nomePrato = inputNome.value.trim(); if (!nomePrato) return alert("Digite o nome.");
+            const inputNome = document.getElementById('novo-prato-nome'); const nomePrato = inputNome.value.trim(); if (!novoPrato) return alert("Digite o nome.");
             try { await setDoc(doc(db, "status_cardapio", nomePrato), { disponivel: true, precos: { "Marmita (P)": 0.00, "Marmita (M)": 0.00, "Marmita (G)": 0.00 } }); inputNome.value = ''; } catch (e) { alert(e.message); }
         };
 
