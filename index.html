@@ -380,7 +380,7 @@
             <div class="main-grid">
                 
                 <div class="card active-tab-card" id="card-aba-venda">
-                    <h3 id="titulo-contexto-venda">📝 Registrar Lançamento</h3>
+                    <h3>📝 Registrar Lançamento</h3>
                     <form id="form-item" onsubmit="window.adicionarItem(event)">
                         <div class="secao-titulo">1. Dados do Cliente / Identificação</div>
                         <div class="form-row dois-campos">
@@ -507,7 +507,7 @@
             <div class="carrinho-lateral-pdv" id="caixa-checkout-fixo">
                 <h3>🛒 Caixa / Itens</h3>
                 <ul id="lista-itens" class="lista-itens">
-                    <li style="color: var(--cor-texto-secundario); font-size: 13px; text-align: center; padding: 20px;">Nenhum produto adicionado...</li>
+                    <li style="color: var(--cor-texto-secundario); font-size: 13px; text-align: center; padding: 20px;">Nenhum prato adicionado...</li>
                 </ul>
                 <div>
                     <div class="total-tela">Total: <span>R$ <span id="total-valor">0.00</span></span></div>
@@ -550,23 +550,30 @@
             "Marmitex": ["Marmita (P)", "Marmita (M)", "Marmita (G)"],
             "Prato Feito": ["Tradicional", "Especial"],
             "Bebidas": ["Refrigerante Lata", "Suco Natural", "Água Mineral"],
-            "Outros Pratos": ["Especial do Dia"]
+            "Outros Pratos": ["Especial do Dia"],
+            "Costelinha de Porco": ["Marmita (P)", "Marmita (M)", "Marmita (G)"],
+            "File de Frango amilensa": ["Marmita (P)", "Marmita (M)", "Marmita (G)"],
+            "Parmegiana de carne": ["Marmita (P)", "Marmita (M)", "Marmita (G)"]
         };
 
         let tabelaPrecosDinamicos = {
-            "Parmegiana de Frango": {"Marmita (P)": 18.00, "Marmita (M)": 28.00, "Marmita (G)": 35.00},
+            "Parmegiana de Frango": {"Marmita (P)": 23.00, "Marmita (M)": 35.00, "Marmita (G)": 25.00},
             "Frango à Milanesa": {"Marmita (P)": 16.00, "Marmita (M)": 26.00, "Marmita (G)": 32.00},
             "Parmegiana de Berinjela": {"Marmita (P)": 21.00, "Marmita (M)": 27.00, "Marmita (G)": 34.00},
             "Feijoada": {"Marmita (P)": 18.00, "Marmita (M)": 27.00, "Marmita (G)": 35.00},
             "Marmitex": {"Marmita (P)": 18.00, "Marmita (M)": 22.00, "Marmita (G)": 26.00},
             "Prato Feito": {"Tradicional": 20.00, "Especial": 25.00},
             "Bebidas": {"Refrigerante Lata": 6.00, "Suco Natural": 8.00, "Água Mineral": 4.00},
-            "Outros Pratos": {"Especial do Dia": 30.00}
+            "Outros Pratos": {"Especial do Dia": 30.00},
+            "Costelinha de Porco": {"Marmita (P)": 0.00, "Marmita (M)": 0.00, "Marmita (G)": 0.00},
+            "File de Frango amilensa": {"Marmita (P)": 0.00, "Marmita (M)": 0.00, "Marmita (G)": 0.00},
+            "Parmegiana de carne": {"Marmita (P)": 0.00, "Marmita (M)": 0.00, "Marmita (G)": 0.00}
         };
 
         let statusCardapioDisponivel = {
             "Parmegiana de Frango": true, "Frango à Milanesa": true, "Parmegiana de Berinjela": true,
-            "Feijoada": true, "Marmitex": true, "Prato Feito": true, "Bebidas": true, "Outros Pratos": true
+            "Feijoada": true, "Marmitex": true, "Prato Feito": true, "Bebidas": true, "Outros Pratos": true,
+            "Costelinha de Porco": true, "File de Frango amilensa": true, "Parmegiana de carne": true
         };
 
         let pedidoAtual = [];
@@ -742,7 +749,7 @@
 
         window.removerItem = function(id) { pedidoAtual = pedidoAtual.filter(i => i.id !== id); atualizarInterfaceCarrinho(); };
 
-        window.imprimirDuplaVia = function(pedido) {
+        window.imprimirDuplaVia = function(pedido, numeroCalculado) {
             const containerPrint = document.getElementById('ticket-print');
             if (!containerPrint) return;
 
@@ -770,7 +777,7 @@
                         <span>Data: ${pedido.dataExibicao || pedido.data || ''} - ${pedido.hora || ''}</span><br>
                         <span class="ticket-divider">----------------------------------</span><br>
                         <span style="font-size:12px;">NÚMERO DO PEDIDO</span><br>
-                        <span class="ticket-header-num-destaque">#${String(pedido.numero || 0).padStart(2, '0')}</span>
+                        <span class="ticket-header-num-destaque">#${String(numeroCalculado).padStart(2, '0')}</span>
                     </div>
                     <span class="ticket-divider">----------------------------------</span>
                     <div class="ticket-body">
@@ -804,8 +811,11 @@
         };
 
         window.reimprimirTicketPorId = function(pedidoId) {
+            // Localiza a posição real para mandar no cabeçalho impresso do ticket
+            const index = totalizadorLocalPedidos.findIndex(p => p.id === pedidoId);
+            const numeroCalculado = index !== -1 ? index + 1 : 1;
             const pedido = totalizadorLocalPedidos.find(p => p.id === pedidoId);
-            if (pedido) { window.imprimirDuplaVia(pedido); } else { alert("Pedido não localizado."); }
+            if (pedido) { window.imprimirDuplaVia(pedido, numeroCalculado); } else { alert("Pedido não localizado."); }
         };
 
         window.finalizarPedidoFluxo = async function() {
@@ -859,11 +869,10 @@
                     window.history.replaceState({}, document.title, window.location.pathname + "?cliente=true");
                     idPedidoSendoAjustado = null;
                 } else {
-                    dadosPedidoSincronizar.numero = totalizadorLocalPedidos.length + 1;
-                    await addDoc(collection(db, "pedidos"), dadosPedidoSincronizar);
+                    const docCriado = await addDoc(collection(db, "pedidos"), dadosPedidoSincronizar);
                     
                     if (isClienteView) {
-                        let textoWhats = `*🔥 Novo Pedido - Tempero de Família (nº ${dadosPedidoSincronizar.numero})*\n\n`;
+                        let textoWhats = `*🔥 Novo Pedido - Tempero de Família*\n\n`;
                         textoWhats += `👤 *Cliente:* ${nome}\n`;
                         textoWhats += `📞 *Contato:* ${celular}\n`;
                         textoWhats += `📍 *Endereço:* ${endereco}\n\n`;
@@ -878,7 +887,8 @@
                         const urlWhats = `https://api.whatsapp.com/send?phone=${TELEFONE_RESTAURANTE_FIXO}&text=${encodeURIComponent(textoWhats)}`;
                         executarDisparoWhatsDevice(urlWhats, 'whatsapp_restaurante');
                     } else {
-                        window.imprimirDuplaVia(dadosPedidoSincronizar);
+                        // Caixa interno de Balcão: joga a numeração baseada na contagem atual
+                        window.imprimirDuplaVia(dadosPedidoSincronizar, totalizadorLocalPedidos.length + 1);
                     }
                 }
                 pedidoAtual = []; atualizarInterfaceCarrinho(); document.getElementById('form-item').reset();
@@ -904,7 +914,11 @@
             containerPendentes.innerHTML = ''; containerHistorico.innerHTML = '';
             let countPendentes = 0;
 
-            [...totalizadorLocalPedidos].reverse().forEach(p => {
+            // Mapeia a lista invertendo a ordem para os novos aparecerem primeiro no topo
+            totalizadorLocalPedidos.forEach((p, index) => {
+                // CORREÇÃO CRÍTICA: Calcula o número de exibição real sequencial com base na posição dele no banco (index + 1)
+                const numeroExibicaoReal = index + 1;
+
                 const resumoItens = p.itens ? p.itens.map(i => {
                     let obsTexto = i.descricao && i.descricao !== 'Sem obs' ? ` <span style="font-size:11px; color:var(--cor-texto-secundario); display:block; padding-left:14px;">↳ Obs: ${i.descricao}</span>` : '';
                     return `<div style="margin-bottom:4px;"><b style="color:var(--cor-principal)">(${i.qtd}x)</b> ${i.prato} [${i.tipo}]${obsTexto}</div>`;
@@ -915,13 +929,13 @@
                 const htmlCard = `
                     <div class="pedido-log-card">
                         <div class="pedido-log-header">
-                            <span style="font-size:14px; font-weight:800; color:var(--cor-principal);">PEDIDO #${String(p.numero || 0).padStart(2, '0')}</span>
+                            <span style="font-size:14px; font-weight:800; color:var(--cor-principal);">PEDIDO #${String(numeroExibicaoReal).padStart(2, '0')}</span>
                             <div><span class="status-badge status-${p.status ? p.status.toLowerCase() : 'pendente'}">${p.status || 'Pendente'}</span><span class="financeiro-badge ${finBadgeClass}">${finBadgeLabel}</span></div>
                         </div>
                         <div class="pedido-log-corpo">
                             <b>Data:</b> ${p.dataExibicao || p.data || ''} às ${p.hora || ''}<br>
                             <b>Cliente:</b> ${p.rawClienteNome || ''}<br><b>Endereço:</b> ${p.rawClienteEndereco || ''}<br>
-                            <div style="background:#fff; padding:6px; border-radius:6px; border:1px solid var(--cor-borda); margin:6px 0;">${resumoItens}</div>
+                            <div style="background:#fff; padding:8px; border-radius:6px; border:1px solid var(--cor-borda); margin:6px 0;">${resumoItens}</div>
                             <b>Total: <span style="color:var(--cor-principal)">R$ ${(p.total || 0).toFixed(2)}</span></b>
                         </div>
                         <div class="pedido-log-footer">
@@ -934,7 +948,7 @@
                                             <option value="Pendente" ${p.financeiro === 'Pendente' ? 'selected' : ''}>⚠️ Pendente</option>
                                             <option value="Pago" ${p.financeiro === 'Pago' ? 'selected' : ''}>✅ Já Pago</option>
                                         </select>
-                                        <button class="btn-aprovar" onclick="window.aprovarPedidoFluxoSilencioso('${p.id}')">✅ Aprovar</button>
+                                        <button class="btn-aprovar" onclick="window.aprovarPedidoFluxoSilencioso('${p.id}', ${numeroExibicaoReal})">✅ Aprovar</button>
                                     </div>
                                     
                                     <div class="pedido-footer-linha">
@@ -948,15 +962,20 @@
                             `}
                         </div>
                     </div>`;
-                if (p.status === "Pendente" || !p.status) { containerPendentes.innerHTML += htmlCard; countPendentes++; } else { containerHistorico.innerHTML += htmlCard; }
+
+                if (p.status === "Pendente" || !p.status) {
+                    // Pedidos pendentes entram empilhados no container correspondente
+                    containerPendentes.innerHTML = htmlCard + containerPendentes.innerHTML;
+                    countPendentes++;
+                } else {
+                    containerHistorico.innerHTML = htmlCard + containerHistorico.innerHTML;
+                }
             });
+
             if(document.getElementById('badge-pendentes-id')) { document.getElementById('badge-pendentes-id').innerText = countPendentes; document.getElementById('badge-pendentes-id').style.display = countPendentes > 0 ? 'inline-block' : 'none'; }
         }
 
-        // =========================================================
-        //  FIX SINTONIZADO: ENVIA APENAS A CONFIRMAÇÃO PRO CLIENTE
-        // =========================================================
-        window.approvarPedidoFluxoSilencioso = async function(pedidoId) {
+        window.aprovarPedidoFluxoSilencioso = async function(pedidoId, numeroCalculado) {
             try {
                 const selectFin = document.getElementById(`fin-mod-${pedidoId}`);
                 const financeiroAtualizado = selectFin ? selectFin.value : "Pendente";
@@ -967,12 +986,11 @@
                 const pedido = totalizadorLocalPedidos.find(p => p.id === pedidoId);
                 if (pedido) {
                     pedido.financeiro = financeiroAtualizado;
-                    window.imprimirDuplaVia(pedido);
+                    window.imprimirDuplaVia(pedido, numeroCalculado);
 
-                    // DISPARO SEGURO E RÁPIDO DO SINAL DE CONCLUÍDO PARA O WHATSAPP DO CLIENTE
                     let celLimpo = pedido.rawClienteCelular.replace(/\D/g, "");
                     if(celLimpo.length >= 8) {
-                        let msgCliente = `Olá *${pedido.rawClienteNome}*, seu pedido *#${pedido.numero}* foi *ACEITO* e já entrou em preparo na cozinha! 👨‍🍳🔥`;
+                        let msgCliente = `Olá *${pedido.rawClienteNome}*, seu pedido *#${numeroCalculado}* foi *ACEITO* e já entrou em preparo na cozinha! 👨‍🍳🔥`;
                         let urlNotificacao = `https://api.whatsapp.com/send?phone=55${celLimpo}&text=${encodeURIComponent(msgCliente)}`;
                         executarDisparoWhatsDevice(urlNotificacao, 'whatsapp_atendimento');
                     }
@@ -1017,7 +1035,7 @@
         }
 
         window.adicionarNovoPratoNuvem = async function() {
-            const inputNome = document.getElementById('novo-prato-nome'); const nomePrato = inputNome.value.trim(); if (!novoPrato) return alert("Digite o nome.");
+            const inputNome = document.getElementById('novo-prato-nome'); const nomePrato = inputNome.value.trim(); if (!nomePrato) return alert("Digite o nome.");
             try { await setDoc(doc(db, "status_cardapio", nomePrato), { disponivel: true, precos: { "Marmita (P)": 0.00, "Marmita (M)": 0.00, "Marmita (G)": 0.00 } }); inputNome.value = ''; } catch (e) { alert(e.message); }
         };
 
@@ -1066,6 +1084,7 @@
         };
 
         window.alternarStatusDisponibilidade = async function(prato, disponibilizar) { try { await setDoc(doc(db, "status_cardapio", prato), { disponivel: disponibilizar }, { merge: true }); } catch (e) {} };
+        window.updatesPrecoNuvem = async function(prato, tamanho, novoPreco) { try { await setDoc(doc(db, "status_cardapio", prato), { precos: { [tamanho]: parseFloat(novoPreco) } }, { merge: true }); } catch (e) {} };
         window.atualizarPrecoNuvem = async function(prato, tamanho, novoPreco) { try { await setDoc(doc(db, "status_cardapio", prato), { precos: { [tamanho]: parseFloat(novoPreco) } }, { merge: true }); } catch (e) {} };
 
         window.validarAcessoSecure = async function(event) {
