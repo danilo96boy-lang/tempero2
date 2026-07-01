@@ -44,7 +44,7 @@
         }
 
         #tela-login {
-            display: flex;
+            display: none; /* Inicialmente oculto até conferir se o usuário já está logado */
             flex-direction: column;
             justify-content: center;
             align-items: center;
@@ -76,7 +76,7 @@
         .brand-header {
             display: flex;
             align-items: center;
-            justify-content: flex-start;
+            justify-content: space-between; /* Espaçado para o botão de sync caber na direita */
             gap: 12px;
             background: var(--cor-card);
             padding: 14px 16px;
@@ -279,9 +279,14 @@
         .btn-add { background-color: var(--cor-principal); color: white; margin-top: 15px; box-shadow: 0 4px 10px rgba(204, 29, 29, 0.2); }
         .btn-add:hover { background-color: var(--cor-principal-hover); }
         .btn-print { background-color: #16a34a; color: white; font-size: 16px; box-shadow: 0 4px 10px rgba(22, 163, 74, 0.2); }
-        .btn-aprovar { background-color: #16a34a; color: white; padding: 8px 14px; font-size: 13px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold;}
-        .btn-reprovar { background-color: #f59e0b; color: white; padding: 8px 14px; font-size: 13px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold;}
-        .btn-cancelar-def { background-color: #cyan; color: white; padding: 8px 14px; font-size: 13px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold;}
+        
+        /* CORREÇÃO DO FOOTER E BOTÕES (DOIS POR LINHA NO CARD DE APROVAÇÃO) */
+        .pedido-footer-bloco { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+        .pedido-footer-linha { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; }
+
+        .btn-aprovar { background-color: #16a34a; color: white; border: none; font-size: 13px; border-radius: var(--border-radius-md); cursor: pointer; font-weight: bold; height: 40px; display: flex; align-items: center; justify-content: center; gap: 4px; }
+        .btn-reprovar { background-color: #f59e0b; color: white; border: none; font-size: 13px; border-radius: var(--border-radius-md); cursor: pointer; font-weight: bold; height: 40px; display: flex; align-items: center; justify-content: center; gap: 4px; }
+        .btn-cancelar-def { background-color: #dc2626; color: white; border: none; font-size: 13px; border-radius: var(--border-radius-md); cursor: pointer; font-weight: bold; height: 40px; display: flex; align-items: center; justify-content: center; gap: 4px; }
 
         .container-logs-cards { display: grid; grid-template-columns: 1fr; gap: 14px; margin-top: 10px; }
         @media(min-width: 700px) { .container-logs-cards { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); } }
@@ -351,7 +356,7 @@
             <form id="form-login-id" onsubmit="window.validarAcessoSecure(event)">
                 <div class="form-group" style="text-align: left;">
                     <label>Seu E-mail Administrativo:</label>
-                    <div style="font-size:12px; color:var(--cor-texto-secundario); margin-bottom:12px;">Conecte usando o e-mail cadastrado no systema.</div>
+                    <div style="font-size:12px; color:var(--cor-texto-secundario); margin-bottom:12px;">Conecte usando o e-mail cadastrado no sistema.</div>
                 </div>
                 <button type="submit" class="btn btn-add">🔓 Entrar com a Conta Google</button>
             </form>
@@ -361,6 +366,8 @@
     <div id="conteudo-sistema">
         <div class="brand-header">
             <h1 id="sys-title">Tempero de Família - Painel Operacional</h1>
+            <!-- NOVO BOTÃO: ATUALIZAR MANUAL SEM DESLOGAR -->
+            <button id="btn-manual-sync-id" class="btn" style="background:#1e293b; color:white; width:auto; padding:8px 14px; font-size:12px; display:none;" onclick="window.atualizarPainelManual()">🔄 Sincronizar</button>
         </div>
 
         <nav class="admin-nav-header" id="navegacao-abas-id">
@@ -502,7 +509,7 @@
             <div class="carrinho-lateral-pdv" id="caixa-checkout-fixo">
                 <h3>🛒 Caixa / Itens</h3>
                 <ul id="lista-itens" class="lista-itens">
-                    <li style="color: var(--cor-texto-secundario); font-size: 13px; text-align: center; padding: 20px;">Nenhum produto adicionado...</li>
+                    <li style="color: var(--cor-texto-secundario); font-size: 13px; text-align: center; padding: 20px;">Nenhum prato adicionado...</li>
                 </ul>
                 <div>
                     <div class="total-tela">Total: <span>R$ <span id="total-valor">0.00</span></span></div>
@@ -516,7 +523,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAp-heSrhEA1WOW30gbUJ8DVJQNYH8hVCY",
@@ -533,7 +540,6 @@
         const auth = getAuth(app);
         const googleProvider = new GoogleAuthProvider();
 
-        // VALOR DO TELEFONE COMERCIAL FIXADO GLOBALMENTE NO CÓDIGO
         const TELEFONE_RESTAURANTE_FIXO = "5511999973141";
 
         let cardapioEstruturado = {
@@ -585,16 +591,12 @@
             if (cardAlvo) cardAlvo.classList.add('active-tab-card');
         };
 
-        // =======================================================
-        //  FIX: REDIRECIONAMENTO LIMPO NO WHATSAPP (MESMA ABA)
-        // =======================================================
         function executarDisparoWhatsDevice(urlDisparo, abaDestino) {
             const isMobileApp = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             if (isMobileApp) {
-                window.open(urlDisparo.replace("web.whatsapp.com", "api.whatsapp.com"), '_blank');
+                window.open(urlDisparo, '_blank');
             } else {
-                // PC: Força a abertura na guia principal do navegador para não gerar abas extras
-                window.location.href = urlDisparo;
+                window.open(urlDisparo, 'whatsapp_janela_unica_pdv');
             }
         }
 
@@ -618,10 +620,37 @@
                     await carregarPedidoParaAjusteCliente(pId);
                 }
             } else {
-                document.getElementById('tela-login').style.display = 'flex';
+                // SESSÃO PERSISTENTE: Verifica se o atendente já estava conectado
+                onAuthStateChanged(auth, (user) => {
+                    if (user && (user.email === "temperodefamilia366@gmail.com" || user.email === "danilo96boy@gmail.com")) {
+                        document.getElementById('tela-login').style.display = 'none';
+                        document.getElementById('conteudo-sistema').style.display = 'block';
+                        document.getElementById('btn-manual-sync-id').style.display = 'inline-block';
+                        escutarPedidosRealtime();
+                    } else {
+                        document.getElementById('tela-login').style.display = 'flex';
+                    }
+                });
             }
             sincronizarCardapioNuvem();
+
+            // REFRESH AUTOMÁTICO A CADA 10 MINUTOS (600000 ms)
+            setInterval(() => {
+                if(!isClienteView && auth.currentUser) {
+                    console.log("Auto-refresh de segurança executado.");
+                    window.atualizarPainelManual();
+                }
+            }, 600000);
         }
+
+        // FUNÇÃO DO BOTÃO MANUAL DE ATUALIZAÇÃO SEM PERDER LOGIN
+        window.atualizarPainelManual = function() {
+            if(auth.currentUser) {
+                escutarPedidosRealtime();
+                sincronizarCardapioNuvem();
+                console.log("Painel sincronizado manualmente.");
+            }
+        };
 
         function configurarModoCliente() {
             document.getElementById('tela-login').style.display = 'none';
@@ -631,6 +660,7 @@
             document.getElementById('navegacao-abas-id').style.display = 'none';
             document.getElementById('container-valor-interno').style.display = 'none';
             document.getElementById('container-status-financeiro').style.display = 'none';
+            document.getElementById('btn-manual-sync-id').style.display = 'none';
             document.getElementById('btn-finalizar-checkout').innerText = "🚀 Enviar Pedido via WhatsApp";
             
             window.alternarContextoPainel('pedido');
@@ -827,8 +857,7 @@
                     textoWhats += `💰 *Novo Total:* R$ ${total.toFixed(2)}\n\n`;
                     textoWhats += `_Aguardando re-avaliação da cozinha..._`;
 
-                    // FIX: E-mail e link direto para o e-mail cadastrado
-                    const urlWhats = "https://web.whatsapp.com/send?phone=55" + "11999973141" + "&text=" + encodeURIComponent(textoWhats);
+                    const urlWhats = `https://api.whatsapp.com/send?phone=${TELEFONE_RESTAURANTE_FIXO}&text=${encodeURIComponent(textoWhats)}`;
                     executarDisparoWhatsDevice(urlWhats, 'whatsapp_restaurante');
                     alert("Seu pedido modificado foi reenviado com sucesso!");
                     
@@ -851,7 +880,7 @@
                         textoWhats += `💰 *Total Geral:* R$ ${total.toFixed(2)}\n\n`;
                         textoWhats += `_Aguardando aprovação e início do preparo pela cozinha..._`;
 
-                        const urlWhats = "https://web.whatsapp.com/send?phone=5511999973141&text=" + encodeURIComponent(textoWhats);
+                        const urlWhats = `https://api.whatsapp.com/send?phone=${TELEFONE_RESTAURANTE_FIXO}&text=${encodeURIComponent(textoWhats)}`;
                         executarDisparoWhatsDevice(urlWhats, 'whatsapp_restaurante');
                     } else {
                         window.imprimirDuplaVia(dadosPedidoSincronizar);
@@ -897,21 +926,27 @@
                         <div class="pedido-log-corpo">
                             <b>Data:</b> ${p.dataExibicao || p.data || ''} às ${p.hora || ''}<br>
                             <b>Cliente:</b> ${p.rawClienteNome || ''}<br><b>Endereço:</b> ${p.rawClienteEndereco || ''}<br>
-                            <div style="background:#fff; padding:6px; border-radius:6px; border:1px solid var(--cor-borda); margin:6px 0;">${resumoItens}</div>
+                            <div style="background:#fff; padding:8px; border-radius:6px; border:1px solid var(--cor-borda); margin:6px 0;">${resumoItens}</div>
                             <b>Total: <span style="color:var(--cor-principal)">R$ ${(p.total || 0).toFixed(2)}</span></b>
                         </div>
                         <div class="pedido-log-footer">
                             ${p.status === 'Pendente' || !p.status ? `
-                                <div style="display:flex; flex-direction: column; gap:8px; width: 100%; border-top: 1px dashed var(--cor-borda); padding-top: 10px;">
+                                <div class="pedido-footer-bloco">
                                     <input type="text" id="motivo-recusa-${p.id}" placeholder="Caso vá recusar, digite o motivo...">
-                                    <div style="display:flex; gap:6px; justify-content: flex-end;">
-                                        <select id="fin-mod-${p.id}" style="padding:6px; font-size:12px; width:auto; margin:0; height:32px;">
+                                    
+                                    <!-- GRID 1: STATUS DO PAGAMENTO E BOTÃO APROVAR -->
+                                    <div class="pedido-footer-linha">
+                                        <select id="fin-mod-${p.id}" style="padding:10px; font-size:13px; margin:0; height:40px; width:100%;">
                                             <option value="Pendente" ${p.financeiro === 'Pendente' ? 'selected' : ''}>⚠️ Pendente</option>
                                             <option value="Pago" ${p.financeiro === 'Pago' ? 'selected' : ''}>✅ Já Pago</option>
                                         </select>
-                                        <button class="btn-aprovar" style="height:32px;" onclick="window.aprovarPedidoWhats('${p.id}')">✅ Aprovar</button>
-                                        <button class="btn-reprovar" style="height:32px;" onclick="window.reprovarPedidoParaAjuste('${p.id}')">🔄 Ajuste</button>
-                                        <button class="btn-cancelar-def" style="height:32px;" onclick="window.cancelarPedidoDefinitivo('${p.id}')">❌ Cancelar</button>
+                                        <button class="btn-aprovar" onclick="window.aprovarPedidoWhats('${p.id}')">✅ Aprovar</button>
+                                    </div>
+                                    
+                                    <!-- GRID 2: BOTÃO AJUSTE E BOTÃO CANCELAR -->
+                                    <div class="pedido-footer-linha">
+                                        <button class="btn-reprovar" onclick="window.reprovarPedidoParaAjuste('${p.id}')">🔄 Ajuste</button>
+                                        <button class="btn-cancelar-def" onclick="window.cancelarPedidoDefinitivo('${p.id}')">❌ Cancelar</button>
                                     </div>
                                 </div>
                             ` : `
@@ -938,7 +973,7 @@
                     pedido.financeiro = financeiroAtualizado;
                     window.imprimirDuplaVia(pedido);
                     let msg = `Olá *${pedido.rawClienteNome}*, seu pedido *#${pedido.numero}* foi *ACEITO*!`;
-                    executarDisparoWhatsDevice("https://web.whatsapp.com/send?phone=55" + pedido.rawClienteCelular.replace(/\D/g, "") + "&text=" + encodeURIComponent(msg), 'whatsapp_atendimento');
+                    executarDisparoWhatsDevice("https://api.whatsapp.com/send?phone=55" + pedido.rawClienteCelular.replace(/\D/g, "") + "&text=" + encodeURIComponent(msg), 'whatsapp_atendimento');
                 }
             } catch (e) { alert(e.message); }
         };
@@ -953,7 +988,7 @@
                 if (pedido) {
                     const link = window.location.origin + window.location.pathname + "?cliente=true&pedidoId=" + pedidoId;
                     let msg = `Olá *${pedido.rawClienteNome}*, acabou o item: *${motivoText}*.\nTroque por outra opção no link:\n${link}`;
-                    executarDisparoWhatsDevice("https://web.whatsapp.com/send?phone=55" + pedido.rawClienteCelular.replace(/\D/g, "") + "&text=" + encodeURIComponent(msg), 'whatsapp_atendimento');
+                    executarDisparoWhatsDevice("https://api.whatsapp.com/send?phone=55" + pedido.rawClienteCelular.replace(/\D/g, "") + "&text=" + encodeURIComponent(msg), 'whatsapp_atendimento');
                 }
             } catch (e) { alert(e.message); }
         };
@@ -1029,7 +1064,6 @@
         };
 
         window.alternarStatusDisponibilidade = async function(prato, disponibilizar) { try { await setDoc(doc(db, "status_cardapio", prato), { disponivel: disponibilizar }, { merge: true }); } catch (e) {} };
-        window.updatesPrecoNuvem = async function(prato, tamanho, novoPreco) { try { await setDoc(doc(db, "status_cardapio", prato), { precos: { [tamanho]: parseFloat(novoPreco) } }, { merge: true }); } catch (e) {} };
         window.atualizarPrecoNuvem = async function(prato, tamanho, novoPreco) { try { await setDoc(doc(db, "status_cardapio", prato), { precos: { [tamanho]: parseFloat(novoPreco) } }, { merge: true }); } catch (e) {} };
 
         window.validarAcessoSecure = async function(event) {
@@ -1041,6 +1075,7 @@
                 if (emailUsuarioLogado === "temperodefamilia366@gmail.com" || emailUsuarioLogado === "danilo96boy@gmail.com") {
                     document.getElementById('tela-login').style.display = 'none';
                     document.getElementById('conteudo-sistema').style.display = 'block';
+                    document.getElementById('btn-manual-sync-id').style.display = 'inline-block';
                     escutarPedidosRealtime();
                 } else {
                     alert("Acesso Negado! O e-mail " + emailUsuarioLogado + " não possui credenciais.");
