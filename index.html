@@ -283,9 +283,9 @@
         .pedido-footer-bloco { display: flex; flex-direction: column; gap: 8px; width: 100%; }
         .pedido-footer-linha { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; }
 
-        .btn-aprovar { background-color: #16a34a; color: white; border: none; font-size: 13px; border-radius: var(--border-radius-md); cursor: pointer; font-weight: bold; height: 40px; display: flex; align-items: center; justify-content: center; gap: 4px; }
-        .btn-reprovar { background-color: #f59e0b; color: white; border: none; font-size: 13px; border-radius: var(--border-radius-md); cursor: pointer; font-weight: bold; height: 40px; display: flex; align-items: center; justify-content: center; gap: 4px; }
-        .btn-cancelar-def { background-color: #dc2626; color: white; border: none; font-size: 13px; border-radius: var(--border-radius-md); cursor: pointer; font-weight: bold; height: 40px; display: flex; align-items: center; justify-content: center; gap: 4px; }
+        .btn-aprovar { background-color: #16a34a; color: white; border: none; font-size: 13px; border-radius: var(--border-radius-md); cursor: pointer; font-weight: bold; height: 40px; display: flex; align-items: center; justify-content: center; gap: 4px; width: 100%; }
+        .btn-reprovar { background-color: #f59e0b; color: white; border: none; font-size: 13px; border-radius: var(--border-radius-md); cursor: pointer; font-weight: bold; height: 40px; display: flex; align-items: center; justify-content: center; gap: 4px; width: 100%; }
+        .btn-cancelar-def { background-color: #dc2626; color: white; border: none; font-size: 13px; border-radius: var(--border-radius-md); cursor: pointer; font-weight: bold; height: 40px; display: flex; align-items: center; justify-content: center; gap: 4px; width: 100%; }
 
         .container-logs-cards { display: grid; grid-template-columns: 1fr; gap: 14px; margin-top: 10px; }
         @media(min-width: 700px) { .container-logs-cards { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); } }
@@ -293,7 +293,7 @@
         .pedido-log-card { background: #f8fafc; border: 1px solid var(--cor-borda); border-radius: var(--border-radius-lg); padding: 16px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: var(--shadow-sm); }
         .pedido-log-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--cor-borda); padding-bottom: 8px; margin-bottom: 10px; }
         .pedido-log-corpo { font-size: 14px; color: var(--cor-texto); line-height: 1.5; margin-bottom: 12px; }
-        .pedido-log-footer { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; border-top: 1px solid var(--cor-borda); padding-top: 12px; }
+        .pedido-log-footer { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; border-top: 1px solid var(--cor-borda); padding-top: 12px; width: 100%; }
         
         .status-badge { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; color: white; }
         .status-pendente { background-color: var(--cor-pendente); }
@@ -380,7 +380,7 @@
             <div class="main-grid">
                 
                 <div class="card active-tab-card" id="card-aba-venda">
-                    <h3>📝 Registrar Lançamento</h3>
+                    <h3 id="titulo-contexto-venda">📝 Registrar Lançamento</h3>
                     <form id="form-item" onsubmit="window.adicionarItem(event)">
                         <div class="secao-titulo">1. Dados do Cliente / Identificação</div>
                         <div class="form-row dois-campos">
@@ -481,14 +481,14 @@
                     </div>
 
                     <div id="dashboard-vendas-tela" class="dash-container-tela">
-                        <div class="bloco-metricas-caixa">
-                            <div class="card-metrica">
-                                <h4 id="titulo-faturamento-periodo">Faturamento no Período</h4>
-                                <p id="t-dash-faturamento">R$ 0.00</p>
+                        <div class="bloco-metricas-caixa" style="display: flex; gap: 10px; margin-bottom: 15px;">
+                            <div class="card-metrica" style="background:#f8fafc; padding:15px; border-radius:10px; border:1px solid var(--cor-borda); flex:1;">
+                                <h4 id="titulo-faturamento-periodo" style="margin:0; font-size:12px; color:var(--cor-texto-secundario);">Faturamento no Período</h4>
+                                <p id="t-dash-faturamento" style="margin:5px 0 0 0; font-size:22px; font-weight:800; color:var(--cor-aprovado);">R$ 0.00</p>
                             </div>
-                            <div class="card-metrica">
-                                <h4>Total de Pedidos Processados</h4>
-                                <p id="t-dash-qtd-pedidos">0</p>
+                            <div class="card-metrica" style="background:#f8fafc; padding:15px; border-radius:10px; border:1px solid var(--cor-borda); flex:1;">
+                                <h4 style="margin:0; font-size:12px; color:var(--cor-texto-secundario);">Total de Pedidos Processados</h4>
+                                <p id="t-dash-qtd-pedidos" style="margin:5px 0 0 0; font-size:22px; font-weight:800; color:var(--cor-texto);">0</p>
                             </div>
                         </div>
                         <div class="bloco-grafico-caixa">
@@ -704,11 +704,11 @@
             if (!pratoSelecionadoGlobal || !cardapioEstruturado[pratoSelecionadoGlobal]) { container.innerHTML = '<div style="color:var(--cor-texto-secundario); font-size:13px; grid-column: span 2;">Selecione o prato acima primeiro...</div>'; return; }
             cardapioEstruturado[pratoSelecionadoGlobal].forEach(opcao => {
                 const preco = tabelaPrecosDinamicos[pratoSelecionadoGlobal]?.[opcao] || 0;
-                container.innerHTML += `<div class="badge-option ${opcao === tipoSelecionadoGlobal ? 'selected' : ''}" onclick="window.signInWithPopupSelecionarTipoBadge('${opcao}', ${preco})"><div style="font-weight:700;">${opcao}</div><span>R$ ${parseFloat(preco).toFixed(2)}</span></div>`;
+                container.innerHTML += `<div class="badge-option ${opcao === tipoSelecionadoGlobal ? 'selected' : ''}" onclick="window.selecionarTipoBadge('${opcao}', ${preco})"><div style="font-weight:700;">${opcao}</div><span>R$ ${parseFloat(preco).toFixed(2)}</span></div>`;
             });
         };
 
-        window.signInWithPopupSelecionarTipoBadge = function(opcao, preco) { tipoSelecionadoGlobal = opcao; document.getElementById('valor').value = parseFloat(preco).toFixed(2); window.renderizarBadgesTipos(); };
+        window.selecionarTipoBadge = function(opcao, preco) { tipoSelecionadoGlobal = opcao; document.getElementById('valor').value = parseFloat(preco).toFixed(2); window.renderizarBadgesTipos(); };
 
         window.buscarClientePorTelefone = function(telDigitado) {
             if (idPedidoSendoAjustado) return;
@@ -811,7 +811,6 @@
         };
 
         window.reimprimirTicketPorId = function(pedidoId) {
-            // Localiza a posição real para mandar no cabeçalho impresso do ticket
             const index = totalizadorLocalPedidos.findIndex(p => p.id === pedidoId);
             const numeroCalculado = index !== -1 ? index + 1 : 1;
             const pedido = totalizadorLocalPedidos.find(p => p.id === pedidoId);
@@ -869,7 +868,7 @@
                     window.history.replaceState({}, document.title, window.location.pathname + "?cliente=true");
                     idPedidoSendoAjustado = null;
                 } else {
-                    const docCriado = await addDoc(collection(db, "pedidos"), dadosPedidoSincronizar);
+                    await addDoc(collection(db, "pedidos"), dadosPedidoSincronizar);
                     
                     if (isClienteView) {
                         let textoWhats = `*🔥 Novo Pedido - Tempero de Família*\n\n`;
@@ -887,7 +886,6 @@
                         const urlWhats = `https://api.whatsapp.com/send?phone=${TELEFONE_RESTAURANTE_FIXO}&text=${encodeURIComponent(textoWhats)}`;
                         executarDisparoWhatsDevice(urlWhats, 'whatsapp_restaurante');
                     } else {
-                        // Caixa interno de Balcão: joga a numeração baseada na contagem atual
                         window.imprimirDuplaVia(dadosPedidoSincronizar, totalizadorLocalPedidos.length + 1);
                     }
                 }
@@ -914,9 +912,7 @@
             containerPendentes.innerHTML = ''; containerHistorico.innerHTML = '';
             let countPendentes = 0;
 
-            // Mapeia a lista invertendo a ordem para os novos aparecerem primeiro no topo
             totalizadorLocalPedidos.forEach((p, index) => {
-                // CORREÇÃO CRÍTICA: Calcula o número de exibição real sequencial com base na posição dele no banco (index + 1)
                 const numeroExibicaoReal = index + 1;
 
                 const resumoItens = p.itens ? p.itens.map(i => {
@@ -926,6 +922,7 @@
 
                 const finBadgeClass = p.financeiro === 'Pago' ? 'fin-pago' : 'fin-pendente';
                 const finBadgeLabel = p.financeiro === 'Pago' ? '✅ PAGO' : '⚠️ PENDENTE';
+                
                 const htmlCard = `
                     <div class="pedido-log-card">
                         <div class="pedido-log-header">
@@ -964,7 +961,6 @@
                     </div>`;
 
                 if (p.status === "Pendente" || !p.status) {
-                    // Pedidos pendentes entram empilhados no container correspondente
                     containerPendentes.innerHTML = htmlCard + containerPendentes.innerHTML;
                     countPendentes++;
                 } else {
@@ -990,7 +986,7 @@
 
                     let celLimpo = pedido.rawClienteCelular.replace(/\D/g, "");
                     if(celLimpo.length >= 8) {
-                        let msgCliente = `Olá *${pedido.rawClienteNome}*, seu pedido *#${numeroCalculado}* foi *ACEITO* e já entrou em preparo na cozinha! 👨‍🍳🔥`;
+                        let msgCliente = `Olá *${pedido.rawClienteNome}*, seu pedido *#${String(numeroCalculado).padStart(2, '0')}* foi *ACEITO* e já entrou em preparo na cozinha! 👨‍🍳🔥`;
                         let urlNotificacao = `https://api.whatsapp.com/send?phone=55${celLimpo}&text=${encodeURIComponent(msgCliente)}`;
                         executarDisparoWhatsDevice(urlNotificacao, 'whatsapp_atendimento');
                     }
@@ -1007,7 +1003,7 @@
                 const pedido = totalizadorLocalPedidos.find(p => p.id === pedidoId);
                 if (pedido) {
                     const link = window.location.origin + window.location.pathname + "?cliente=true&pedidoId=" + pedidoId;
-                    let msg = `Olá *${pedido.rawClienteNome}*, acabou o item: *${motivoText}*.\nTroque por outra opção no link:\n${link}`;
+                    let msg = `Olá *${pedido.rawClienteNome}*, acabou o item: *${motivoText}*.\nTroque por outra option no link:\n${link}`;
                     executarDisparoWhatsDevice("https://api.whatsapp.com/send?phone=55" + pedido.rawClienteCelular.replace(/\D/g, "") + "&text=" + encodeURIComponent(msg), 'whatsapp_atendimento');
                 }
             } catch (e) { alert(e.message); }
@@ -1048,12 +1044,12 @@
                     inputsPrecoHtml += `<div class="input-preco-manage"><label>${tamanho}:</label><input type="number" step="0.01" value="${parseFloat(precoAtual).toFixed(2)}" onblur="window.atualizarPrecoNuvem('${prato}', '${tamanho}', this.value)"></div>`;
                 });
                 container.innerHTML += `
-                    <div class="item-cardapio-manage">
-                        <div class="manage-row-header">
+                    <div class="item-cardapio-manage" style="background:#f8fafc; border:1px solid var(--cor-borda); padding:10px; border-radius:8px; margin-bottom:10px;">
+                        <div class="manage-row-header" style="display:flex; justify-content:between; align-items:center; margin-bottom:8px;">
                             <input type="text" value="${prato}" style="font-weight:700; border:1px solid transparent; padding:4px 8px; background:transparent;" onfocus="this.style.backgroundColor='#fff'; this.style.borderColor='#cbd5e1'" onblur="this.style.backgroundColor='transparent'; this.style.borderColor='transparent'; window.alterarNomeItemMenuNuvem('${prato}', this.value)">
                             <label class="switch"><input type="checkbox" ${checked} onchange="window.alternarStatusDisponibilidade('${prato}', this.checked)"><span class="slider"></span></label>
                         </div>
-                        <div class="manage-precos-grid">${inputsPrecoHtml}</div>
+                        <div class="manage-precos-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">${inputsPrecoHtml}</div>
                     </div>`;
             });
         }
@@ -1084,7 +1080,6 @@
         };
 
         window.alternarStatusDisponibilidade = async function(prato, disponibilizar) { try { await setDoc(doc(db, "status_cardapio", prato), { disponivel: disponibilizar }, { merge: true }); } catch (e) {} };
-        window.updatesPrecoNuvem = async function(prato, tamanho, novoPreco) { try { await setDoc(doc(db, "status_cardapio", prato), { precos: { [tamanho]: parseFloat(novoPreco) } }, { merge: true }); } catch (e) {} };
         window.atualizarPrecoNuvem = async function(prato, tamanho, novoPreco) { try { await setDoc(doc(db, "status_cardapio", prato), { precos: { [tamanho]: parseFloat(novoPreco) } }, { merge: true }); } catch (e) {} };
 
         window.validarAcessoSecure = async function(event) {
@@ -1106,7 +1101,7 @@
         };
 
         window.calcularFechamentoDiario = function() {
-            document.getElementById('dashboard-vendas-tela').style.display = 'grid';
+            document.getElementById('dashboard-vendas-tela').style.display = 'block';
             const dataInicioStr = document.getElementById('filchamento-inicio').value; const dataFimStr = document.getElementById('filchamento-fim').value;       
             let pedidosFiltrados = totalizadorLocalPedidos.filter(p => p.status === "Aprovado");
             if (dataInicioStr || dataFimStr) {
