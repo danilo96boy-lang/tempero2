@@ -44,7 +44,7 @@
         }
 
         #tela-login {
-            display: none; /* Inicialmente oculto até conferir se o usuário já está logado */
+            display: none;
             flex-direction: column;
             justify-content: center;
             align-items: center;
@@ -76,7 +76,7 @@
         .brand-header {
             display: flex;
             align-items: center;
-            justify-content: space-between; /* Espaçado para o botão de sync caber na direita */
+            justify-content: space-between;
             gap: 12px;
             background: var(--cor-card);
             padding: 14px 16px;
@@ -280,7 +280,6 @@
         .btn-add:hover { background-color: var(--cor-principal-hover); }
         .btn-print { background-color: #16a34a; color: white; font-size: 16px; box-shadow: 0 4px 10px rgba(22, 163, 74, 0.2); }
         
-        /* CORREÇÃO DO FOOTER E BOTÕES (DOIS POR LINHA NO CARD DE APROVAÇÃO) */
         .pedido-footer-bloco { display: flex; flex-direction: column; gap: 8px; width: 100%; }
         .pedido-footer-linha { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; }
 
@@ -366,7 +365,6 @@
     <div id="conteudo-sistema">
         <div class="brand-header">
             <h1 id="sys-title">Tempero de Família - Painel Operacional</h1>
-            <!-- NOVO BOTÃO: ATUALIZAR MANUAL SEM DESLOGAR -->
             <button id="btn-manual-sync-id" class="btn" style="background:#1e293b; color:white; width:auto; padding:8px 14px; font-size:12px; display:none;" onclick="window.atualizarPainelManual()">🔄 Sincronizar</button>
         </div>
 
@@ -520,6 +518,8 @@
         </div>
     </div>
 
+    <div id="ticket-print"></div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
@@ -620,7 +620,6 @@
                     await carregarPedidoParaAjusteCliente(pId);
                 }
             } else {
-                // SESSÃO PERSISTENTE: Verifica se o atendente já estava conectado
                 onAuthStateChanged(auth, (user) => {
                     if (user && (user.email === "temperodefamilia366@gmail.com" || user.email === "danilo96boy@gmail.com")) {
                         document.getElementById('tela-login').style.display = 'none';
@@ -634,21 +633,17 @@
             }
             sincronizarCardapioNuvem();
 
-            // REFRESH AUTOMÁTICO A CADA 10 MINUTOS (600000 ms)
             setInterval(() => {
                 if(!isClienteView && auth.currentUser) {
-                    console.log("Auto-refresh de segurança executado.");
                     window.atualizarPainelManual();
                 }
             }, 600000);
         }
 
-        // FUNÇÃO DO BOTÃO MANUAL DE ATUALIZAÇÃO SEM PERDER LOGIN
         window.atualizarPainelManual = function() {
             if(auth.currentUser) {
                 escutarPedidosRealtime();
                 sincronizarCardapioNuvem();
-                console.log("Painel sincronizado manualmente.");
             }
         };
 
@@ -926,7 +921,7 @@
                         <div class="pedido-log-corpo">
                             <b>Data:</b> ${p.dataExibicao || p.data || ''} às ${p.hora || ''}<br>
                             <b>Cliente:</b> ${p.rawClienteNome || ''}<br><b>Endereço:</b> ${p.rawClienteEndereco || ''}<br>
-                            <div style="background:#fff; padding:8px; border-radius:6px; border:1px solid var(--cor-borda); margin:6px 0;">${resumoItens}</div>
+                            <div style="background:#fff; padding:6px; border-radius:6px; border:1px solid var(--cor-borda); margin:6px 0;">${resumoItens}</div>
                             <b>Total: <span style="color:var(--cor-principal)">R$ ${(p.total || 0).toFixed(2)}</span></b>
                         </div>
                         <div class="pedido-log-footer">
@@ -934,16 +929,14 @@
                                 <div class="pedido-footer-bloco">
                                     <input type="text" id="motivo-recusa-${p.id}" placeholder="Caso vá recusar, digite o motivo...">
                                     
-                                    <!-- GRID 1: STATUS DO PAGAMENTO E BOTÃO APROVAR -->
                                     <div class="pedido-footer-linha">
                                         <select id="fin-mod-${p.id}" style="padding:10px; font-size:13px; margin:0; height:40px; width:100%;">
                                             <option value="Pendente" ${p.financeiro === 'Pendente' ? 'selected' : ''}>⚠️ Pendente</option>
                                             <option value="Pago" ${p.financeiro === 'Pago' ? 'selected' : ''}>✅ Já Pago</option>
                                         </select>
-                                        <button class="btn-aprovar" onclick="window.aprovarPedidoWhats('${p.id}')">✅ Aprovar</button>
+                                        <button class="btn-aprovar" onclick="window.aprovarPedidoFluxoSilencioso('${p.id}')">✅ Aprovar</button>
                                     </div>
                                     
-                                    <!-- GRID 2: BOTÃO AJUSTE E BOTÃO CANCELAR -->
                                     <div class="pedido-footer-linha">
                                         <button class="btn-reprovar" onclick="window.reprovarPedidoParaAjuste('${p.id}')">🔄 Ajuste</button>
                                         <button class="btn-cancelar-def" onclick="window.cancelarPedidoDefinitivo('${p.id}')">❌ Cancelar</button>
@@ -960,22 +953,25 @@
             if(document.getElementById('badge-pendentes-id')) { document.getElementById('badge-pendentes-id').innerText = countPendentes; document.getElementById('badge-pendentes-id').style.display = countPendentes > 0 ? 'inline-block' : 'none'; }
         }
 
-        window.aprovarPedidoWhats = async function(pedidoId) {
+        // ========================================================
+        //  CORREÇÃO CRÍTICA: APROVAÇÃO SILENCIOSA SEM ABRIR ABAS
+        // ========================================================
+        window.aprovarPedidoFluxoSilencioso = async function(pedidoId) {
             try {
                 const selectFin = document.getElementById(`fin-mod-${pedidoId}`);
                 const financeiroAtualizado = selectFin ? selectFin.value : "Pendente";
                 const pRef = doc(db, "pedidos", pedidoId);
                 
+                // 1. Atualiza no servidor
                 await updateDoc(pRef, { status: "Aprovado", financeiro: financeiroAtualizado });
                 
+                // 2. Imprime as vias locais imediatamente na via térmica sem sair da tela
                 const pedido = totalizadorLocalPedidos.find(p => p.id === pedidoId);
                 if (pedido) {
                     pedido.financeiro = financeiroAtualizado;
                     window.imprimirDuplaVia(pedido);
-                    let msg = `Olá *${pedido.rawClienteNome}*, seu pedido *#${pedido.numero}* foi *ACEITO*!`;
-                    executarDisparoWhatsDevice("https://api.whatsapp.com/send?phone=55" + pedido.rawClienteCelular.replace(/\D/g, "") + "&text=" + encodeURIComponent(msg), 'whatsapp_atendimento');
                 }
-            } catch (e) { alert(e.message); }
+            } catch (e) { alert("Erro ao aprovar: " + e.message); }
         };
 
         window.reprovarPedidoParaAjuste = async function(pedidoId) {
@@ -1078,7 +1074,7 @@
                     document.getElementById('btn-manual-sync-id').style.display = 'inline-block';
                     escutarPedidosRealtime();
                 } else {
-                    alert("Acesso Negado! O e-mail " + emailUsuarioLogado + " não possui credenciais.");
+                    alert("Acesso Negado!");
                     await auth.signOut();
                 }
             } catch (erro) { alert("Falha na autenticação: " + erro.message); }
